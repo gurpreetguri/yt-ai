@@ -31,6 +31,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const PROMPT_ASSETS = [
   { agentPackage: 'agent-00-strategy' },
   { agentPackage: 'agent-01-topic-discovery' },
+  { agentPackage: 'agent-02-research' },
 ];
 
 let failed = false;
