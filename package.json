@@ -58,7 +58,8 @@
     "moduleNameMapper": {
       "^@agents/agent-00-strategy/(.*)$": "<rootDir>/agents/agent-00-strategy/$1",
       "^@agents/agent-01-topic-discovery/(.*)$": "<rootDir>/agents/agent-01-topic-discovery/$1",
-      "^@agents/agent-02-research/(.*)$": "<rootDir>/agents/agent-02-research/$1"
+      "^@agents/agent-02-research/(.*)$": "<rootDir>/agents/agent-02-research/$1",
+      "^@agents/agent-03-fact-verification/(.*)$": "<rootDir>/agents/agent-03-fact-verification/$1"
     },
     "collectCoverageFrom": ["src/**/*.(t|j)s"],
     "coverageDirectory": "./coverage"

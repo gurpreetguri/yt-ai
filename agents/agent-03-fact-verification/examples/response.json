@@ -1,0 +1,376 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVED",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVEB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVEA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVEB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVEC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T09:20:41.552Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "fact-verification-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_fact_verification_agent@sha256:7c2e4a9b1d6f0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0, "topP": 1, "seed": 20260902, "maxOutputTokens": 8000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "packageKind": "VERIFICATION_PACKAGE",
+    "topicId": "TOPIC_TAX_SEASON",
+    "claims": [
+      {
+        "claimId": "CLAIM_W2_BOX1_MECHANISM",
+        "claimText": "W-2 Box 1 reports federal taxable wages, which is lower than gross salary because it excludes certain pre-tax deductions such as 401(k) contributions and cafeteria plan benefits.",
+        "claimType": "TECHNICAL_FACT",
+        "researchQuestionId": "QUESTION_CORE_W2_BOXES",
+        "supportingEvidenceIds": ["EVIDENCE_W2_BOX1_WAGES"],
+        "contradictingEvidenceIds": [],
+        "sourceIds": ["SOURCE_IRS_W2_GUIDE"],
+        "verificationStatus": "VERIFIED",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.95, "rationale": "The evidence directly and specifically states this mechanism in the IRS's own words." },
+          "sourceAuthority": { "score": 1.0, "rationale": "The IRS is the definitive authority for the meaning of its own form." },
+          "corroborationStrength": { "score": 0.3, "rationale": "Only one source was supplied; no second source independently restates this mechanism." },
+          "freshness": { "score": 0.9, "rationale": "The source was last updated within the current filing season." }
+        },
+        "rationale": "The supplied evidence is a direct, FETCHED excerpt from the IRS's own official guidance on Form W-2, naming the exact mechanism (exclusion of specified pre-tax deductions) the claim describes, with no contradicting evidence in the supplied package.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "Only one source was supplied for this claim; corroboration was not attempted."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "rationale": "The mechanism by which Box 1 excludes certain pre-tax deductions is structural to the form and does not fluctuate with the calendar."
+        },
+        "limitations": [],
+        "notesForDownstream": "Safe to state directly; do not generalize beyond the two deduction types the evidence names (see CLAIM_BOX1_OVERGENERALIZED).",
+        "downstreamSafety": "SAFE_TO_USE"
+      },
+      {
+        "claimId": "CLAIM_BOX1_OVERGENERALIZED",
+        "claimText": "W-2 Box 1 excludes every category of pre-tax employee benefit from taxable wages, not just retirement and cafeteria-plan contributions.",
+        "claimType": "TECHNICAL_FACT",
+        "researchQuestionId": "QUESTION_CORE_W2_BOXES",
+        "supportingEvidenceIds": ["EVIDENCE_W2_BOX1_WAGES"],
+        "contradictingEvidenceIds": [],
+        "sourceIds": ["SOURCE_IRS_W2_GUIDE"],
+        "verificationStatus": "PARTIALLY_SUPPORTED",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.4, "rationale": "The evidence names two specific deduction types, not an exhaustive category." },
+          "sourceAuthority": { "score": 1.0, "rationale": "The IRS is authoritative for what it does state." },
+          "corroborationStrength": { "score": 0.2, "rationale": "Single source, and it does not itself claim exhaustiveness." },
+          "freshness": { "score": 0.9, "rationale": "The source is current for the filing season." }
+        },
+        "rationale": "The supplied evidence supports that 401(k) contributions and cafeteria plan benefits are excluded from Box 1, but it does not state or imply that every category of pre-tax benefit is excluded; the claim as written overgeneralizes a specific, evidenced mechanism into an unqualified blanket rule the evidence does not make.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "Single source; the concern here is claim scope, not corroboration."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "rationale": "The scope question does not depend on the calendar."
+        },
+        "limitations": [
+          "Supplied evidence names only two specific deduction types; it does not establish that Box 1 excludes every category of pre-tax benefit."
+        ],
+        "notesForDownstream": "Narrow this claim to the two deduction types the evidence actually names, or qualify it explicitly as a non-exhaustive list.",
+        "downstreamSafety": "USE_WITH_QUALIFICATION"
+      },
+      {
+        "claimId": "CLAIM_QUOTE_IRS_21_DAYS",
+        "claimText": "The IRS was quoted as stating that most taxpayers who file electronically and choose direct deposit should expect their refund within 21 days of filing.",
+        "claimType": "QUOTE",
+        "researchQuestionId": "QUESTION_REFUND_TIMELINE",
+        "supportingEvidenceIds": ["EVIDENCE_REFUND_21_DAYS"],
+        "contradictingEvidenceIds": [],
+        "sourceIds": ["SOURCE_REUTERS_REFUND"],
+        "verificationStatus": "VERIFIED",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.9, "rationale": "The evidence is an exact quotation, not a paraphrase, attributed to the IRS." },
+          "sourceAuthority": { "score": 0.75, "rationale": "A wire service directly reporting the IRS's own statement." },
+          "corroborationStrength": { "score": 0.2, "rationale": "Only one source reports this exact wording." },
+          "freshness": { "score": 0.95, "rationale": "Dated within the current filing season." }
+        },
+        "rationale": "The supplied evidence is an exact QUOTATION-type excerpt, sourced from a FETCHED Reuters article that explicitly attributes the statement to the IRS, satisfying this agent's quote-verification requirement; the claim only asserts that the statement was made, not that the underlying figure holds in every case.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "Only one source reports this exact quotation; no second independent source was supplied to corroborate the wording."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "rationale": "This claim concerns whether the statement was made, not whether the estimate it describes still holds; the estimate's own currency is assessed separately."
+        },
+        "quoteProvenance": {
+          "speaker": "Internal Revenue Service (as reported by Reuters)",
+          "speakerConfirmed": true,
+          "contextAvailable": true,
+          "rationale": "The Reuters article explicitly attributes this statement to the IRS in reporting the season's opening announcement."
+        },
+        "limitations": [],
+        "downstreamSafety": "SAFE_TO_USE"
+      },
+      {
+        "claimId": "CLAIM_REFUND_21_DAYS",
+        "claimText": "IRS refunds for e-filed returns with direct deposit are issued within 21 days this filing season.",
+        "claimType": "STATISTIC",
+        "researchQuestionId": "QUESTION_REFUND_TIMELINE",
+        "supportingEvidenceIds": ["EVIDENCE_REFUND_21_DAYS"],
+        "contradictingEvidenceIds": ["EVIDENCE_REFUND_DELAYS_REPORTED"],
+        "sourceIds": ["SOURCE_REUTERS_REFUND", "SOURCE_FORUM_BOX12"],
+        "verificationStatus": "CONFLICTING",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.5, "rationale": "One FETCHED, authoritative statement against one WEAK, anecdotal counter-report." },
+          "sourceAuthority": { "score": 0.6, "rationale": "The supporting source is far more authoritative than the contradicting one, but the contradicting reports cannot be dismissed outright without more information." },
+          "corroborationStrength": { "score": 0.3, "rationale": "Each side has exactly one source; neither is independently corroborated." },
+          "freshness": { "score": 0.8, "rationale": "Both sides are current for the season; recency is not the source of the disagreement." }
+        },
+        "rationale": "Reuters reports the IRS's own 21-day estimate from a FETCHED, authoritative source, while a community forum reports refunds taking eight weeks or more; the supplied materials do not establish whether the delayed cases fall within an exception the IRS statement itself carves out (returns claiming certain credits), so the disagreement cannot be responsibly resolved from what was supplied.",
+        "corroboration": {
+          "independentSourceIds": ["SOURCE_REUTERS_REFUND", "SOURCE_FORUM_BOX12"],
+          "derivativeSourceIds": [],
+          "rationale": "The wire-service report and the community forum thread originate independently of one another — they are not copies of the same underlying source — though they disagree rather than corroborate."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": true,
+          "freshnessConcern": "NONE",
+          "mostRecentEvidenceDate": "2027-01-20",
+          "rationale": "Both the supporting and contradicting evidence are dated within the current filing season; staleness is not the source of the disagreement."
+        },
+        "limitations": [
+          "The forum reports are anecdotal and unverified; the true prevalence of delayed refunds this season cannot be established from the supplied materials."
+        ],
+        "notesForDownstream": "State the 21-day figure as the IRS's typical guidance while explicitly noting that some filers report longer waits this season; do not present either figure as the sole outcome.",
+        "downstreamSafety": "USE_WITH_QUALIFICATION"
+      },
+      {
+        "claimId": "CLAIM_BOX12_CODE_D",
+        "claimText": "W-2 Box 12 code D denotes elective deferrals to a 401(k) cash or deferred arrangement.",
+        "claimType": "DEFINITION",
+        "researchQuestionId": "QUESTION_BOX12_DEFINITION",
+        "supportingEvidenceIds": ["EVIDENCE_BOX12_CODE_D"],
+        "contradictingEvidenceIds": [],
+        "sourceIds": ["SOURCE_ADP_BLOG"],
+        "verificationStatus": "INSUFFICIENT_EVIDENCE",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.4, "rationale": "The single supporting item states the definition plainly, but is not authoritative for the tax code itself." },
+          "sourceAuthority": { "score": 0.45, "rationale": "A payroll processor's general explainer, not the IRS or a standards body." },
+          "corroborationStrength": { "score": 0.0, "rationale": "Only one source was supplied for this definition." },
+          "freshness": { "score": 0.5, "rationale": "No publication date was captured for the supplying source." }
+        },
+        "rationale": "The only supplied evidence for this code definition is a SEARCH_RESULT_ONLY snippet from a payroll company's general explainer; no IRS or standards-body primary source was supplied (matching researchPackage gap GAP_BOX12_NO_PRIMARY), so this agent cannot reach VERIFIED — a single non-primary, unfetched source is insufficient for a tax-code definition.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "Only one non-primary source was supplied for this definition; no corroboration exists."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": true,
+          "freshnessConcern": "MINOR",
+          "rationale": "No publication date was captured for the supplying source, limiting confidence that this reflects the current tax code section, though the definition itself is not known to have recently changed."
+        },
+        "limitations": [
+          "Only a company blog search snippet supports this definition; no IRS or standards-body primary source was found in the supplied materials."
+        ],
+        "notesForDownstream": "Do not present this Box 12 code definition as authoritative without independent confirmation from IRS instructions; qualify or omit.",
+        "downstreamSafety": "DO_NOT_USE"
+      },
+      {
+        "claimId": "CLAIM_CAUSAL_REFUND_DELAY",
+        "claimText": "The eight-week refund delays some filers reported were caused by their returns claiming credits subject to mandatory IRS review.",
+        "claimType": "CAUSAL_CLAIM",
+        "researchQuestionId": "QUESTION_REFUND_TIMELINE",
+        "supportingEvidenceIds": ["EVIDENCE_REFUND_DELAYS_REPORTED"],
+        "contradictingEvidenceIds": [],
+        "sourceIds": ["SOURCE_FORUM_BOX12"],
+        "verificationStatus": "INSUFFICIENT_EVIDENCE",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.2, "rationale": "The evidence reports delays occurred; it does not establish or investigate their cause." },
+          "sourceAuthority": { "score": 0.1, "rationale": "Anonymous forum reports carry no institutional backing." },
+          "corroborationStrength": { "score": 0.0, "rationale": "A single anecdotal source." },
+          "freshness": { "score": 0.4, "rationale": "Undated forum evidence." }
+        },
+        "rationale": "The supplied forum evidence reports that delays occurred but never investigates or explains why; the credit-review explanation appears only as an unconfirmed hypothesis in researchPackage's own conflict record (CONFLICT_REFUND_TIMELINE.possibleReason), not as something the evidence establishes, so causation cannot be verified.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "Single anecdotal source; no independent evidence establishes or corroborates a causal mechanism."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": true,
+          "freshnessConcern": "MINOR",
+          "rationale": "Undated forum evidence limits confidence in current applicability."
+        },
+        "causalAnalysis": {
+          "correlationEvidenceIds": ["EVIDENCE_REFUND_DELAYS_REPORTED"],
+          "mechanismExplained": false,
+          "confoundersConsidered": false,
+          "rationale": "The supplied evidence shows delays were reported, which is a correlation with the filing season at most; it does not explain a mechanism connecting credit-review status to the delays, nor does it rule out other explanations (processing volume, individual filing errors, timing of submission)."
+        },
+        "limitations": [
+          "The credit-review explanation is asserted only as a hypothesis in Agent 02's conflict record, not established by direct evidence.",
+          "No source explains the causal mechanism or rules out alternative explanations for the reported delays."
+        ],
+        "notesForDownstream": "Do not present mandatory-review credits as a confirmed cause of the reported delays; if mentioned at all, frame strictly as an unconfirmed possible explanation.",
+        "downstreamSafety": "DO_NOT_USE"
+      },
+      {
+        "claimId": "CLAIM_TIMELINE_CHANGE",
+        "claimText": "IRS refund processing timelines have changed for the current filing season compared to prior years.",
+        "claimType": "EVENT",
+        "researchQuestionId": "QUESTION_TIMELINE_CHANGE",
+        "supportingEvidenceIds": [],
+        "contradictingEvidenceIds": [],
+        "sourceIds": [],
+        "verificationStatus": "UNSUPPORTED",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.0, "rationale": "No evidence in the supplied package addresses this question at all." },
+          "sourceAuthority": { "score": 0.0, "rationale": "No source was supplied for this claim." },
+          "corroborationStrength": { "score": 0.0, "rationale": "No evidence to corroborate." },
+          "freshness": { "score": 0.0, "rationale": "No evidence exists to assess freshness against." }
+        },
+        "rationale": "No evidence item in the supplied research package addresses whether IRS refund processing timelines changed for the current season compared to prior years; this matches researchPackage gap GAP_TIMELINE_INSUFFICIENT exactly, which already flagged this absence.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "No evidence was supplied for this claim; corroboration is inapplicable."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": true,
+          "freshnessConcern": "NONE",
+          "rationale": "No evidence exists to assess freshness against."
+        },
+        "limitations": [
+          "No supplied material addresses this specific question; see researchPackage gap GAP_TIMELINE_INSUFFICIENT."
+        ],
+        "notesForDownstream": "Do not use; recommend the workflow schedule the follow-up search Agent 02 already proposed (FOLLOWUP_REFUND_TIMELINE_CHANGE) before this claim can be evidenced.",
+        "downstreamSafety": "DO_NOT_USE"
+      },
+      {
+        "claimId": "CLAIM_OPINION_STRESSFUL",
+        "claimText": "Filing a first tax return is one of the most stressful financial experiences a young worker faces.",
+        "claimType": "OPINION",
+        "researchQuestionId": "QUESTION_CORE_W2_BOXES",
+        "supportingEvidenceIds": [],
+        "contradictingEvidenceIds": [],
+        "sourceIds": [],
+        "verificationStatus": "NOT_VERIFIABLE",
+        "verificationConfidence": {
+          "evidenceStrength": { "score": 0.0, "rationale": "Opinions are not the kind of statement evidence establishes or refutes." },
+          "sourceAuthority": { "score": 0.0, "rationale": "Not applicable to a subjective characterisation." },
+          "corroborationStrength": { "score": 0.0, "rationale": "Not applicable." },
+          "freshness": { "score": 0.0, "rationale": "Not applicable." }
+        },
+        "rationale": "This is a subjective characterisation of how stressful an experience is, not a factual proposition supplied evidence can support or contradict; classified NOT_VERIFIABLE per this agent's closed handling of OPINION claims, regardless of how confidently the statement reads.",
+        "corroboration": {
+          "independentSourceIds": [],
+          "derivativeSourceIds": [],
+          "rationale": "Not applicable to an opinion claim."
+        },
+        "freshnessAssessment": {
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "rationale": "Opinions are not time-sensitive factual claims."
+        },
+        "limitations": [
+          "Subjective opinion; not verifiable against evidence by design, not due to a lack of research effort."
+        ],
+        "downstreamSafety": "DO_NOT_USE"
+      }
+    ],
+    "conflicts": [
+      {
+        "conflictId": "CONFLICT_CLAIM_REFUND_TIMELINE",
+        "claimId": "CLAIM_REFUND_21_DAYS",
+        "description": "Reuters reports the IRS's own 21-day refund estimate, while a community forum discussion reports refunds taking eight weeks or more this season, for the same underlying claim.",
+        "supportingEvidenceIds": ["EVIDENCE_REFUND_21_DAYS"],
+        "contradictingEvidenceIds": ["EVIDENCE_REFUND_DELAYS_REPORTED"],
+        "natureOfConflict": "SCOPE_DIFFERENCE",
+        "unresolvedReason": "The forum reports may reflect returns claiming credits subject to mandatory review, a scope the Reuters-reported 21-day estimate explicitly excludes; the supplied evidence does not confirm or rule out this explanation, so the disagreement remains unresolved."
+      }
+    ],
+    "verificationSummary": {
+      "totalClaims": 8,
+      "verifiedCount": 2,
+      "partiallySupportedCount": 1,
+      "unsupportedCount": 1,
+      "contradictedCount": 0,
+      "insufficientEvidenceCount": 2,
+      "conflictingCount": 1,
+      "outdatedCount": 0,
+      "notVerifiableCount": 1,
+      "safeToUseCount": 2,
+      "useWithQualificationCount": 2,
+      "doNotUseCount": 4,
+      "overallReadiness": true,
+      "readinessRationale": "Two claims are fully verified and safe to use as-is. The refund-timeline conflict and the overgeneralized Box 1 claim are usable with qualification. The Box 12 definition, the causal delay claim, the timeline-change claim, and the opinion claim are not safe to use as stated. Agent 04 can proceed by building on the SAFE_TO_USE and USE_WITH_QUALIFICATION claims and omitting the rest."
+    },
+    "assumptions": [
+      {
+        "assumptionKey": "ASSUMPTION_SEASON_CONTEXT",
+        "statement": "Assumed every claim's supporting evidence corresponds to the same filing season referenced throughout the research package, since no explicit season identifier beyond individual source dates was supplied.",
+        "basis": "RESEARCH_PACKAGE",
+        "path": "$.claims[3]"
+      }
+    ],
+    "declaredUnknowns": [],
+    "inputSufficiency": {
+      "value": 0.68,
+      "basis": "SELF_REPORTED",
+      "limitations": [
+        "Only four evidence items were supplied across four research questions; several claims rest on a single source.",
+        "No evidence addressed whether the refund timeline changed from prior seasons, leaving that claim entirely unsupported."
+      ]
+    }
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 18420,
+    "costMicroUsd": 29800,
+    "inputTokens": 3480,
+    "outputTokens": 4120,
+    "finishReason": "COMPLETE",
+    "resourceClass": "verification-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVEA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "ARTIFACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVCD",
+      "version": "1.0.0",
+      "role": "SUPERSEDES",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_fact_verification_agent",
+      "version": "1.0.0",
+      "integrity": "sha256:7c2e4a9b1d6f0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

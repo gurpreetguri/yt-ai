@@ -1,0 +1,627 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:fact-verification-agent-output:v1",
+  "title": "Fact Verification Agent Response",
+  "description": "RESPONSE / ERROR contract produced by AGT-03 fact-verification-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Verification Package. The model emits `#/$defs/verificationPackage` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). This agent verifies claims AGAINST SUPPLIED EVIDENCE ONLY (README §3): model knowledge is never evidence, and a verificationStatus of VERIFIED never means 'independently known to be true' — it means 'the supplied evidence, examined under this contract's rules, supports this claim.' Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "oneOf": [
+    { "$ref": "#/$defs/successResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+
+  "$defs": {
+
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "data"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "RESPONSE" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": {
+          "description": "PARTIAL is prohibited for this agent: a partially-verified claim set is a failure (STD-000 §5.3). A claim set dominated by UNSUPPORTED/NOT_VERIFIABLE claims because the supplied evidence was thin is still SUCCESS — an honest low-confidence verdict is not a system failure.",
+          "const": "SUCCESS"
+        },
+        "data": { "$ref": "#/$defs/verificationPackage" },
+        "issues": {
+          "description": "Non-blocking warnings alongside data (GDE-003 §9.2). Present only when at least one warning exists; never present-and-empty. Unordered. 1-20 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "validation": { "$ref": "#/$defs/validationBlock" },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "errorResponse": {
+      "description": "Produced when no work product exists: typed failure or refusal (GDE-003 §9.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "issues"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "ERROR" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": { "const": "FAILURE" },
+        "issues": {
+          "description": "All failures are reported together, never one at a time (STD-000 §6.2). Unordered. 1-50 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "isoTimestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "calendarDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "bcp47Tag": { "type": "string", "minLength": 2, "maxLength": 20, "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$" },
+    "prefixedId": { "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "localKey": {
+      "description": "Response-local stable key. Unique within its containing array.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+    "jsonPath": {
+      "description": "Machine-readable location within this document, rooted at `$.` (STD-000 §8.1).",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^\\$\\.[A-Za-z0-9_.\\[\\]]+$"
+    },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "responseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "causationId", "createdAt", "locale", "tenantId", "channelId", "producer", "agentId", "agentVersion", "promptVersion"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId" },
+        "runId": { "$ref": "#/$defs/prefixedId" },
+        "nodeId": { "$ref": "#/$defs/prefixedId" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag" },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        },
+        "agentId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "agentVersion": { "$ref": "#/$defs/semanticVersion" },
+        "promptVersion": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "provider": { "description": "Audit only. MUST NOT influence any consumer's behaviour (STD-000 Rule 5).", "type": "string", "minLength": 2, "maxLength": 64 },
+        "modelId": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "modelVersion": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["temperature", "topP"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "topP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seed": { "type": "integer", "minimum": 0 },
+            "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 200000 }
+          }
+        }
+      }
+    },
+
+    "executionBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "attemptType", "durationMs", "costMicroUsd", "outcome"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "attemptType": { "type": "string", "enum": ["INITIAL", "REPAIR", "REGENERATION"] },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "costMicroUsd": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "finishReason": { "type": "string", "enum": ["COMPLETE", "TRUNCATED", "REFUSED", "ERROR"] },
+        "resourceClass": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "outcome": { "type": "string", "enum": ["SUCCESS", "FAILURE"] }
+      }
+    },
+
+    "validationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "stages", "findings"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["PASSED", "PASSED_WITH_WARNINGS", "FAILED", "BLOCKED", "INCONCLUSIVE"] },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "outcome", "durationMs"],
+            "properties": {
+              "stage": { "type": "string", "enum": ["STRUCTURAL", "BUSINESS", "CONSISTENCY", "QUALITY", "POLICY", "HUMAN"] },
+              "outcome": { "type": "string", "enum": ["PASSED", "FAILED", "BLOCKED", "INCONCLUSIVE", "SKIPPED"] },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 300,
+          "items": { "$ref": "#/$defs/validationFinding" }
+        },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "AGGREGATE"] }
+          }
+        }
+      }
+    },
+
+    "validationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "path", "message", "basis"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING", "INFO"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "message": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "suggestion": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "HUMAN"] }
+      }
+    },
+
+    "errorObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "severity", "retryable", "message", "source", "context", "occurredAt"],
+      "properties": {
+        "code": {
+          "description": "Registered catalogue code, CATEGORY.SUBJECT.CONDITION, maximum four segments (STD-000 §8.4).",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "VALIDATION", "AI_PROVIDER", "AI_OUTPUT", "NETWORK", "EXTERNAL_API", "TIMEOUT",
+            "RATE_LIMIT", "QUOTA", "AUTH", "PERMISSION", "SECURITY", "POLICY_COMPLIANCE",
+            "CONFIGURATION", "RESOURCE", "DATA_INTEGRITY", "WORKFLOW", "BUDGET", "UNKNOWN"
+          ]
+        },
+        "severity": { "type": "string", "enum": ["FATAL", "ERROR", "WARNING", "INFO"] },
+        "retryable": { "type": "boolean" },
+        "message": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "userMessage": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "version", "stage"],
+          "properties": {
+            "component": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" },
+            "stage": { "type": "string", "enum": ["INPUT_VALIDATION", "INVOCATION", "OUTPUT_PARSE", "OUTPUT_VALIDATION", "BUSINESS_VALIDATION"] }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correlationId"],
+          "properties": {
+            "correlationId": { "$ref": "#/$defs/prefixedId" },
+            "runId": { "$ref": "#/$defs/prefixedId" },
+            "nodeId": { "$ref": "#/$defs/prefixedId" },
+            "attempt": { "type": "integer", "minimum": 1, "maximum": 10 }
+          }
+        },
+        "details": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 }
+            }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "occurredAt": { "$ref": "#/$defs/isoTimestamp" },
+        "causeChain": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+              "message": { "type": "string", "minLength": 5, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "scoreDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "rationale"],
+      "properties": {
+        "score": { "$ref": "#/$defs/ratio" },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+      }
+    },
+
+    "verificationPackage": {
+      "description": "THE VERIFICATION PACKAGE. The single deliverable of this agent — the claim-verification layer that completes the D1 research dossier (ARC-001 §5.3, §4.3: 'established facts, each with a verifiable source reference'). Every claim here is graded against SUPPLIED EVIDENCE ONLY (README §3); VERIFIED never means 'true in the world,' it means 'the supplied evidence, examined under this contract's deterministic rules, supports this claim.'",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageKind", "topicId", "claims", "conflicts", "verificationSummary",
+        "assumptions", "declaredUnknowns", "inputSufficiency"
+      ],
+      "properties": {
+        "packageKind": { "const": "VERIFICATION_PACKAGE" },
+
+        "topicId": { "$ref": "#/$defs/localKey", "description": "Echoes the request's researchPackage.topicId." },
+
+        "claims": {
+          "description": "Claims identified FROM the supplied research package and verified against its evidence (README §8). Unordered. 1-60 items. claimId unique (R-BUS-001).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 60,
+          "items": { "$ref": "#/$defs/claim" }
+        },
+
+        "conflicts": {
+          "description": "Claim-level conflicts: credible evidence both supports and contradicts a claim (README §12). Never silently resolved. Unordered. 0-30 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 30,
+          "items": { "$ref": "#/$defs/verificationConflict" }
+        },
+
+        "verificationSummary": { "$ref": "#/$defs/verificationSummary" },
+
+        "assumptions": {
+          "description": "Every judgement not directly stated by an input block. Unordered. 0-10 items. Empty array means every element was directly derivable.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["assumptionKey", "statement", "basis", "path"],
+            "properties": {
+              "assumptionKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 15, "maxLength": 300 },
+              "basis": { "type": "string", "enum": ["RESEARCH_PACKAGE", "LANGUAGE"] },
+              "path": { "$ref": "#/$defs/jsonPath" }
+            }
+          }
+        },
+
+        "declaredUnknowns": {
+          "description": "The declared-unknown mechanism (STD-000 §3.4). Every path MUST address a field absent from this document (R-BUS-020). Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "$ref": "#/$defs/jsonPath" },
+              "reason": {
+                "type": "string",
+                "enum": ["INPUT_NOT_SUPPLIED", "EVIDENCE_INSUFFICIENT", "NOT_DETERMINABLE_FROM_SUPPLIED_EVIDENCE"]
+              }
+            }
+          }
+        },
+
+        "inputSufficiency": {
+          "description": "A statement about INPUTS (the supplied research package), not about this agent's own output quality (GDE-002 §9.5).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis", "limitations"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "const": "SELF_REPORTED" },
+            "limitations": {
+              "type": "array", "minItems": 0, "maxItems": 5,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        }
+      }
+    },
+
+    "claimType": {
+      "type": "string",
+      "enum": [
+        "STATISTIC", "DATE", "DEFINITION", "TECHNICAL_FACT", "PRODUCT_FACT", "COMPARISON", "PRICE",
+        "REGULATION", "EVENT", "HISTORICAL_FACT", "QUOTE", "CAUSAL_CLAIM", "OPINION", "FORECAST", "OTHER"
+      ]
+    },
+
+    "verificationStatus": {
+      "description": "Closed, non-overlapping taxonomy (README §9). Exactly one status per claim; no claim is simultaneously two of these.",
+      "type": "string",
+      "enum": [
+        "VERIFIED", "PARTIALLY_SUPPORTED", "UNSUPPORTED", "CONTRADICTED",
+        "INSUFFICIENT_EVIDENCE", "CONFLICTING", "OUTDATED", "NOT_VERIFIABLE"
+      ]
+    },
+
+    "downstreamSafety": {
+      "description": "The ONLY field a downstream content agent (Agent 04) needs to decide claim usability — never inferred from prose (README §16). Fixed mapping to verificationStatus, enforced by R-BUS-017.",
+      "type": "string",
+      "enum": ["SAFE_TO_USE", "USE_WITH_QUALIFICATION", "DO_NOT_USE"]
+    },
+
+    "freshnessConcern": { "type": "string", "enum": ["NONE", "MINOR", "MODERATE", "SEVERE"] },
+
+    "freshnessAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isTimeSensitive", "freshnessConcern", "rationale"],
+      "properties": {
+        "isTimeSensitive": { "type": "boolean", "description": "Whether this claim's truth value can plausibly change over time (prices, versions, regulations, rankings, current events)." },
+        "freshnessConcern": { "$ref": "#/$defs/freshnessConcern" },
+        "mostRecentEvidenceDate": { "$ref": "#/$defs/calendarDate", "description": "The most recent relevant date among the claim's supporting evidence, where determinable." },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+      }
+    },
+
+    "quoteProvenance": {
+      "description": "Required only when claimType is QUOTE (R-BUS-013). A quote is never VERIFIED without this (README §14).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["speaker", "speakerConfirmed", "contextAvailable", "rationale"],
+      "properties": {
+        "speaker": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "speakerConfirmed": { "type": "boolean", "description": "Whether the supplied evidence itself identifies the speaker, not inferred or assumed." },
+        "contextAvailable": { "type": "boolean", "description": "Whether the supplied evidence includes enough surrounding context to avoid a misleading excerpt." },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+      }
+    },
+
+    "causalAnalysis": {
+      "description": "Required only when claimType is CAUSAL_CLAIM (R-BUS-014). Correlation alone never establishes VERIFIED causation (README §13).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correlationEvidenceIds", "mechanismExplained", "confoundersConsidered", "rationale"],
+      "properties": {
+        "correlationEvidenceIds": {
+          "description": "Evidence establishing the observed correlation. 0-10 items.",
+          "type": "array", "minItems": 0, "maxItems": 10,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "mechanismExplained": { "type": "boolean", "description": "Whether the supplied evidence explains a causal mechanism, not merely a coincidence in timing." },
+        "confoundersConsidered": { "type": "boolean", "description": "Whether the supplied evidence addresses or rules out plausible alternative explanations." },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 400 }
+      }
+    },
+
+    "calculationCheck": {
+      "description": "Present only when the claim depends on arithmetic or a deterministic calculation (README §15). resultMatches MUST be the deterministic comparison of expectedResult against computedResult (R-BUS-015).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputsDescription", "formula", "expectedResult", "computedResult", "resultMatches"],
+      "properties": {
+        "inputsDescription": { "type": "string", "minLength": 10, "maxLength": 400, "description": "The input figures used, each traceable to supplied evidence." },
+        "formula": { "type": "string", "minLength": 3, "maxLength": 300 },
+        "expectedResult": { "type": "number", "description": "The result the claim itself asserts." },
+        "computedResult": { "type": "number", "description": "The result this agent computed from the described inputs and formula." },
+        "resultMatches": { "type": "boolean" }
+      }
+    },
+
+    "corroboration": {
+      "description": "Distinguishes independent corroboration from derivative/syndicated repetition (README §11). Two copies of the same underlying source are never counted as independent.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independentSourceIds", "derivativeSourceIds", "rationale"],
+      "properties": {
+        "independentSourceIds": {
+          "description": "sourceId values judged to originate independently of one another. 0-10 items.",
+          "type": "array", "minItems": 0, "maxItems": 10,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "derivativeSourceIds": {
+          "description": "sourceId values judged to be a derivative, syndicated, or repeating copy of another counted source, and therefore excluded from independent corroboration. 0-10 items.",
+          "type": "array", "minItems": 0, "maxItems": 10,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+      }
+    },
+
+    "verificationConfidence": {
+      "description": "Four transparent, independently-scored dimensions (README §10). No single unexplained confidence number.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceStrength", "sourceAuthority", "corroborationStrength", "freshness"],
+      "properties": {
+        "evidenceStrength": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = no usable evidence. 1.0 = direct, specific, unambiguous evidence for exactly this claim." },
+        "sourceAuthority": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = no authoritative source among the cited evidence. 1.0 = the cited evidence includes a definitive, primary/official FETCHED source." },
+        "corroborationStrength": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = a single source, or only derivative copies. 1.0 = multiple independently-originating sources agree." },
+        "freshness": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = evidence is stale relative to this claim's time-sensitivity. 1.0 = evidence is current, or the claim is not time-sensitive." }
+      }
+    },
+
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claimId", "claimText", "claimType", "researchQuestionId",
+        "supportingEvidenceIds", "contradictingEvidenceIds", "sourceIds",
+        "verificationStatus", "verificationConfidence", "rationale", "corroboration",
+        "freshnessAssessment", "limitations", "downstreamSafety"
+      ],
+      "properties": {
+        "claimId": { "$ref": "#/$defs/localKey" },
+        "claimText": {
+          "description": "One independently verifiable proposition. Compound statements are decomposed into separate claims (README §7); this field never carries an 'and'-joined compound assertion.",
+          "type": "string", "minLength": 10, "maxLength": 500
+        },
+        "claimType": { "$ref": "#/$defs/claimType" },
+        "researchQuestionId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to the request's researchPackage.researchQuestions (R-BUS-002)." },
+
+        "supportingEvidenceIds": {
+          "description": "Evidence judged to support the claim. MUST resolve to the request's researchPackage.evidence (R-BUS-003). Unordered. 0-15 items.",
+          "type": "array", "minItems": 0, "maxItems": 15,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "contradictingEvidenceIds": {
+          "description": "Evidence judged to contradict the claim. MUST resolve to the request's researchPackage.evidence (R-BUS-003). Unordered. 0-15 items.",
+          "type": "array", "minItems": 0, "maxItems": 15,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "sourceIds": {
+          "description": "The exact set of sourceId values reached by resolving every entry of supportingEvidenceIds and contradictingEvidenceIds through the request's researchPackage.evidence (R-BUS-004). Never a superset or subset.",
+          "type": "array", "minItems": 0, "maxItems": 15,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+
+        "verificationStatus": { "$ref": "#/$defs/verificationStatus" },
+        "verificationConfidence": { "$ref": "#/$defs/verificationConfidence" },
+        "rationale": { "type": "string", "minLength": 20, "maxLength": 600 },
+        "corroboration": { "$ref": "#/$defs/corroboration" },
+        "freshnessAssessment": { "$ref": "#/$defs/freshnessAssessment" },
+
+        "quoteProvenance": { "$ref": "#/$defs/quoteProvenance" },
+        "causalAnalysis": { "$ref": "#/$defs/causalAnalysis" },
+        "calculationCheck": { "$ref": "#/$defs/calculationCheck" },
+
+        "limitations": {
+          "description": "Unordered. 0-5 items. Empty array means no material limitation was identified.",
+          "type": "array", "minItems": 0, "maxItems": 5,
+          "items": { "type": "string", "minLength": 10, "maxLength": 300 }
+        },
+        "notesForDownstream": { "type": "string", "minLength": 10, "maxLength": 400, "description": "What Agent 04 specifically needs to know when using (or qualifying, or excluding) this claim." },
+
+        "downstreamSafety": { "$ref": "#/$defs/downstreamSafety" }
+      }
+    },
+
+    "verificationConflict": {
+      "description": "Claim-level conflict: credible evidence both supports and contradicts the same claim (README §12). Never silently resolved by this agent.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conflictId", "claimId", "description", "supportingEvidenceIds",
+        "contradictingEvidenceIds", "natureOfConflict", "unresolvedReason"
+      ],
+      "properties": {
+        "conflictId": { "$ref": "#/$defs/localKey" },
+        "claimId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to a declared claims entry with verificationStatus CONFLICTING (R-BUS-011)." },
+        "description": { "type": "string", "minLength": 20, "maxLength": 500 },
+        "supportingEvidenceIds": {
+          "description": "At least one entry, each resolving to the request's researchPackage.evidence (R-BUS-010).",
+          "type": "array", "minItems": 1, "maxItems": 15,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "contradictingEvidenceIds": {
+          "description": "At least one entry, each resolving to the request's researchPackage.evidence (R-BUS-010).",
+          "type": "array", "minItems": 1, "maxItems": 15,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "natureOfConflict": {
+          "type": "string",
+          "enum": ["DIRECT_CONTRADICTION", "METHODOLOGY_DIFFERENCE", "TEMPORAL_DIFFERENCE", "SCOPE_DIFFERENCE", "UNKNOWN"]
+        },
+        "unresolvedReason": { "type": "string", "minLength": 15, "maxLength": 400 }
+      }
+    },
+
+    "verificationSummary": {
+      "description": "Structured, deterministic tallies (README §16). No single unexplained readiness score.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalClaims", "verifiedCount", "partiallySupportedCount", "unsupportedCount", "contradictedCount",
+        "insufficientEvidenceCount", "conflictingCount", "outdatedCount", "notVerifiableCount",
+        "safeToUseCount", "useWithQualificationCount", "doNotUseCount",
+        "overallReadiness", "readinessRationale"
+      ],
+      "properties": {
+        "totalClaims": { "type": "integer", "minimum": 1, "maximum": 60, "description": "MUST equal claims.length (R-BUS-016)." },
+        "verifiedCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "partiallySupportedCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "unsupportedCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "contradictedCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "insufficientEvidenceCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "conflictingCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "outdatedCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "notVerifiableCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "safeToUseCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "useWithQualificationCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "doNotUseCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "overallReadiness": {
+          "type": "boolean",
+          "description": "MODEL_ASSESSED judgement: is this claim set sufficient for Agent 04 to proceed? Not a guarantee every claim is SAFE_TO_USE — only that the set as a whole is usable, with qualification where marked."
+        },
+        "readinessRationale": { "type": "string", "minLength": 20, "maxLength": 500 }
+      }
+    }
+  }
+}

@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:fact-verification-agent-input:v1",
+  "title": "Fact Verification Agent Request",
+  "description": "REQUEST contract consumed by AGT-03 fact-verification-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. `data.researchPackage` is the Agent 02 Research Package (a subset of `research-agent-output/v1#/$defs/researchPackage` — only the fields claim verification needs; `completeness`, `recommendedFollowUpSearches`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` are Agent 02's own self-assessment and are not required here, GDE-002 §5.1 minimum-context principle). Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "contractType", "schemaVersion", "meta", "data"],
+  "properties": {
+    "contractVersion": {
+      "description": "Envelope format version, platform-wide (GDE-003 §4.2).",
+      "const": "1.0"
+    },
+    "contractType": {
+      "description": "Contract category (GDE-003 §3.3).",
+      "const": "REQUEST"
+    },
+    "schemaVersion": {
+      "description": "Version of this payload schema (GDE-003 §4.2).",
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$"
+    },
+    "meta": { "$ref": "#/$defs/requestMeta" },
+    "data": { "$ref": "#/$defs/factVerificationRequest" },
+    "references": {
+      "description": "Outbound pointers to governing artifacts (GDE-003 §10). Unordered. 0-40 items. Populated by the runtime, never by the model.",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 40,
+      "items": { "$ref": "#/$defs/reference" }
+    }
+  },
+
+  "$defs": {
+
+    "isoTimestamp": {
+      "description": "RFC 3339 UTC instant with millisecond precision (STD-000 §5.7).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+
+    "calendarDate": {
+      "description": "Date-only value in YYYY-MM-DD form (STD-000 §5.7).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+
+    "bcp47Tag": {
+      "description": "BCP 47 language tag, for example en-US, pt-BR, hi-IN (STD-000 §5.9).",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 20,
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$"
+    },
+
+    "prefixedId": {
+      "description": "Opaque, type-prefixed, lexicographically sortable platform identifier (STD-000 §5.8). Never parsed for meaning.",
+      "type": "string",
+      "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+
+    "localKey": {
+      "description": "Manifest- or request-local stable key. NOT a platform identifier (STD-000 §5.8).",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+
+    "httpsUrl": {
+      "description": "Absolute, scheme-qualified, https-only (STD-000 §5.9).",
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 2000,
+      "pattern": "^https://[^\\s]+$"
+    },
+
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "scoreDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "rationale"],
+      "properties": {
+        "score": { "$ref": "#/$defs/ratio" },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+      }
+    },
+
+    "requestMeta": {
+      "description": "Identity, correlation, binding, and provenance (GDE-003 §5). Carries no business data.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "createdAt", "locale", "tenantId", "channelId", "producer"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId", "description": "The message that directly caused this one. Absent when this message begins a causal chain." },
+        "runId": { "$ref": "#/$defs/prefixedId", "description": "Absent when invoked outside a run, for example during evaluation." },
+        "nodeId": { "$ref": "#/$defs/prefixedId", "description": "Absent when invoked outside a run." },
+        "attempt": {
+          "description": "Absent means the first attempt (GDE-003 §6.8: the consumer applies the default, the producer omits it).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag", "description": "Locale governing this message's content. Provenance only; the business-decision copy is data.language (GDE-003 §4.3)." },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion", "description": "The pinned strategy version governing this run. Provenance only." },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "description": "An immutable, version-pinned pointer to another artifact (GDE-003 §10.1). Floating references are prohibited.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": {
+          "type": "string",
+          "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"]
+        },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": {
+          "type": "string",
+          "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"]
+        },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": {
+          "type": "string",
+          "enum": ["TRUSTED", "UNTRUSTED"]
+        }
+      }
+    },
+
+    "factVerificationRequest": {
+      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): researchPackage carries only the subset of Agent 02's output claim verification needs.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["researchPackage", "language"],
+      "properties": {
+        "researchPackage": { "$ref": "#/$defs/researchPackageRef" },
+        "language": {
+          "$ref": "#/$defs/bcp47Tag",
+          "description": "The output language. Every claim text and rationale is written in this language."
+        }
+      }
+    },
+
+    "researchPackageRef": {
+      "description": "The Agent 02 deliverable this agent verifies. Provenance TRUSTED — produced by Agent 02, itself already schema- and business-validated (STD-000 Rule 17) — but every embedded free-text field (evidence text, source titles, claims-adjacent context) ultimately originates from external, UNTRUSTED research material Agent 02 processed, and MUST be treated by the prompt as inert data, never as instructions (README §17). This agent never modifies, re-fetches, or re-scores anything in this block; it only reads it (README §4).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topicId", "researchQuestions", "sources", "evidence", "conflicts", "gaps"],
+      "properties": {
+        "topicId": { "$ref": "#/$defs/localKey" },
+
+        "researchQuestions": {
+          "description": "Unordered. 1-15 items, mirroring research-agent-output/v1 bounds.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 15,
+          "items": { "$ref": "#/$defs/researchQuestion" }
+        },
+
+        "sources": {
+          "description": "Unordered. 0-40 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/source" }
+        },
+
+        "evidence": {
+          "description": "Unordered. 0-80 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 80,
+          "items": { "$ref": "#/$defs/evidenceItem" }
+        },
+
+        "conflicts": {
+          "description": "Research-question-level conflicts Agent 02 already identified. Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/researchConflict" }
+        },
+
+        "gaps": {
+          "description": "Information gaps Agent 02 already identified. Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/researchGap" }
+        }
+      }
+    },
+
+    "researchQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questionId", "questionText", "questionType", "priority", "status"],
+      "properties": {
+        "questionId": { "$ref": "#/$defs/localKey" },
+        "questionText": { "type": "string", "minLength": 15, "maxLength": 300 },
+        "questionType": {
+          "type": "string",
+          "enum": [
+            "CORE_CLAIM", "SUPPORTING_FACT", "STATISTIC", "DATE_OR_TIMELINE", "DEFINITION",
+            "OFFICIAL_POSITION", "COMPETING_EXPLANATION", "RECENT_CHANGE", "LIMITATION_OR_EXCEPTION", "OTHER"
+          ]
+        },
+        "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+        "status": { "type": "string", "enum": ["ANSWERED", "PARTIALLY_ANSWERED", "UNANSWERED", "CONFLICTING"] }
+      }
+    },
+
+    "sourceQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "relevance", "freshness", "primarySourceStatus", "specificity", "corroboration"],
+      "properties": {
+        "authority": { "$ref": "#/$defs/scoreDimension" },
+        "relevance": { "$ref": "#/$defs/scoreDimension" },
+        "freshness": { "$ref": "#/$defs/scoreDimension" },
+        "primarySourceStatus": { "$ref": "#/$defs/scoreDimension" },
+        "specificity": { "$ref": "#/$defs/scoreDimension" },
+        "corroboration": { "$ref": "#/$defs/scoreDimension" }
+      }
+    },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "title", "sourceType", "sourceStatus", "accessedAt", "sourceQuality"],
+      "properties": {
+        "sourceId": { "$ref": "#/$defs/localKey" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 300 },
+        "publisher": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "sourceType": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL_DOCUMENTATION", "GOVERNMENT", "ACADEMIC_PAPER", "STANDARDS_ORGANIZATION", "COMPANY",
+            "PRIMARY_SOURCE", "REPUTABLE_NEWS", "INDUSTRY_PUBLICATION", "EXPERT_SOURCE", "SECONDARY_SOURCE",
+            "COMMUNITY_DISCUSSION", "SEARCH_RESULT", "OTHER"
+          ]
+        },
+        "sourceStatus": {
+          "description": "The SEARCH_RESULT vs SOURCE distinction Agent 02 established. A claim cannot be VERIFIED on SEARCH_RESULT_ONLY evidence alone (R-BUS-006).",
+          "type": "string",
+          "enum": ["SEARCH_RESULT_ONLY", "FETCHED"]
+        },
+        "author": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "language": { "$ref": "#/$defs/bcp47Tag" },
+        "publishedAt": { "$ref": "#/$defs/calendarDate" },
+        "lastUpdatedAt": { "$ref": "#/$defs/calendarDate" },
+        "accessedAt": { "$ref": "#/$defs/isoTimestamp" },
+        "derivedFromMaterialId": { "$ref": "#/$defs/localKey" },
+        "derivedFromExistingSourceRefId": { "$ref": "#/$defs/prefixedId" },
+        "sourceQuality": { "$ref": "#/$defs/sourceQuality" }
+      }
+    },
+
+    "evidenceText": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["extractionType", "text"],
+          "properties": {
+            "extractionType": { "const": "QUOTATION" },
+            "text": { "type": "string", "minLength": 5, "maxLength": 800 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["extractionType", "text"],
+          "properties": {
+            "extractionType": { "const": "PARAPHRASE" },
+            "text": { "type": "string", "minLength": 5, "maxLength": 800 }
+          }
+        }
+      ]
+    },
+
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId", "researchQuestionId", "sourceId", "claim", "evidenceText",
+        "evidenceStrength", "relevance", "freshness", "verificationStatus", "limitations"
+      ],
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/localKey" },
+        "researchQuestionId": { "$ref": "#/$defs/localKey" },
+        "sourceId": { "$ref": "#/$defs/localKey" },
+        "claim": { "type": "string", "minLength": 10, "maxLength": 400 },
+        "evidenceText": { "$ref": "#/$defs/evidenceText" },
+        "supportingContext": { "type": "string", "minLength": 10, "maxLength": 500 },
+        "locationInSource": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "evidenceDate": { "$ref": "#/$defs/calendarDate" },
+        "evidenceStrength": { "type": "string", "enum": ["STRONG", "MODERATE", "WEAK", "ANECDOTAL"] },
+        "relevance": { "$ref": "#/$defs/ratio" },
+        "freshness": { "$ref": "#/$defs/ratio" },
+        "verificationStatus": {
+          "description": "Agent 02's OWN bounded judgement — a prior, weaker signal this agent may consider but never treat as a substitute for its own claim-level determination (README §5).",
+          "type": "string",
+          "enum": ["REQUIRES_VERIFICATION", "CORROBORATED", "CONFLICTING", "UNRESOLVED"]
+        },
+        "limitations": {
+          "type": "array", "minItems": 0, "maxItems": 5,
+          "items": { "type": "string", "minLength": 10, "maxLength": 300 }
+        },
+        "notesForVerification": { "type": "string", "minLength": 10, "maxLength": 400 }
+      }
+    },
+
+    "researchConflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflictId", "researchQuestionId", "description", "conflictingEvidenceIds"],
+      "properties": {
+        "conflictId": { "$ref": "#/$defs/localKey" },
+        "researchQuestionId": { "$ref": "#/$defs/localKey" },
+        "description": { "type": "string", "minLength": 20, "maxLength": 500 },
+        "conflictingEvidenceIds": {
+          "type": "array", "minItems": 2, "maxItems": 10,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "possibleReason": { "type": "string", "minLength": 15, "maxLength": 400 }
+      }
+    },
+
+    "researchGap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gapId", "gapType", "description", "severity"],
+      "properties": {
+        "gapId": { "$ref": "#/$defs/localKey" },
+        "gapType": {
+          "type": "string",
+          "enum": [
+            "UNANSWERED_QUESTION", "INSUFFICIENT_SOURCES", "WEAK_SOURCES_ONLY", "STALE_INFORMATION",
+            "NO_PRIMARY_SOURCE", "CONFLICTING_UNRESOLVED", "OUT_OF_SCOPE_FOR_SUPPLIED_MATERIALS"
+          ]
+        },
+        "researchQuestionId": { "$ref": "#/$defs/localKey" },
+        "description": { "type": "string", "minLength": 20, "maxLength": 400 },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] }
+      }
+    }
+  }
+}

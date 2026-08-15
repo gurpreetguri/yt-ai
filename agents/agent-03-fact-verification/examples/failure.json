@@ -1,0 +1,99 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVFE",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVFB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVFA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVFB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVFC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T11:30:03.220Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "fact-verification-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_fact_verification_agent@sha256:7c2e4a9b1d6f0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.DUPLICATE_EVIDENCE_ID",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "researchPackage.evidence[0] and researchPackage.evidence[2] both declare evidenceId EVIDENCE_W2_BOX1_WAGES.",
+      "userMessage": "Fact verification could not run because two supplied evidence items share the same identifier.",
+      "source": {
+        "component": "fact-verification-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVFB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVFB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVFC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.researchPackage.evidence[2].evidenceId",
+          "expected": "an evidenceId unique within researchPackage.evidence",
+          "actual": "EVIDENCE_W2_BOX1_WAGES",
+          "ruleId": "R-IN-001"
+        }
+      ],
+      "remediation": "Assign a distinct evidenceId to each supplied evidence item before dispatch.",
+      "occurredAt": "2026-09-02T11:30:03.216Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.EVIDENCE_REFERENCE_UNRESOLVABLE",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "researchPackage.evidence[1].sourceId references SOURCE_NEVER_SUPPLIED, which is not present in researchPackage.sources.",
+      "userMessage": "Fact verification could not run because a supplied evidence item cites a source that was never supplied.",
+      "source": {
+        "component": "fact-verification-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVFB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVFB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVFC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.researchPackage.evidence[1].sourceId",
+          "expected": "a sourceId present in researchPackage.sources",
+          "actual": "SOURCE_NEVER_SUPPLIED",
+          "ruleId": "R-IN-003"
+        }
+      ],
+      "remediation": "Ensure every evidence item's sourceId resolves to a source supplied in the same researchPackage.",
+      "occurredAt": "2026-09-02T11:30:03.217Z"
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 4,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVFA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

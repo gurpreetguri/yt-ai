@@ -26,20 +26,23 @@
     "paths": {
       "@agents/agent-00-strategy/*": ["agents/agent-00-strategy/*"],
       "@agents/agent-01-topic-discovery/*": ["agents/agent-01-topic-discovery/*"],
-      "@agents/agent-02-research/*": ["agents/agent-02-research/*"]
+      "@agents/agent-02-research/*": ["agents/agent-02-research/*"],
+      "@agents/agent-03-fact-verification/*": ["agents/agent-03-fact-verification/*"]
     }
   },
   "include": [
     "src/**/*.ts",
     "agents/agent-00-strategy/**/*.ts",
     "agents/agent-01-topic-discovery/**/*.ts",
-    "agents/agent-02-research/**/*.ts"
+    "agents/agent-02-research/**/*.ts",
+    "agents/agent-03-fact-verification/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "agents/agent-00-strategy/**/*.spec.ts",
     "agents/agent-01-topic-discovery/**/*.spec.ts",
-    "agents/agent-02-research/**/*.spec.ts"
+    "agents/agent-02-research/**/*.spec.ts",
+    "agents/agent-03-fact-verification/**/*.spec.ts"
   ]
 }
