@@ -1,0 +1,175 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "REQUEST",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDA",
+    "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDB",
+    "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDB",
+    "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDE",
+    "attempt": 1,
+    "createdAt": "2026-08-09T09:14:02.117Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC",
+    "channelId": "chn_01J8Z3K7QF9WCTB2NRXE5YHVDD",
+    "brandVersion": "2.1.0",
+    "localeVersion": "1.3.0",
+    "producer": {
+      "name": "workflow-engine",
+      "version": "4.2.1"
+    }
+  },
+  "data": {
+    "channelProfile": {
+      "displayName": "The Steady Ledger",
+      "contentCategory": "BUSINESS_FINANCE",
+      "maturity": "ESTABLISHED",
+      "currentSubscriberCount": 184000,
+      "currentVideoCount": 212
+    },
+    "operatorIntent": {
+      "missionStatement": "Help people in their first ten years of work make ordinary money decisions well, without hype and without selling anything.",
+      "businessGoals": [
+        {
+          "goalKey": "GOAL_AUDIENCE",
+          "goal": "AUDIENCE_GROWTH",
+          "priority": 1,
+          "horizonDays": 365
+        },
+        {
+          "goalKey": "GOAL_AUTHORITY",
+          "goal": "BRAND_AUTHORITY",
+          "priority": 2,
+          "horizonDays": 365
+        },
+        {
+          "goalKey": "GOAL_REVENUE",
+          "goal": "REVENUE",
+          "priority": 3,
+          "horizonDays": 540,
+          "targetValue": 250000000,
+          "targetUnit": "MICRO_USD"
+        }
+      ],
+      "weeklyVideoTarget": 3,
+      "targetAudienceDescription": "People aged 22 to 34, one to ten years into salaried work, who have some savings, some debt, and no financial adviser.",
+      "nonNegotiables": [
+        "Sponsorship must be disclosed within the first 30 seconds",
+        "No investment advice or specific security recommendations"
+      ],
+      "prohibitedTopics": [
+        "cryptocurrency speculation",
+        "get rich quick schemes",
+        "individual stock picks"
+      ]
+    },
+    "audienceDefinition": {
+      "primarySegment": "Early-career salaried professionals building their first savings and investing habits",
+      "geographies": ["US", "CA", "GB", "AU"],
+      "languages": ["en-US"],
+      "ageBands": ["AGE_18_24", "AGE_25_34"],
+      "expertiseLevel": "BEGINNER"
+    },
+    "brandBinding": {
+      "brandVersion": "2.1.0",
+      "toneDescriptors": ["CALM", "PRAGMATIC", "DIRECT", "EMPATHETIC", "ANALYTICAL"],
+      "voicePersona": "GUIDE",
+      "vocabularyPreferences": ["plain English", "net worth", "emergency fund", "employer match"],
+      "vocabularyProhibitions": ["guaranteed returns", "risk-free", "passive income hack"]
+    },
+    "localeBinding": {
+      "locale": "en-US",
+      "localeVersion": "1.3.0",
+      "readingDirection": "LTR",
+      "maxTitleLengthChars": 70,
+      "speakingRateWordsPerMinute": 150
+    },
+    "capacityConstraints": {
+      "weeklyProductionCapacityVideos": 4,
+      "minVideoDurationMs": 45000,
+      "maxVideoDurationMs": 900000,
+      "budgetPerVideoMicroUsd": 4500000
+    },
+    "marketContext": {
+      "sourceRefId": "res_market_scan_2026_07",
+      "collectedAt": "2026-07-28T09:14:02.117Z",
+      "observations": [
+        {
+          "observationKey": "OBS_TAX_GAP",
+          "statement": "Among the twenty largest channels in this category, none publishes recurring content on employee tax filing during the January to April window.",
+          "observedAt": "2026-07-24"
+        },
+        {
+          "observationKey": "OBS_SHORT_DEMAND",
+          "statement": "Short vertical explainers under sixty seconds account for a growing share of first-time viewer arrivals in this category.",
+          "observedAt": "2026-07-25"
+        },
+        {
+          "observationKey": "OBS_TONE_FATIGUE",
+          "statement": "Comment sentiment across the category shows repeated complaints about urgency-driven delivery and countdown-style framing.",
+          "observedAt": "2026-07-26"
+        }
+      ]
+    },
+    "priorStrategy": {
+      "strategyVersion": "1.2.0",
+      "approvedAt": "2026-02-11T16:03:44.220Z",
+      "pillarKeys": [
+        "PILLAR_BUDGETING",
+        "PILLAR_INVESTING_BASICS",
+        "PILLAR_CAREER_INCOME",
+        "PILLAR_DEBT"
+      ],
+      "underperformingPillarKeys": ["PILLAR_DEBT"]
+    },
+    "insightProposals": [
+      {
+        "proposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDG",
+        "dimension": "FORMAT",
+        "recommendation": "Introduce one weekly vertical short under sixty seconds; short-form arrivals convert to subscriptions at a materially higher rate than long-form arrivals on this channel.",
+        "evidenceRefId": "ins_2026_q2_format",
+        "sampleSize": 48,
+        "confidence": 0.82
+      },
+      {
+        "proposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDH",
+        "dimension": "CONTENT_PILLAR",
+        "recommendation": "Retire the debt pillar and replace it with a taxes pillar; debt videos underperform the channel median on retention and on returning viewers across two quarters.",
+        "evidenceRefId": "ins_2026_q2_pillar",
+        "sampleSize": 61,
+        "confidence": 0.77
+      }
+    ]
+  },
+  "references": [
+    {
+      "refType": "CONFIGURATION",
+      "refId": "brand_kit_steady_ledger",
+      "version": "2.1.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "locale_en_us",
+      "version": "1.3.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "strategy_chn_01J8Z3K7QF9WCTB2NRXE5YHVDD",
+      "version": "1.2.0",
+      "role": "SUPERSEDES",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "EXTERNAL",
+      "refId": "res_market_scan_2026_07",
+      "version": "2026-07-28",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC",
+      "trust": "UNTRUSTED"
+    }
+  ]
+}

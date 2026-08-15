@@ -1,0 +1,999 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:strategy-agent-output:v1",
+  "title": "Strategy Agent Response",
+  "description": "RESPONSE / ERROR contract produced by AGT-00 strategy-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Strategy Manifest. The model emits `#/$defs/strategyManifest` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). The manifest is a PROPOSAL: it acquires a strategyVersion and force only through the Strategy Store after non-delegable human approval (ARC-001 §5.2, STD-000 Rule 38). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. All durations are integer milliseconds. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "oneOf": [
+    { "$ref": "#/$defs/successResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+
+  "$defs": {
+
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "data"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "RESPONSE" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": {
+          "description": "PARTIAL is prohibited for this agent: partial strategy is a failure (STD-000 §5.3).",
+          "const": "SUCCESS"
+        },
+        "data": { "$ref": "#/$defs/strategyManifest" },
+        "issues": {
+          "description": "Non-blocking warnings alongside data (GDE-003 §9.2). Present only when at least one warning exists; never present-and-empty. Unordered. 1-20 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "validation": {
+          "description": "Populated by the validation plane, never by the producer (GDE-003 §4.6).",
+          "$ref": "#/$defs/validationBlock"
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "description": "Version-pinned pointers to the governing artifacts (GDE-003 §10). Unordered. 1-20 items. Populated by the runtime.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "errorResponse": {
+      "description": "Produced when no work product exists: typed failure or refusal (GDE-003 §9.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "issues"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "ERROR" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": { "const": "FAILURE" },
+        "issues": {
+          "description": "All failures are reported together, never one at a time (STD-000 §6.2). Unordered. 1-50 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "isoTimestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+
+    "calendarDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+
+    "bcp47Tag": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 20,
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$"
+    },
+
+    "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+
+    "prefixedId": { "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+
+    "localKey": {
+      "description": "Manifest-local stable key. NOT a platform identifier. Durable identifiers are assigned by the Strategy Store on approval (STD-000 §5.8). Unique within its containing array.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+
+    "jsonPath": {
+      "description": "Machine-readable location within this manifest, rooted at `$.` (STD-000 §8.1).",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^\\$\\.[A-Za-z0-9_.\\[\\]]+$"
+    },
+
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "toneDescriptor": {
+      "description": "CLOSED enumeration. MUST remain byte-identical to strategy-agent-input/v1#/$defs/toneDescriptor; enforced by test C-CONF-001.",
+      "type": "string",
+      "enum": [
+        "AUTHORITATIVE", "CONVERSATIONAL", "ANALYTICAL", "ENERGETIC", "CALM",
+        "WITTY", "EMPATHETIC", "DIRECT", "CURIOUS", "PRAGMATIC", "OPTIMISTIC", "IRREVERENT"
+      ]
+    },
+
+    "responseMeta": {
+      "description": "Identity, correlation, binding, and provenance (GDE-003 §5). Supplied by the runtime. Carries no business data.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "causationId", "createdAt", "locale", "tenantId", "channelId", "producer", "agentId", "agentVersion", "promptVersion"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId", "description": "The request message that caused this response." },
+        "runId": { "$ref": "#/$defs/prefixedId" },
+        "nodeId": { "$ref": "#/$defs/prefixedId" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag" },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "brandVersion": { "$ref": "#/$defs/semanticVersion" },
+        "localeVersion": { "$ref": "#/$defs/semanticVersion" },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        },
+        "agentId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "agentVersion": { "$ref": "#/$defs/semanticVersion" },
+        "promptVersion": {
+          "description": "Immutable content-addressed prompt identity (STD-000 §4.9).",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 128
+        },
+        "provider": {
+          "description": "Recorded for audit only. MUST NOT influence any consumer's behaviour (STD-000 Rule 5).",
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "modelId": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "modelVersion": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "parameters": {
+          "description": "Normalised sampling parameters, in provider-neutral terms (STD-000 §14.3).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["temperature", "topP"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "topP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seed": { "type": "integer", "minimum": 0 },
+            "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 200000 }
+          }
+        }
+      }
+    },
+
+    "executionBlock": {
+      "description": "Summary of the execution that produced this contract (GDE-003 §4.7). A summary, never a telemetry channel.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "attemptType", "durationMs", "costMicroUsd", "outcome"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "attemptType": {
+          "type": "string",
+          "enum": ["INITIAL", "REPAIR", "REGENERATION"]
+        },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "costMicroUsd": {
+          "description": "Integer micro-USD (STD-000 §5.9).",
+          "type": "integer",
+          "minimum": 0
+        },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "finishReason": {
+          "description": "Normalised by the provider adapter. TRUNCATED MUST be treated as a failure (STD-000 §6.7).",
+          "type": "string",
+          "enum": ["COMPLETE", "TRUNCATED", "REFUSED", "ERROR"]
+        },
+        "resourceClass": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "outcome": { "type": "string", "enum": ["SUCCESS", "FAILURE"] }
+      }
+    },
+
+    "validationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "stages", "findings"],
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": ["PASSED", "PASSED_WITH_WARNINGS", "FAILED", "BLOCKED", "INCONCLUSIVE"]
+        },
+        "stages": {
+          "description": "Ordering is meaningful: execution order, cheapest first (STD-000 §6.1). 1-6 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "outcome", "durationMs"],
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": ["STRUCTURAL", "BUSINESS", "CONSISTENCY", "QUALITY", "POLICY", "HUMAN"]
+              },
+              "outcome": { "type": "string", "enum": ["PASSED", "FAILED", "BLOCKED", "INCONCLUSIVE", "SKIPPED"] },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "findings": {
+          "description": "All findings are reported, never only the first (STD-000 §6.2). Unordered. 0-200 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 200,
+          "items": { "$ref": "#/$defs/validationFinding" }
+        },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "AGGREGATE"] }
+          }
+        }
+      }
+    },
+
+    "validationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "path", "message", "basis"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING", "INFO"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "message": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "suggestion": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "HUMAN"] }
+      }
+    },
+
+    "errorObject": {
+      "description": "The standard error object (STD-000 §8.1). Never a bare string.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "severity", "retryable", "message", "source", "context", "occurredAt"],
+      "properties": {
+        "code": {
+          "description": "Registered catalogue code, CATEGORY.SUBJECT.CONDITION, maximum four segments (STD-000 §8.4). Stable forever, never repurposed, never carrying dynamic values.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "VALIDATION", "AI_PROVIDER", "AI_OUTPUT", "NETWORK", "EXTERNAL_API", "TIMEOUT",
+            "RATE_LIMIT", "QUOTA", "AUTH", "PERMISSION", "SECURITY", "POLICY_COMPLIANCE",
+            "CONFIGURATION", "RESOURCE", "DATA_INTEGRITY", "WORKFLOW", "BUDGET", "UNKNOWN"
+          ]
+        },
+        "severity": { "type": "string", "enum": ["FATAL", "ERROR", "WARNING", "INFO"] },
+        "retryable": {
+          "description": "Set by the producer, derived from category, never inferred from message text (STD-000 Rule 29).",
+          "type": "boolean"
+        },
+        "message": {
+          "description": "For engineers. Specific.",
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 500
+        },
+        "userMessage": {
+          "description": "For end users. Leaks no internal structure, provider identity, prompt content, or identifiers (STD-000 §8.1).",
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 300
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "version", "stage"],
+          "properties": {
+            "component": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" },
+            "stage": {
+              "type": "string",
+              "enum": ["INPUT_VALIDATION", "INVOCATION", "OUTPUT_PARSE", "OUTPUT_VALIDATION", "BUSINESS_VALIDATION"]
+            }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correlationId"],
+          "properties": {
+            "correlationId": { "$ref": "#/$defs/prefixedId" },
+            "runId": { "$ref": "#/$defs/prefixedId" },
+            "nodeId": { "$ref": "#/$defs/prefixedId" },
+            "attempt": { "type": "integer", "minimum": 1, "maximum": 10 }
+          }
+        },
+        "details": {
+          "description": "Machine-readable, path-addressed detail. Dynamic values live here, never in the code. Unordered. 0-50 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 }
+            }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "occurredAt": { "$ref": "#/$defs/isoTimestamp" },
+        "causeChain": {
+          "description": "Preserved on wrapping; the root cause is what diagnosis needs (STD-000 §8.1). Ordering is meaningful: nearest cause first. 0-5 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+              "message": { "type": "string", "minLength": 5, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "strategyManifest": {
+      "description": "THE STRATEGY MANIFEST. The single deliverable of Department 0 (ARC-001 §5.2). This object, and only this object, is what the model emits. It is complete (every governing decision is made), internally consistent (validated at acceptance), and immutable once approved.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifestKind", "mission", "audience", "contentPillars", "formatStrategy",
+        "publishingCadence", "toneAndPersonality", "packagingDirection", "seoDirection",
+        "callToActionStrategy", "monetizationStrategy", "successMetrics", "growthPlan",
+        "competitivePositioning", "seasonalPlan", "riskAssessment", "conformanceRules",
+        "prohibitedTopics", "derivation", "assumptions", "declaredUnknowns", "inputSufficiency"
+      ],
+      "properties": {
+        "manifestKind": {
+          "description": "Self-describing discriminator (GDE-003 §2.5).",
+          "const": "STRATEGY_MANIFEST"
+        },
+
+        "mission": {
+          "description": "Consumed by: Strategy Store, human approver, D2 Content Production.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["statement", "positioning", "differentiators"],
+          "properties": {
+            "statement": { "type": "string", "minLength": 40, "maxLength": 320 },
+            "positioning": { "type": "string", "minLength": 40, "maxLength": 280 },
+            "differentiators": {
+              "description": "Unordered. 2-5 items.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 5,
+              "items": { "type": "string", "minLength": 10, "maxLength": 160 }
+            }
+          }
+        },
+
+        "audience": {
+          "description": "Consumed by: D1 topic selection, D2 scripting, validation plane.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primarySegment", "personas", "geographies", "languages", "ageBands", "expertiseLevel"],
+          "properties": {
+            "primarySegment": { "type": "string", "minLength": 10, "maxLength": 200 },
+            "personas": {
+              "description": "Ordering is meaningful: most representative first. 1-3 items.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["personaKey", "name", "description", "motivations", "painPoints", "expertiseLevel"],
+                "properties": {
+                  "personaKey": { "$ref": "#/$defs/localKey" },
+                  "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+                  "description": { "type": "string", "minLength": 40, "maxLength": 400 },
+                  "motivations": {
+                    "description": "Unordered. 1-5 items.",
+                    "type": "array", "minItems": 1, "maxItems": 5,
+                    "items": { "type": "string", "minLength": 5, "maxLength": 120 }
+                  },
+                  "painPoints": {
+                    "description": "Unordered. 1-5 items.",
+                    "type": "array", "minItems": 1, "maxItems": 5,
+                    "items": { "type": "string", "minLength": 5, "maxLength": 120 }
+                  },
+                  "expertiseLevel": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED", "MIXED"] }
+                }
+              }
+            },
+            "geographies": {
+              "description": "Subset of the request's audienceDefinition.geographies. Unordered. 1-20 items.",
+              "type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true,
+              "items": { "$ref": "#/$defs/countryCode" }
+            },
+            "languages": {
+              "description": "Ordering is meaningful: index 0 is the production language and MUST equal localeBinding.locale (R-BUS-016). 1-5 items.",
+              "type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true,
+              "items": { "$ref": "#/$defs/bcp47Tag" }
+            },
+            "ageBands": {
+              "description": "Unordered. 1-6 items.",
+              "type": "array", "minItems": 1, "maxItems": 6, "uniqueItems": true,
+              "items": { "type": "string", "enum": ["AGE_13_17", "AGE_18_24", "AGE_25_34", "AGE_35_44", "AGE_45_54", "AGE_55_PLUS"] }
+            },
+            "expertiseLevel": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED", "MIXED"] }
+          }
+        },
+
+        "contentPillars": {
+          "description": "The themes every future topic must map to. Consumed by: D1 topic ideation, validation plane, Insight service for per-pillar attribution. Ordering is meaningful: descending targetShareRatio. 2-6 items. Names unique after normalisation (R-BUS-001); keys unique (R-BUS-002); shares sum to 1.0 ± 0.01 (R-BUS-003).",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pillarKey", "name", "description", "intent", "targetShareRatio", "exampleTopics"],
+            "properties": {
+              "pillarKey": { "$ref": "#/$defs/localKey", "description": "Carried forward unchanged from priorStrategy.pillarKeys where the pillar persists, so per-pillar performance stays joinable across strategy versions." },
+              "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+              "description": { "type": "string", "minLength": 40, "maxLength": 400 },
+              "intent": { "type": "string", "enum": ["EDUCATE", "ENTERTAIN", "INSPIRE", "PERSUADE", "INFORM"] },
+              "targetShareRatio": { "type": "number", "minimum": 0.05, "maximum": 0.6 },
+              "exampleTopics": {
+                "description": "Illustrative only; they are not commissioned topics. Unordered. 2-5 items.",
+                "type": "array", "minItems": 2, "maxItems": 5,
+                "items": { "type": "string", "minLength": 10, "maxLength": 120 }
+              }
+            }
+          }
+        },
+
+        "formatStrategy": {
+          "description": "Consumed by: D2 structure planning, D3 aspect-ratio selection, Manifest Compiler.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["formats"],
+          "properties": {
+            "formats": {
+              "description": "Ordering is meaningful: descending weeklyCount. 1-3 items. Durations within capacity (R-BUS-008); aspect ratio matches format type (R-BUS-009).",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["formatKey", "formatType", "aspectRatio", "targetMinDurationMs", "targetMaxDurationMs", "weeklyCount", "structurePattern"],
+                "properties": {
+                  "formatKey": { "$ref": "#/$defs/localKey" },
+                  "formatType": { "type": "string", "enum": ["LONG_FORM", "SHORT_FORM", "LIVE"] },
+                  "aspectRatio": { "type": "string", "enum": ["RATIO_16_9", "RATIO_9_16", "RATIO_1_1"] },
+                  "targetMinDurationMs": { "type": "integer", "minimum": 15000, "maximum": 7200000 },
+                  "targetMaxDurationMs": { "type": "integer", "minimum": 15000, "maximum": 7200000 },
+                  "weeklyCount": { "type": "integer", "minimum": 0, "maximum": 14 },
+                  "structurePattern": { "type": "string", "minLength": 20, "maxLength": 240 }
+                }
+              }
+            }
+          }
+        },
+
+        "publishingCadence": {
+          "description": "Consumed by: Publishing Service scheduler, Quota Ledger. Slot count equals weeklyVideoCount (R-BUS-006); slots do not collide (R-BUS-007).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["weeklyVideoCount", "slots"],
+          "properties": {
+            "weeklyVideoCount": { "type": "integer", "minimum": 1, "maximum": 14 },
+            "slots": {
+              "description": "Ordering is meaningful: ascending dayOfWeek then publishLocalTime. 1-14 items.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 14,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["slotKey", "dayOfWeek", "publishLocalTime", "timezone", "formatKey"],
+                "properties": {
+                  "slotKey": { "$ref": "#/$defs/localKey" },
+                  "dayOfWeek": { "type": "string", "enum": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"] },
+                  "publishLocalTime": {
+                    "description": "24-hour local wall time HH:mm. Paired with `timezone`; a naive local time is never transmitted alone (STD-000 §5.7).",
+                    "type": "string",
+                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                  },
+                  "timezone": {
+                    "description": "IANA timezone identifier, for example America/New_York.",
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 64,
+                    "pattern": "^[A-Za-z]+(/[A-Za-z_+-]+){1,2}$"
+                  },
+                  "formatKey": { "$ref": "#/$defs/localKey", "description": "Resolves to a formatStrategy.formats[].formatKey." }
+                }
+              }
+            }
+          }
+        },
+
+        "toneAndPersonality": {
+          "description": "Consumed by: D2 scripting, D3 narration direction, validation plane. Descriptors are a subset of the brand binding (R-BUS-017).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["toneDescriptors", "narrationPerson", "humourLevel", "vocabularyPreferences", "vocabularyProhibitions"],
+          "properties": {
+            "toneDescriptors": {
+              "description": "Unordered. 3-8 items.",
+              "type": "array", "minItems": 3, "maxItems": 8, "uniqueItems": true,
+              "items": { "$ref": "#/$defs/toneDescriptor" }
+            },
+            "narrationPerson": { "type": "string", "enum": ["FIRST_PERSON_SINGULAR", "FIRST_PERSON_PLURAL", "SECOND_PERSON", "THIRD_PERSON"] },
+            "humourLevel": { "type": "string", "enum": ["NONE", "LIGHT", "MODERATE", "PROMINENT"] },
+            "vocabularyPreferences": {
+              "description": "Unordered. 0-20 items. Empty array means no preferences beyond the brand binding.",
+              "type": "array", "minItems": 0, "maxItems": 20, "uniqueItems": true,
+              "items": { "type": "string", "minLength": 2, "maxLength": 40 }
+            },
+            "vocabularyProhibitions": {
+              "description": "Superset of brandBinding.vocabularyProhibitions (R-BUS-018). Unordered. 0-20 items.",
+              "type": "array", "minItems": 0, "maxItems": 20, "uniqueItems": true,
+              "items": { "type": "string", "minLength": 2, "maxLength": 40 }
+            }
+          }
+        },
+
+        "packagingDirection": {
+          "description": "Consumed by: D2 title generation, D3 thumbnail concepting, D2 hook writing. Direction only; never a title or thumbnail for a specific video.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["titlePatterns", "thumbnailDirection", "hookDirection"],
+          "properties": {
+            "titlePatterns": {
+              "description": "Ordering is meaningful: preferred first. 2-6 items. maxLengthChars bounded by the locale binding (R-BUS-019).",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["patternKey", "pattern", "maxLengthChars"],
+                "properties": {
+                  "patternKey": { "$ref": "#/$defs/localKey" },
+                  "pattern": {
+                    "description": "A shape, not a title. Placeholders are written in angle brackets, for example \"<outcome> without <obstacle>\".",
+                    "type": "string", "minLength": 10, "maxLength": 120
+                  },
+                  "maxLengthChars": { "type": "integer", "minimum": 20, "maximum": 100 }
+                }
+              }
+            },
+            "thumbnailDirection": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["compositionRules", "textMaxWords", "faceUsage"],
+              "properties": {
+                "compositionRules": {
+                  "description": "Unordered. 2-6 items.",
+                  "type": "array", "minItems": 2, "maxItems": 6,
+                  "items": { "type": "string", "minLength": 10, "maxLength": 160 }
+                },
+                "textMaxWords": { "type": "integer", "minimum": 0, "maximum": 8 },
+                "faceUsage": { "type": "string", "enum": ["REQUIRED", "PREFERRED", "OPTIONAL", "PROHIBITED"] }
+              }
+            },
+            "hookDirection": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["maxDurationMs", "requiredElements"],
+              "properties": {
+                "maxDurationMs": { "type": "integer", "minimum": 3000, "maximum": 20000 },
+                "requiredElements": {
+                  "description": "Unordered. 1-5 items.",
+                  "type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true,
+                  "items": { "type": "string", "enum": ["STAKES", "PROMISE", "QUESTION", "PATTERN_BREAK", "CREDIBILITY_SIGNAL", "PREVIEW"] }
+                }
+              }
+            }
+          }
+        },
+
+        "seoDirection": {
+          "description": "Consumed by: D1 topic clustering, D2 metadata generation.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topicClusters", "keywordStrategy"],
+          "properties": {
+            "topicClusters": {
+              "description": "Ordering is meaningful: descending strategic priority. 1-8 items.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["clusterKey", "name", "seedKeywords"],
+                "properties": {
+                  "clusterKey": { "$ref": "#/$defs/localKey" },
+                  "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+                  "seedKeywords": {
+                    "description": "Unordered. 2-10 items.",
+                    "type": "array", "minItems": 2, "maxItems": 10, "uniqueItems": true,
+                    "items": { "type": "string", "minLength": 2, "maxLength": 60 }
+                  },
+                  "pillarKey": { "$ref": "#/$defs/localKey", "description": "Owning pillar. Absent means the cluster spans pillars and D1 may map it to any of them." }
+                }
+              }
+            },
+            "keywordStrategy": { "type": "string", "enum": ["HEAD_TERMS", "LONG_TAIL", "MIXED"] }
+          }
+        },
+
+        "callToActionStrategy": {
+          "description": "Consumed by: D2 scripting, D2 metadata generation.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primaryAction", "placement", "frequencyPerVideo"],
+          "properties": {
+            "primaryAction": { "type": "string", "enum": ["SUBSCRIBE", "WATCH_NEXT", "VISIT_LINK", "COMMENT", "SHARE", "NONE"] },
+            "placement": {
+              "description": "Unordered. 1-4 items.",
+              "type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true,
+              "items": { "type": "string", "enum": ["OPENING", "MID_ROLL", "CLOSING", "DESCRIPTION"] }
+            },
+            "frequencyPerVideo": { "type": "integer", "minimum": 0, "maximum": 3 }
+          }
+        },
+
+        "monetizationStrategy": {
+          "description": "Consumed by: Publishing Service, Policy & Compliance Gate, human approver.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["models", "constraints"],
+          "properties": {
+            "models": {
+              "description": "Unordered. 1-6 items.",
+              "type": "array", "minItems": 1, "maxItems": 6, "uniqueItems": true,
+              "items": { "type": "string", "enum": ["AD_REVENUE", "SPONSORSHIP", "AFFILIATE", "PRODUCT", "MEMBERSHIP", "NONE"] }
+            },
+            "constraints": {
+              "description": "Unordered. 0-10 items. Empty array means no monetization constraints beyond platform policy.",
+              "type": "array", "minItems": 0, "maxItems": 10,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        },
+
+        "successMetrics": {
+          "description": "Consumed by: Insight & Feedback Service, human approver. Every business goal in the request is linked by at least one metric (R-BUS-020). Unordered. 2-8 items.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["metricKey", "linkedGoalKey", "metric", "targetValue", "unit", "horizonDays", "reviewCadence"],
+            "properties": {
+              "metricKey": { "$ref": "#/$defs/localKey" },
+              "linkedGoalKey": { "$ref": "#/$defs/localKey", "description": "Resolves to a request operatorIntent.businessGoals[].goalKey." },
+              "metric": {
+                "type": "string",
+                "enum": [
+                  "VIEWS", "WATCH_TIME_HOURS", "SUBSCRIBER_GAIN", "AVERAGE_VIEW_DURATION_MS",
+                  "CLICK_THROUGH_RATE", "RETENTION_RATE_AT_30S", "REVENUE_MICRO_USD",
+                  "COMMENTS_PER_VIDEO", "RETURNING_VIEWER_RATIO"
+                ]
+              },
+              "targetValue": { "type": "number", "minimum": 0 },
+              "unit": { "type": "string", "enum": ["COUNT", "HOURS", "RATIO", "MILLISECONDS", "MICRO_USD"] },
+              "horizonDays": { "type": "integer", "minimum": 30, "maximum": 1095 },
+              "reviewCadence": { "type": "string", "enum": ["WEEKLY", "MONTHLY", "QUARTERLY"] }
+            }
+          }
+        },
+
+        "growthPlan": {
+          "description": "Consumed by: human approver, Insight & Feedback Service.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["horizonDays", "milestones", "expansionCandidates"],
+          "properties": {
+            "horizonDays": { "type": "integer", "minimum": 30, "maximum": 1095 },
+            "milestones": {
+              "description": "Ordering is meaningful: ascending byDayOffset. 1-5 items.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["milestoneKey", "description", "metricKey", "targetValue", "byDayOffset"],
+                "properties": {
+                  "milestoneKey": { "$ref": "#/$defs/localKey" },
+                  "description": { "type": "string", "minLength": 10, "maxLength": 240 },
+                  "metricKey": { "$ref": "#/$defs/localKey", "description": "Resolves to a successMetrics[].metricKey." },
+                  "targetValue": { "type": "number", "minimum": 0 },
+                  "byDayOffset": {
+                    "description": "Days from strategy approval. An offset, not a date, because the approval instant is not known at authoring time.",
+                    "type": "integer", "minimum": 1, "maximum": 1095
+                  }
+                }
+              }
+            },
+            "expansionCandidates": {
+              "description": "Unordered. 0-5 items. Empty array means no expansion is proposed within the horizon.",
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 5,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["candidateKey", "description", "triggerCondition"],
+                "properties": {
+                  "candidateKey": { "$ref": "#/$defs/localKey" },
+                  "description": { "type": "string", "minLength": 10, "maxLength": 240 },
+                  "triggerCondition": { "type": "string", "minLength": 10, "maxLength": 240 }
+                }
+              }
+            }
+          }
+        },
+
+        "competitivePositioning": {
+          "description": "Consumed by: human approver, D1 topic differentiation. whiteSpace is grounded strictly in marketContext; empty array when marketContext is absent.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["positioningStatement", "whiteSpace", "avoidancePatterns"],
+          "properties": {
+            "positioningStatement": { "type": "string", "minLength": 40, "maxLength": 320 },
+            "whiteSpace": {
+              "description": "Unordered. 0-6 items. Each entry MUST be supported by a marketContext observation.",
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["claim", "observationKey"],
+                "properties": {
+                  "claim": { "type": "string", "minLength": 10, "maxLength": 200 },
+                  "observationKey": { "$ref": "#/$defs/localKey", "description": "Resolves to a marketContext.observations[].observationKey supplied in the request." }
+                }
+              }
+            },
+            "avoidancePatterns": {
+              "description": "Patterns the channel will not adopt. Unordered. 0-6 items.",
+              "type": "array", "minItems": 0, "maxItems": 6,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        },
+
+        "seasonalPlan": {
+          "description": "Consumed by: D1 topic scheduling. Ordering is meaningful: ascending startDate. 0-12 items. Empty array means no seasonal emphasis. Periods do not overlap (R-BUS-022); pillar keys resolve (R-BUS-023).",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["periodKey", "name", "startDate", "endDate", "emphasisPillarKeys"],
+            "properties": {
+              "periodKey": { "$ref": "#/$defs/localKey" },
+              "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+              "startDate": { "$ref": "#/$defs/calendarDate", "description": "Date-only. Strictly earlier than endDate." },
+              "endDate": { "$ref": "#/$defs/calendarDate", "description": "Date-only, inclusive." },
+              "emphasisPillarKeys": {
+                "description": "Unordered. 1-6 items.",
+                "type": "array", "minItems": 1, "maxItems": 6, "uniqueItems": true,
+                "items": { "$ref": "#/$defs/localKey" }
+              }
+            }
+          }
+        },
+
+        "riskAssessment": {
+          "description": "Consumed by: human approver, Policy & Compliance Gate. Unordered. 0-10 items. Empty array means no strategic risk was identified from the supplied inputs.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["riskKey", "category", "description", "severity", "mitigation"],
+            "properties": {
+              "riskKey": { "$ref": "#/$defs/localKey" },
+              "category": { "type": "string", "enum": ["AUDIENCE", "PLATFORM_POLICY", "MONETIZATION", "BRAND", "CAPACITY", "COMPETITIVE", "LEGAL"] },
+              "description": { "type": "string", "minLength": 20, "maxLength": 300 },
+              "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+              "mitigation": { "type": "string", "minLength": 20, "maxLength": 300 }
+            }
+          }
+        },
+
+        "conformanceRules": {
+          "description": "Machine-checkable strategy conformance criteria supplied to the validation plane (ARC-001 §4.3). Every operator non-negotiable is represented here (R-BUS-015). Unordered. 1-20 items. Keys unique (R-BUS-024).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ruleKey", "dimension", "requirement", "severity"],
+            "properties": {
+              "ruleKey": { "$ref": "#/$defs/localKey" },
+              "dimension": {
+                "type": "string",
+                "enum": ["TOPIC", "PILLAR", "FORMAT", "DURATION", "TONE", "VOCABULARY", "PACKAGING", "SEO", "CALL_TO_ACTION", "MONETIZATION", "DISCLOSURE", "CADENCE"]
+              },
+              "requirement": {
+                "description": "One checkable condition, stated as a single measurable requirement.",
+                "type": "string", "minLength": 15, "maxLength": 300
+              },
+              "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING"] }
+            }
+          }
+        },
+
+        "prohibitedTopics": {
+          "description": "Consumed by: D1 topic selection, validation plane, Policy & Compliance Gate. Superset of the request's operatorIntent.prohibitedTopics (R-BUS-014). Unordered. 0-30 items. Empty array means no prohibitions.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 2, "maxLength": 80 }
+        },
+
+        "derivation": {
+          "description": "Lineage of this manifest. Discriminated union on `cycle` (GDE-003 §6.7); the variant is never inferred from which fields are present.",
+          "oneOf": [
+            { "$ref": "#/$defs/derivationInitial" },
+            { "$ref": "#/$defs/derivationRevision" }
+          ]
+        },
+
+        "assumptions": {
+          "description": "Every judgement not directly stated by an input block. Consumed by: human approver. Unordered. 0-10 items. Empty array means every element was directly derivable.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["assumptionKey", "statement", "basis", "path"],
+            "properties": {
+              "assumptionKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 15, "maxLength": 300 },
+              "basis": { "type": "string", "enum": ["OPERATOR_INTENT", "AUDIENCE_DEFINITION", "BRAND_BINDING", "LOCALE_BINDING", "CAPACITY_CONSTRAINTS", "MARKET_CONTEXT", "INSIGHT_PROPOSAL", "PRIOR_STRATEGY"] },
+              "path": { "$ref": "#/$defs/jsonPath", "description": "The manifest field the assumption supports." }
+            }
+          }
+        },
+
+        "declaredUnknowns": {
+          "description": "The declared-unknown mechanism (STD-000 §3.4, GDE-002 §11.2). Each entry names an OPTIONAL field that was omitted because it could not be determined. Presence of an entry never converts the response to a failure. Every path MUST address a field that is absent from this manifest (R-BUS-021). Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "$ref": "#/$defs/jsonPath" },
+              "reason": { "type": "string", "enum": ["INPUT_NOT_SUPPLIED", "INPUT_INSUFFICIENT", "NOT_APPLICABLE_TO_CHANNEL", "NOT_DETERMINABLE_WITHOUT_HISTORY"] }
+            }
+          }
+        },
+
+        "inputSufficiency": {
+          "description": "How completely the supplied inputs determined this manifest, on [0.0, 1.0] where 1.0 means every element was derivable with no assumption. This is a statement about INPUTS, not about output quality: the agent does not assess its own quality (GDE-002 §9.5). Consumed by: human approver, workflow routing.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis", "limitations"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "const": "SELF_REPORTED" },
+            "limitations": {
+              "description": "Named gaps in the supplied inputs. Unordered. 0-5 items. Empty array means no gaps were identified.",
+              "type": "array", "minItems": 0, "maxItems": 5,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        }
+      }
+    },
+
+    "derivationInitial": {
+      "description": "First strategy for this channel. Emitted when priorStrategy is absent from the request (R-BUS-010).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cycle"],
+      "properties": {
+        "cycle": { "const": "INITIAL" }
+      }
+    },
+
+    "derivationRevision": {
+      "description": "Revision of an existing strategy. Emitted when priorStrategy is present (R-BUS-010, R-BUS-011).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cycle", "supersedesStrategyVersion", "adoptedProposalIds", "changeSummary"],
+      "properties": {
+        "cycle": { "const": "REVISION" },
+        "supersedesStrategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "adoptedProposalIds": {
+          "description": "Every entry MUST exist in the request's insightProposals (R-BUS-012). Unordered. 0-20 items. Empty array means the revision adopted no proposal and is operator-driven.",
+          "type": "array", "minItems": 0, "maxItems": 20, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/prefixedId" }
+        },
+        "changeSummary": {
+          "description": "One entry per changed manifest path. Ordering is meaningful: descending impact. 1-30 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "changeType", "rationale"],
+            "properties": {
+              "path": { "$ref": "#/$defs/jsonPath" },
+              "changeType": { "type": "string", "enum": ["ADDED", "CHANGED", "REMOVED", "RETAINED_EXPLICITLY"] },
+              "rationale": { "type": "string", "minLength": 20, "maxLength": 300 },
+              "evidenceProposalId": {
+                "$ref": "#/$defs/prefixedId",
+                "description": "Supporting proposal; MUST exist in the request's insightProposals (R-BUS-013). Absent means the change is operator-driven rather than evidence-driven, and the rationale MUST cite operatorIntent."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

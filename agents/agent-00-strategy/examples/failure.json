@@ -1,0 +1,177 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDJ",
+    "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+    "causationId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDM",
+    "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+    "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDN",
+    "attempt": 1,
+    "createdAt": "2026-08-09T11:02:47.884Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC",
+    "channelId": "chn_01J8Z3K7QF9WCTB2NRXE5YHVDP",
+    "brandVersion": "2.1.0",
+    "localeVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "strategy-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_strategy_agent@sha256:4f2a9c1d8b73e6a05c2f18d9b40e7ac6"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.OBJECTIVES_CONTRADICTORY",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Operator objectives cannot be jointly satisfied: weeklyVideoTarget of 6 exceeds weeklyProductionCapacityVideos of 3, so no feasible publishing cadence exists.",
+      "userMessage": "This channel's strategy could not be prepared because the requested publishing frequency exceeds its configured production capacity.",
+      "source": {
+        "component": "strategy-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDN",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.operatorIntent.weeklyVideoTarget",
+          "expected": "a value <= 3",
+          "actual": "6",
+          "ruleId": "R-IN-005"
+        }
+      ],
+      "remediation": "Lower operatorIntent.weeklyVideoTarget to at most 3, or raise capacityConstraints.weeklyProductionCapacityVideos in the channel registry.",
+      "occurredAt": "2026-08-09T11:02:47.881Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.LOCALE_MISMATCH",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "The pinned production locale en-US is not present in audienceDefinition.languages, which declares only en-GB.",
+      "userMessage": "This channel's strategy could not be prepared because its language settings disagree.",
+      "source": {
+        "component": "strategy-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDN",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.audienceDefinition.languages",
+          "expected": "an entry equal to \"en-US\"",
+          "actual": "[\"en-GB\"]",
+          "ruleId": "R-IN-001"
+        }
+      ],
+      "remediation": "Align localeBinding.locale with audienceDefinition.languages, or bind the channel to the en-GB locale version.",
+      "occurredAt": "2026-08-09T11:02:47.882Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.ENUM_VALUE_NOT_PERMITTED",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Business goal at index 1 declares an unregistered goal kind. The goal enumeration is closed.",
+      "userMessage": "This channel's strategy could not be prepared because one of its goals is not recognised.",
+      "source": {
+        "component": "strategy-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDN",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.operatorIntent.businessGoals[1].goal",
+          "expected": "one of [\"AUDIENCE_GROWTH\",\"REVENUE\",\"BRAND_AUTHORITY\",\"LEAD_GENERATION\",\"COMMUNITY\",\"PRODUCT_ADOPTION\",\"EDUCATION_IMPACT\"]",
+          "actual": "\"VIRAL_REACH\"",
+          "ruleId": "R-STRUCT-001"
+        }
+      ],
+      "remediation": "Map the operator's intent onto a registered goal kind, or raise a MAJOR contract change to extend the closed enumeration.",
+      "occurredAt": "2026-08-09T11:02:47.883Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.AUDIENCE_UNRESOLVABLE",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Audience definition is unresolvable: geographies is empty and expertiseLevel is absent, so no audience can be described.",
+      "userMessage": "This channel's strategy could not be prepared because its audience settings are incomplete.",
+      "source": {
+        "component": "strategy-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDK",
+        "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDN",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.audienceDefinition.geographies",
+          "expected": "array cardinality >= 1",
+          "actual": "0",
+          "ruleId": "R-STRUCT-001"
+        },
+        {
+          "path": "$.data.audienceDefinition.expertiseLevel",
+          "expected": "property \"expertiseLevel\" present",
+          "actual": "property absent",
+          "ruleId": "R-STRUCT-001"
+        }
+      ],
+      "remediation": "Populate audienceDefinition.geographies with at least one ISO 3166-1 alpha-2 code and set expertiseLevel.",
+      "occurredAt": "2026-08-09T11:02:47.883Z",
+      "causeChain": [
+        {
+          "code": "VALIDATION.SCHEMA.CONSTRAINT_VIOLATED",
+          "message": "Closed-schema validation reported 2 violations under $.data.audienceDefinition."
+        }
+      ]
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 7,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDM",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "locale_en_us",
+      "version": "1.3.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    }
+  ]
+}

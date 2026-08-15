@@ -1,0 +1,535 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:strategy-agent-input:v1",
+  "title": "Strategy Agent Request",
+  "description": "REQUEST contract consumed by AGT-00 strategy-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points. All durations are integer milliseconds.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "contractType", "schemaVersion", "meta", "data"],
+  "properties": {
+    "contractVersion": {
+      "description": "Envelope format version, platform-wide (GDE-003 §4.2).",
+      "const": "1.0"
+    },
+    "contractType": {
+      "description": "Contract category (GDE-003 §3.3).",
+      "const": "REQUEST"
+    },
+    "schemaVersion": {
+      "description": "Version of this payload schema (GDE-003 §4.2).",
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$"
+    },
+    "meta": { "$ref": "#/$defs/requestMeta" },
+    "data": { "$ref": "#/$defs/strategyRequest" },
+    "references": {
+      "description": "Outbound pointers to governing artifacts (GDE-003 §10). Unordered. 0-20 items. Populated by the runtime, never by the model.",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/reference" }
+    }
+  },
+
+  "$defs": {
+
+    "isoTimestamp": {
+      "description": "RFC 3339 UTC instant with millisecond precision (STD-000 §5.7).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+
+    "calendarDate": {
+      "description": "Date-only value in YYYY-MM-DD form (STD-000 §5.7).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+
+    "bcp47Tag": {
+      "description": "BCP 47 language tag, for example en-US, pt-BR, hi-IN (STD-000 §5.9).",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 20,
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$"
+    },
+
+    "countryCode": {
+      "description": "ISO 3166-1 alpha-2 country code (STD-000 §5.9).",
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+
+    "prefixedId": {
+      "description": "Opaque, type-prefixed, lexicographically sortable platform identifier (STD-000 §5.8). Never parsed for meaning.",
+      "type": "string",
+      "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+
+    "requestMeta": {
+      "description": "Identity, correlation, binding, and provenance (GDE-003 §5). Carries no business data (GDE-003 §5.6 rule 1).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "createdAt", "locale", "tenantId", "channelId", "producer"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId", "description": "Unique identity of this message." },
+        "correlationId": { "$ref": "#/$defs/prefixedId", "description": "Constant across the entire run; the primary join key." },
+        "causationId": { "$ref": "#/$defs/prefixedId", "description": "The message that directly caused this one. Absent when this message begins a causal chain." },
+        "runId": { "$ref": "#/$defs/prefixedId", "description": "The workflow run this belongs to. Absent when invoked outside a run, for example during evaluation." },
+        "nodeId": { "$ref": "#/$defs/prefixedId", "description": "The workflow node that requested this. Absent when invoked outside a run." },
+        "attempt": {
+          "description": "Which attempt produced this request. Absent means the first attempt (GDE-003 §6.8: the consumer applies the default, the producer omits it).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag", "description": "Locale governing this message's content. Provenance only; the business-decision copy is data.localeBinding.locale (GDE-003 §4.3)." },
+        "tenantId": { "$ref": "#/$defs/prefixedId", "description": "The owning tenant; the security boundary." },
+        "channelId": { "$ref": "#/$defs/prefixedId", "description": "The channel this strategy would govern." },
+        "brandVersion": { "$ref": "#/$defs/semanticVersion", "description": "Brand kit version in force. Absent only where the channel has no brand binding." },
+        "localeVersion": { "$ref": "#/$defs/semanticVersion", "description": "Locale definition version in force." },
+        "producer": {
+          "description": "The component that produced this request; the accountable party.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "description": "An immutable, version-pinned pointer to another artifact (GDE-003 §10.1). Floating references are prohibited.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": {
+          "description": "CLOSED enumeration (GDE-003 §10.2).",
+          "type": "string",
+          "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"]
+        },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": {
+          "description": "Content hash where the target is content-addressed. Absent when the target is not content-addressed.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "role": {
+          "description": "CLOSED enumeration. Why this contract references the target (GDE-003 §10.1).",
+          "type": "string",
+          "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"]
+        },
+        "scope": { "$ref": "#/$defs/prefixedId", "description": "The tenant the reference resolves within. Cross-tenant references are a SECURITY error (GDE-003 §12.4)." },
+        "trust": {
+          "description": "CLOSED enumeration. Mandatory when refType is EXTERNAL; absent otherwise, which means TRUSTED.",
+          "type": "string",
+          "enum": ["TRUSTED", "UNTRUSTED"]
+        }
+      }
+    },
+
+    "strategyRequest": {
+      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): each binding is passed as the relevant subset, never as the whole artifact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channelProfile", "operatorIntent", "audienceDefinition", "brandBinding", "localeBinding", "capacityConstraints"],
+      "properties": {
+        "channelProfile": { "$ref": "#/$defs/channelProfile" },
+        "operatorIntent": { "$ref": "#/$defs/operatorIntent" },
+        "audienceDefinition": { "$ref": "#/$defs/audienceDefinition" },
+        "brandBinding": { "$ref": "#/$defs/brandBinding" },
+        "localeBinding": { "$ref": "#/$defs/localeBinding" },
+        "capacityConstraints": { "$ref": "#/$defs/capacityConstraints" },
+        "marketContext": { "$ref": "#/$defs/marketContext" },
+        "priorStrategy": { "$ref": "#/$defs/priorStrategy" },
+        "insightProposals": {
+          "description": "Evidenced adjustment proposals from the Insight & Feedback Service (ARC-001 §4.21). Unordered; rank is carried by `priority`. 0-20 items. Absent means this is an INITIAL cycle and no changeSummary is produced. Requires priorStrategy (rule R-IN-007).",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/insightProposal" }
+        }
+      }
+    },
+
+    "channelProfile": {
+      "description": "Identity and scale of the channel this strategy would govern.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["displayName", "contentCategory", "maturity"],
+      "properties": {
+        "displayName": {
+          "description": "Human-facing channel name. Display data only; never a key (STD-000 Rule 8).",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "contentCategory": {
+          "description": "CLOSED enumeration. The broad subject domain of the channel.",
+          "type": "string",
+          "enum": [
+            "EDUCATION", "TECHNOLOGY", "BUSINESS_FINANCE", "HEALTH_FITNESS", "SCIENCE",
+            "HISTORY", "ENTERTAINMENT", "GAMING", "LIFESTYLE", "NEWS_COMMENTARY",
+            "ARTS_CULTURE", "TRAVEL", "FOOD", "SPORTS", "OTHER"
+          ]
+        },
+        "maturity": {
+          "description": "CLOSED enumeration. Governs how aggressively the manifest may change established patterns.",
+          "type": "string",
+          "enum": ["NEW", "ESTABLISHED", "SCALING"]
+        },
+        "currentSubscriberCount": {
+          "description": "Absent when the channel has no published history or the figure is unavailable. Absence means the agent must not reference subscriber scale in any output field.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "currentVideoCount": {
+          "description": "Absent when the channel has no published history. Absence means the agent must not reference publishing history in any output field.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        }
+      }
+    },
+
+    "operatorIntent": {
+      "description": "What the human operator wants from this channel. The authoritative source of goals and prohibitions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missionStatement", "businessGoals", "weeklyVideoTarget", "targetAudienceDescription"],
+      "properties": {
+        "missionStatement": {
+          "description": "Plain text. The operator's own statement of what the channel is for.",
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 600
+        },
+        "businessGoals": {
+          "description": "Ordering is NOT meaningful; rank is carried by `priority`. 1-5 items. Every `goal` unique (R-IN-004) and every `priority` unique (R-IN-003).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/businessGoal" }
+        },
+        "weeklyVideoTarget": {
+          "description": "Videos per week the operator wants published. Must not exceed capacityConstraints.weeklyProductionCapacityVideos (R-IN-005).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 14
+        },
+        "targetAudienceDescription": {
+          "description": "Plain text. The operator's own description of who the channel is for.",
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 600
+        },
+        "nonNegotiables": {
+          "description": "Requirements that MUST each be carried into at least one conformanceRule (R-BUS-015). Unordered. 0-10 items. Absent means no operator-imposed conformance requirements beyond the platform baseline.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+        },
+        "prohibitedTopics": {
+          "description": "Subjects the channel must never cover. Every entry MUST appear in output data.prohibitedTopics (R-BUS-014). Unordered. 0-30 items. Absent means no operator-imposed topic prohibitions.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 2, "maxLength": 80 }
+        }
+      }
+    },
+
+    "businessGoal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goalKey", "goal", "priority", "horizonDays"],
+      "properties": {
+        "goalKey": { "$ref": "#/$defs/localKey", "description": "Request-local identifier for this goal. Referenced by output successMetrics." },
+        "goal": {
+          "description": "CLOSED enumeration. Adding a member is a MAJOR change.",
+          "type": "string",
+          "enum": [
+            "AUDIENCE_GROWTH", "REVENUE", "BRAND_AUTHORITY", "LEAD_GENERATION",
+            "COMMUNITY", "PRODUCT_ADOPTION", "EDUCATION_IMPACT"
+          ]
+        },
+        "priority": {
+          "description": "1 is the highest priority. Unique across businessGoals (R-IN-003).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "horizonDays": {
+          "description": "Days within which the operator expects the goal to be measurable.",
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 1095
+        },
+        "targetValue": {
+          "description": "Numeric target where the operator has one. Absent means the agent proposes the target in successMetrics and records the judgement in assumptions.",
+          "type": "number",
+          "minimum": 0
+        },
+        "targetUnit": {
+          "description": "CLOSED enumeration. Required when targetValue is present; absent otherwise.",
+          "type": "string",
+          "enum": ["COUNT", "HOURS", "RATIO", "MILLISECONDS", "MICRO_USD"]
+        }
+      },
+      "dependentRequired": { "targetValue": ["targetUnit"] }
+    },
+
+    "localKey": {
+      "description": "Request- or manifest-local stable key. NOT a platform identifier; durable identifiers are assigned by the Strategy Store on approval (STD-000 §5.8).",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+
+    "audienceDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primarySegment", "geographies", "languages", "ageBands", "expertiseLevel"],
+      "properties": {
+        "primarySegment": { "type": "string", "minLength": 10, "maxLength": 200 },
+        "geographies": {
+          "description": "Unordered. 1-20 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/countryCode" }
+        },
+        "languages": {
+          "description": "Unordered. 1-5 items. Must include localeBinding.locale (R-IN-001).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/bcp47Tag" }
+        },
+        "ageBands": {
+          "description": "CLOSED enumeration members. Unordered. 1-6 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["AGE_13_17", "AGE_18_24", "AGE_25_34", "AGE_35_44", "AGE_45_54", "AGE_55_PLUS"]
+          }
+        },
+        "expertiseLevel": {
+          "description": "CLOSED enumeration. Governs vocabulary and depth downstream.",
+          "type": "string",
+          "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED", "MIXED"]
+        }
+      }
+    },
+
+    "brandBinding": {
+      "description": "The brand subset this agent needs (GDE-002 §5.4). Never the full brand kit.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brandVersion", "toneDescriptors", "voicePersona"],
+      "properties": {
+        "brandVersion": { "$ref": "#/$defs/semanticVersion" },
+        "toneDescriptors": {
+          "description": "CLOSED enumeration members. The permitted tone vocabulary; output toneAndPersonality.toneDescriptors MUST be a subset (R-BUS-017). Unordered. 3-12 items.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/toneDescriptor" }
+        },
+        "voicePersona": {
+          "description": "CLOSED enumeration.",
+          "type": "string",
+          "enum": ["NARRATOR", "PRACTITIONER", "ANALYST", "GUIDE", "HOST", "INVESTIGATOR"]
+        },
+        "vocabularyPreferences": {
+          "description": "Terms the brand prefers. Unordered. 0-20 items. Absent means no preferences.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 2, "maxLength": 40 }
+        },
+        "vocabularyProhibitions": {
+          "description": "Terms the brand forbids. Every entry MUST appear in output toneAndPersonality.vocabularyProhibitions (R-BUS-018). Unordered. 0-20 items. Absent means no prohibitions.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 2, "maxLength": 40 }
+        }
+      }
+    },
+
+    "toneDescriptor": {
+      "description": "CLOSED enumeration shared by input and output so that subset checking is mechanical.",
+      "type": "string",
+      "enum": [
+        "AUTHORITATIVE", "CONVERSATIONAL", "ANALYTICAL", "ENERGETIC", "CALM",
+        "WITTY", "EMPATHETIC", "DIRECT", "CURIOUS", "PRAGMATIC", "OPTIMISTIC", "IRREVERENT"
+      ]
+    },
+
+    "localeBinding": {
+      "description": "The locale subset this agent needs (GDE-002 §5.4).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["locale", "localeVersion", "readingDirection", "maxTitleLengthChars", "speakingRateWordsPerMinute"],
+      "properties": {
+        "locale": { "$ref": "#/$defs/bcp47Tag", "description": "The output language. Every prose field in the manifest is written in this language." },
+        "localeVersion": { "$ref": "#/$defs/semanticVersion" },
+        "readingDirection": {
+          "description": "CLOSED enumeration.",
+          "type": "string",
+          "enum": ["LTR", "RTL"]
+        },
+        "maxTitleLengthChars": {
+          "description": "Locale-specific title ceiling in Unicode code points. Bounds output packagingDirection.titlePatterns[].maxLengthChars (R-BUS-019).",
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 100
+        },
+        "speakingRateWordsPerMinute": {
+          "description": "Used to keep format duration envelopes coherent with scripted length downstream.",
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 260
+        }
+      }
+    },
+
+    "capacityConstraints": {
+      "description": "Hard operating limits. The manifest is a constraint-satisfaction product of these (GDE-002 §7.2, Planning category).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weeklyProductionCapacityVideos", "minVideoDurationMs", "maxVideoDurationMs"],
+      "properties": {
+        "weeklyProductionCapacityVideos": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 14
+        },
+        "minVideoDurationMs": {
+          "description": "Must be strictly less than maxVideoDurationMs (R-IN-002).",
+          "type": "integer",
+          "minimum": 15000,
+          "maximum": 7200000
+        },
+        "maxVideoDurationMs": {
+          "type": "integer",
+          "minimum": 15000,
+          "maximum": 7200000
+        },
+        "budgetPerVideoMicroUsd": {
+          "description": "Integer micro-USD (STD-000 §5.9). Absent means the agent proposes no cost-bound conformance rule.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000000
+        }
+      }
+    },
+
+    "marketContext": {
+      "description": "UNTRUSTED. Originates outside the platform (GDE-002 §5.6). Delimited, labelled as data, and size-bounded before invocation. Absent means competitivePositioning.whiteSpace is emitted empty and the omission is recorded in assumptions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRefId", "collectedAt", "observations"],
+      "properties": {
+        "sourceRefId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "collectedAt": { "$ref": "#/$defs/isoTimestamp" },
+        "observations": {
+          "description": "Unordered. 0-30 items (R-IN-008). Each observation is untrusted content and carries no authority.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["observationKey", "statement"],
+            "properties": {
+              "observationKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 10, "maxLength": 500 },
+              "observedAt": { "$ref": "#/$defs/calendarDate" }
+            }
+          }
+        }
+      }
+    },
+
+    "priorStrategy": {
+      "description": "The pinned strategy this manifest would supersede. Absent means derivation.cycle is INITIAL (R-BUS-010).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategyVersion", "pillarKeys"],
+      "properties": {
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "approvedAt": { "$ref": "#/$defs/isoTimestamp" },
+        "pillarKeys": {
+          "description": "Pillar keys in force under the prior strategy, so that carried-forward pillars keep their key and remain joinable for attribution. Unordered. 2-6 items.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "underperformingPillarKeys": {
+          "description": "Subset of pillarKeys flagged by the Insight service. Unordered. 0-6 items. Absent means no pillar was flagged.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/localKey" }
+        }
+      }
+    },
+
+    "insightProposal": {
+      "description": "One evidenced adjustment proposal. Analytics agents propose; they never mutate strategy (GDE-002 §7.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposalId", "dimension", "recommendation", "evidenceRefId", "sampleSize", "confidence"],
+      "properties": {
+        "proposalId": { "$ref": "#/$defs/prefixedId", "description": "Referenced by output derivation.adoptedProposalIds and changeSummary[].evidenceProposalId (R-BUS-012, R-BUS-013)." },
+        "dimension": {
+          "description": "CLOSED enumeration. The strategy dimension the proposal addresses.",
+          "type": "string",
+          "enum": [
+            "CONTENT_PILLAR", "FORMAT", "DURATION", "PUBLISHING_CADENCE",
+            "PACKAGING", "SEO", "TONE", "CALL_TO_ACTION", "MONETIZATION", "AUDIENCE"
+          ]
+        },
+        "recommendation": { "type": "string", "minLength": 20, "maxLength": 500 },
+        "evidenceRefId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "sampleSize": {
+          "description": "Number of videos the finding is based on. Statistical sufficiency is established by the producing service, not by this agent.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "confidence": {
+          "description": "Producing service's confidence, decimal 0.0-1.0 (STD-000 §6.5).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

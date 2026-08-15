@@ -1,0 +1,575 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDF",
+    "correlationId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDB",
+    "causationId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDA",
+    "runId": "run_01J8Z3K7QF9WCTB2NRXE5YHVDB",
+    "nodeId": "nod_01J8Z3K7QF9WCTB2NRXE5YHVDE",
+    "attempt": 1,
+    "createdAt": "2026-08-09T09:14:23.601Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC",
+    "channelId": "chn_01J8Z3K7QF9WCTB2NRXE5YHVDD",
+    "brandVersion": "2.1.0",
+    "localeVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "strategy-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_strategy_agent@sha256:4f2a9c1d8b73e6a05c2f18d9b40e7ac6",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0.2, "topP": 1, "seed": 20260809, "maxOutputTokens": 8000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "manifestKind": "STRATEGY_MANIFEST",
+
+    "mission": {
+      "statement": "The Steady Ledger explains ordinary money decisions to people in their first decade of salaried work, using plain arithmetic and no product recommendations.",
+      "positioning": "The calm reference channel for early-career money questions, positioned against urgency-driven personal finance commentary.",
+      "differentiators": [
+        "Every figure shown on screen is derived from arithmetic the viewer can reproduce",
+        "No product recommendations, no affiliate links, and no individual securities",
+        "Delivery is measured and unhurried, with no countdown or urgency framing"
+      ]
+    },
+
+    "audience": {
+      "primarySegment": "Early-career salaried professionals building their first savings and investing habits",
+      "personas": [
+        {
+          "personaKey": "PERSONA_FIRST_SALARY",
+          "name": "First Salary Saver",
+          "description": "One to three years into a first salaried role, receiving a regular paycheck for the first time. Has a small cash buffer, a student loan, and an employer retirement plan they have not configured. Reads about money occasionally and finds most of it either alarming or aimed at someone wealthier.",
+          "motivations": [
+            "Stop feeling behind relative to peers",
+            "Understand the retirement plan already on offer",
+            "Build a buffer that survives one lost paycheck"
+          ],
+          "painPoints": [
+            "Advice assumes assets they do not have",
+            "Jargon obscures what is a simple calculation",
+            "Fear of making an irreversible mistake"
+          ],
+          "expertiseLevel": "BEGINNER"
+        },
+        {
+          "personaKey": "PERSONA_MID_CAREER",
+          "name": "Mid-Career Consolidator",
+          "description": "Five to ten years into salaried work, with several accounts opened at different jobs and no single view of them. Earns enough to save meaningfully but suspects the arrangement is inefficient. Wants a method rather than a recommendation, and distrusts anyone selling a product.",
+          "motivations": [
+            "Consolidate scattered accounts into one plan",
+            "Confirm the arithmetic before making a change",
+            "Reduce avoidable tax and fee leakage"
+          ],
+          "painPoints": [
+            "Content is either introductory or aimed at high net worth",
+            "No neutral source for ordinary comparisons"
+          ],
+          "expertiseLevel": "INTERMEDIATE"
+        }
+      ],
+      "geographies": ["US", "CA", "GB", "AU"],
+      "languages": ["en-US"],
+      "ageBands": ["AGE_18_24", "AGE_25_34"],
+      "expertiseLevel": "BEGINNER"
+    },
+
+    "contentPillars": [
+      {
+        "pillarKey": "PILLAR_BUDGETING",
+        "name": "Everyday Budgeting",
+        "description": "How money moves between a paycheck, fixed costs, and savings, shown as arithmetic the viewer can reproduce with their own numbers. Covers buffers, recurring costs, and the ordering of savings goals.",
+        "intent": "EDUCATE",
+        "targetShareRatio": 0.3,
+        "exampleTopics": [
+          "How large an emergency fund actually needs to be",
+          "What a fixed cost audit finds in an average month",
+          "Ordering savings goals when income is irregular"
+        ]
+      },
+      {
+        "pillarKey": "PILLAR_INVESTING_BASICS",
+        "name": "Investing Fundamentals",
+        "description": "The mechanics of long-horizon investing at the level an employee actually encounters them: employer plans, contribution limits, fees, and diversification, explained without naming any security or product.",
+        "intent": "EDUCATE",
+        "targetShareRatio": 0.3,
+        "exampleTopics": [
+          "What an employer match is worth over ten years",
+          "How a fund fee compounds against a contribution",
+          "Why contribution timing matters less than contribution rate"
+        ]
+      },
+      {
+        "pillarKey": "PILLAR_CAREER_INCOME",
+        "name": "Career and Income",
+        "description": "Income as the largest variable in an early-career financial position. Covers salary bands, benefit valuation, negotiation preparation, and the arithmetic of changing roles, without career coaching or job placement claims.",
+        "intent": "INFORM",
+        "targetShareRatio": 0.25,
+        "exampleTopics": [
+          "Valuing a benefits package against a salary difference",
+          "What a raise is worth after tax and contribution changes",
+          "Preparing evidence for a compensation conversation"
+        ]
+      },
+      {
+        "pillarKey": "PILLAR_TAXES",
+        "name": "Employee Taxes",
+        "description": "Payroll and filing mechanics for salaried employees: withholding, deductions available without itemising, refund timing, and the documents an ordinary employee receives. Replaces the debt pillar retired in this revision.",
+        "intent": "EDUCATE",
+        "targetShareRatio": 0.15,
+        "exampleTopics": [
+          "What withholding actually does across a year",
+          "Reading a payslip line by line",
+          "Why a large refund is not a good outcome"
+        ]
+      }
+    ],
+
+    "formatStrategy": {
+      "formats": [
+        {
+          "formatKey": "FMT_LONG_EXPLAINER",
+          "formatType": "LONG_FORM",
+          "aspectRatio": "RATIO_16_9",
+          "targetMinDurationMs": 480000,
+          "targetMaxDurationMs": 900000,
+          "weeklyCount": 2,
+          "structurePattern": "Stated question, the arithmetic, one worked example, the boundary where it stops applying, and a one-sentence summary."
+        },
+        {
+          "formatKey": "FMT_SHORT_VERTICAL",
+          "formatType": "SHORT_FORM",
+          "aspectRatio": "RATIO_9_16",
+          "targetMinDurationMs": 45000,
+          "targetMaxDurationMs": 60000,
+          "weeklyCount": 1,
+          "structurePattern": "One number on screen, the single calculation behind it, and the one decision it changes."
+        }
+      ]
+    },
+
+    "publishingCadence": {
+      "weeklyVideoCount": 3,
+      "slots": [
+        {
+          "slotKey": "SLOT_TUE_LONG",
+          "dayOfWeek": "TUESDAY",
+          "publishLocalTime": "17:00",
+          "timezone": "America/New_York",
+          "formatKey": "FMT_LONG_EXPLAINER"
+        },
+        {
+          "slotKey": "SLOT_THU_SHORT",
+          "dayOfWeek": "THURSDAY",
+          "publishLocalTime": "12:30",
+          "timezone": "America/New_York",
+          "formatKey": "FMT_SHORT_VERTICAL"
+        },
+        {
+          "slotKey": "SLOT_SAT_LONG",
+          "dayOfWeek": "SATURDAY",
+          "publishLocalTime": "09:00",
+          "timezone": "America/New_York",
+          "formatKey": "FMT_LONG_EXPLAINER"
+        }
+      ]
+    },
+
+    "toneAndPersonality": {
+      "toneDescriptors": ["CALM", "PRAGMATIC", "DIRECT", "EMPATHETIC"],
+      "narrationPerson": "SECOND_PERSON",
+      "humourLevel": "LIGHT",
+      "vocabularyPreferences": ["plain English", "net worth", "emergency fund", "employer match"],
+      "vocabularyProhibitions": ["guaranteed returns", "risk-free", "passive income hack", "beat the market"]
+    },
+
+    "packagingDirection": {
+      "titlePatterns": [
+        {
+          "patternKey": "PATTERN_COST",
+          "pattern": "What <decision> actually costs you",
+          "maxLengthChars": 62
+        },
+        {
+          "patternKey": "PATTERN_MECHANISM",
+          "pattern": "How <mechanism> works, in plain arithmetic",
+          "maxLengthChars": 66
+        },
+        {
+          "patternKey": "PATTERN_COMPARISON",
+          "pattern": "<option A> or <option B>: the arithmetic",
+          "maxLengthChars": 58
+        }
+      ],
+      "thumbnailDirection": {
+        "compositionRules": [
+          "One numeric figure rendered at the largest available type size",
+          "Single subject on a flat background drawn from the brand palette",
+          "No arrows, no circled elements, and no shocked expressions"
+        ],
+        "textMaxWords": 4,
+        "faceUsage": "PROHIBITED"
+      },
+      "hookDirection": {
+        "maxDurationMs": 8000,
+        "requiredElements": ["STAKES", "PROMISE"]
+      }
+    },
+
+    "seoDirection": {
+      "topicClusters": [
+        {
+          "clusterKey": "CLUSTER_EMERGENCY_FUND",
+          "name": "Emergency Funds",
+          "seedKeywords": ["emergency fund", "how much to save", "three months expenses"],
+          "pillarKey": "PILLAR_BUDGETING"
+        },
+        {
+          "clusterKey": "CLUSTER_EMPLOYER_MATCH",
+          "name": "Employer Retirement Match",
+          "seedKeywords": ["employer match", "workplace pension", "contribution rate"],
+          "pillarKey": "PILLAR_INVESTING_BASICS"
+        },
+        {
+          "clusterKey": "CLUSTER_TAX_FILING",
+          "name": "Employee Tax Filing",
+          "seedKeywords": ["tax withholding", "first tax return", "refund timing", "payroll deductions"]
+        }
+      ],
+      "keywordStrategy": "MIXED"
+    },
+
+    "callToActionStrategy": {
+      "primaryAction": "SUBSCRIBE",
+      "placement": ["CLOSING", "DESCRIPTION"],
+      "frequencyPerVideo": 1
+    },
+
+    "monetizationStrategy": {
+      "models": ["AD_REVENUE", "SPONSORSHIP"],
+      "constraints": [
+        "Sponsorships are accepted only from providers with no individual security offering",
+        "No affiliate links appear in any description or on screen"
+      ]
+    },
+
+    "successMetrics": [
+      {
+        "metricKey": "MET_SUBSCRIBER_GAIN",
+        "linkedGoalKey": "GOAL_AUDIENCE",
+        "metric": "SUBSCRIBER_GAIN",
+        "targetValue": 40000,
+        "unit": "COUNT",
+        "horizonDays": 365,
+        "reviewCadence": "MONTHLY"
+      },
+      {
+        "metricKey": "MET_WATCH_TIME",
+        "linkedGoalKey": "GOAL_AUDIENCE",
+        "metric": "WATCH_TIME_HOURS",
+        "targetValue": 120000,
+        "unit": "HOURS",
+        "horizonDays": 365,
+        "reviewCadence": "MONTHLY"
+      },
+      {
+        "metricKey": "MET_RETURNING_VIEWERS",
+        "linkedGoalKey": "GOAL_AUTHORITY",
+        "metric": "RETURNING_VIEWER_RATIO",
+        "targetValue": 0.35,
+        "unit": "RATIO",
+        "horizonDays": 365,
+        "reviewCadence": "QUARTERLY"
+      },
+      {
+        "metricKey": "MET_REVENUE",
+        "linkedGoalKey": "GOAL_REVENUE",
+        "metric": "REVENUE_MICRO_USD",
+        "targetValue": 250000000,
+        "unit": "MICRO_USD",
+        "horizonDays": 540,
+        "reviewCadence": "QUARTERLY"
+      }
+    ],
+
+    "growthPlan": {
+      "horizonDays": 365,
+      "milestones": [
+        {
+          "milestoneKey": "MS_SHORT_ESTABLISHED",
+          "description": "The weekly short slot is running without displacing long-form output",
+          "metricKey": "MET_SUBSCRIBER_GAIN",
+          "targetValue": 8000,
+          "byDayOffset": 90
+        },
+        {
+          "milestoneKey": "MS_TAX_PILLAR_PROVEN",
+          "description": "The taxes pillar reaches the channel median on watch time",
+          "metricKey": "MET_WATCH_TIME",
+          "targetValue": 45000,
+          "byDayOffset": 180
+        },
+        {
+          "milestoneKey": "MS_REVENUE_HORIZON",
+          "description": "Sponsorship and advertising revenue reach the operator target",
+          "metricKey": "MET_REVENUE",
+          "targetValue": 250000000,
+          "byDayOffset": 365
+        }
+      ],
+      "expansionCandidates": [
+        {
+          "candidateKey": "EXP_UK_LOCALISATION",
+          "description": "A parallel locale variant covering the same pillars with local tax and pension mechanics",
+          "triggerCondition": "Non-US geographies exceed one third of watch time for two consecutive quarters"
+        }
+      ]
+    },
+
+    "competitivePositioning": {
+      "positioningStatement": "The channel occupies the neutral, arithmetic-first position in early-career personal finance, where competitors compete on urgency and on product recommendation.",
+      "whiteSpace": [
+        {
+          "claim": "Recurring employee tax content in the January to April window is unoccupied in this category",
+          "observationKey": "OBS_TAX_GAP"
+        },
+        {
+          "claim": "Short vertical explainers are an unclaimed arrival path for first-time viewers here",
+          "observationKey": "OBS_SHORT_DEMAND"
+        }
+      ],
+      "avoidancePatterns": [
+        "Countdown framing, urgency language, and deadline-driven thumbnails",
+        "Reaction and commentary formats built on another creator's material"
+      ]
+    },
+
+    "seasonalPlan": [
+      {
+        "periodKey": "SEASON_TAX_FILING",
+        "name": "Tax Filing Window",
+        "startDate": "2027-01-15",
+        "endDate": "2027-04-15",
+        "emphasisPillarKeys": ["PILLAR_TAXES"]
+      },
+      {
+        "periodKey": "SEASON_YEAR_END",
+        "name": "Year End Review",
+        "startDate": "2027-11-01",
+        "endDate": "2027-12-31",
+        "emphasisPillarKeys": ["PILLAR_BUDGETING", "PILLAR_INVESTING_BASICS"]
+      }
+    ],
+
+    "riskAssessment": [
+      {
+        "riskKey": "RISK_ADVICE_BOUNDARY",
+        "category": "LEGAL",
+        "description": "Explanatory content about investing mechanics can be read as personalised financial advice in some jurisdictions in the declared geography set.",
+        "severity": "HIGH",
+        "mitigation": "A conformance rule forbids naming securities or recommending actions, and the compliance gate blocks any script that names an individual security."
+      },
+      {
+        "riskKey": "RISK_CAPACITY_SHORT",
+        "category": "CAPACITY",
+        "description": "Adding a weekly short consumes production capacity that currently carries long-form output, at a declared ceiling of four videos per week.",
+        "severity": "MEDIUM",
+        "mitigation": "Cadence is set to three of four available slots, leaving one slot of headroom before long-form output is displaced."
+      }
+    ],
+
+    "conformanceRules": [
+      {
+        "ruleKey": "RULE_SPONSORSHIP_DISCLOSURE",
+        "dimension": "DISCLOSURE",
+        "requirement": "Sponsorship must be disclosed within the first 30 seconds of every video, verified against the script disclosure marker.",
+        "severity": "BLOCKER"
+      },
+      {
+        "ruleKey": "RULE_NO_SECURITY_ADVICE",
+        "dimension": "TOPIC",
+        "requirement": "No investment advice or specific security recommendations appear in any script, title, description, or on-screen text.",
+        "severity": "BLOCKER"
+      },
+      {
+        "ruleKey": "RULE_PILLAR_MAPPING",
+        "dimension": "PILLAR",
+        "requirement": "Every commissioned topic maps to exactly one pillarKey declared in this manifest.",
+        "severity": "BLOCKER"
+      },
+      {
+        "ruleKey": "RULE_TITLE_CEILING",
+        "dimension": "PACKAGING",
+        "requirement": "Every generated title is at most 70 characters and matches one declared title pattern.",
+        "severity": "ERROR"
+      },
+      {
+        "ruleKey": "RULE_HOOK_CEILING",
+        "dimension": "PACKAGING",
+        "requirement": "Every hook completes within 8000 milliseconds and contains both stated stakes and a stated promise.",
+        "severity": "ERROR"
+      }
+    ],
+
+    "prohibitedTopics": [
+      "cryptocurrency speculation",
+      "get rich quick schemes",
+      "individual stock picks",
+      "day trading strategies"
+    ],
+
+    "derivation": {
+      "cycle": "REVISION",
+      "supersedesStrategyVersion": "1.2.0",
+      "adoptedProposalIds": [
+        "prp_01J8Z3K7QF9WCTB2NRXE5YHVDG",
+        "prp_01J8Z3K7QF9WCTB2NRXE5YHVDH"
+      ],
+      "changeSummary": [
+        {
+          "path": "$.contentPillars",
+          "changeType": "REMOVED",
+          "rationale": "The debt pillar is retired; it underperformed the channel median on retention and returning viewers across two quarters.",
+          "evidenceProposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDH"
+        },
+        {
+          "path": "$.contentPillars",
+          "changeType": "ADDED",
+          "rationale": "A taxes pillar replaces the retired debt pillar and occupies the unoccupied January to April window in this category.",
+          "evidenceProposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDH"
+        },
+        {
+          "path": "$.formatStrategy.formats",
+          "changeType": "ADDED",
+          "rationale": "A weekly vertical short is added; short-form arrivals convert to subscriptions at a higher rate on this channel.",
+          "evidenceProposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDG"
+        },
+        {
+          "path": "$.publishingCadence.slots",
+          "changeType": "CHANGED",
+          "rationale": "One long-form slot is reallocated to the new short format, keeping weekly output within the declared capacity of four.",
+          "evidenceProposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDG"
+        },
+        {
+          "path": "$.prohibitedTopics",
+          "changeType": "RETAINED_EXPLICITLY",
+          "rationale": "Operator prohibitions are carried forward unchanged; operatorIntent restates them in this cycle without amendment.",
+          "evidenceProposalId": "prp_01J8Z3K7QF9WCTB2NRXE5YHVDH"
+        }
+      ]
+    },
+
+    "assumptions": [
+      {
+        "assumptionKey": "ASSUMPTION_SLOT_TIMES",
+        "statement": "Publishing times are placed in the eastern timezone because the largest declared geography is the United States; no timezone was supplied.",
+        "basis": "AUDIENCE_DEFINITION",
+        "path": "$.publishingCadence.slots"
+      },
+      {
+        "assumptionKey": "ASSUMPTION_SUBS_TARGET",
+        "statement": "The subscriber target is set at the operator horizon because no numeric target was supplied for the audience growth goal.",
+        "basis": "OPERATOR_INTENT",
+        "path": "$.successMetrics"
+      },
+      {
+        "assumptionKey": "ASSUMPTION_TONE_AVOIDANCE",
+        "statement": "Urgency framing is placed on the avoidance list on the basis of the supplied category sentiment observation.",
+        "basis": "MARKET_CONTEXT",
+        "path": "$.competitivePositioning.avoidancePatterns"
+      }
+    ],
+
+    "declaredUnknowns": [
+      {
+        "path": "$.seoDirection.topicClusters[2].pillarKey",
+        "reason": "INPUT_INSUFFICIENT"
+      }
+    ],
+
+    "inputSufficiency": {
+      "value": 0.86,
+      "basis": "SELF_REPORTED",
+      "limitations": [
+        "No numeric target was supplied for the audience growth or brand authority goals",
+        "No timezone was supplied for the audience, so slot placement rests on geography"
+      ]
+    }
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 21480,
+    "costMicroUsd": 38200,
+    "inputTokens": 3120,
+    "outputTokens": 4260,
+    "finishReason": "COMPLETE",
+    "resourceClass": "planning-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9WCTB2NRXE5YHVDA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "brand_kit_steady_ledger",
+      "version": "2.1.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "locale_en_us",
+      "version": "1.3.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "strategy_chn_01J8Z3K7QF9WCTB2NRXE5YHVDD",
+      "version": "1.2.0",
+      "role": "SUPERSEDES",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_strategy_agent",
+      "version": "1.0.0",
+      "integrity": "sha256:4f2a9c1d8b73e6a05c2f18d9b40e7ac64f2a9c1d8b73e6a05c2f18d9b40e7ac6",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "ARTIFACT",
+      "refId": "ins_2026_q2_format",
+      "version": "1.0.0",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "ARTIFACT",
+      "refId": "ins_2026_q2_pillar",
+      "version": "1.0.0",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC"
+    },
+    {
+      "refType": "EXTERNAL",
+      "refId": "res_market_scan_2026_07",
+      "version": "2026-07-28",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9WCTB2NRXE5YHVDC",
+      "trust": "UNTRUSTED"
+    }
+  ]
+}
