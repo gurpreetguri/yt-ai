@@ -1,0 +1,254 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "REQUEST",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_2K8HN4V3XS1EQCA5R7T9WZP0MJ",
+    "correlationId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+    "causationId": "msg_415JG612AZMMRHE427SXPXZA0B",
+    "runId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+    "nodeId": "nod_9F3RQ7XK2M0DVE5T8WNP1CAZH6",
+    "attempt": 1,
+    "createdAt": "2026-09-02T12:15:00.000Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": {
+      "name": "workflow-engine",
+      "version": "4.2.1"
+    }
+  },
+  "data": {
+    "script": {
+      "topicId": "TOPIC_PAYCHECK_WITHHOLDING",
+      "segments": [
+        {
+          "segmentId": "SEG_HOOK",
+          "order": 1,
+          "beatRef": "BEAT_HOOK",
+          "segmentType": "HOOK",
+          "narration": "Have you ever wondered why the number on your pay stub never quite matches what actually lands in your bank account?",
+          "estimatedDurationSeconds": 15,
+          "claimRefs": ["CLAIM_MAIN"],
+          "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+          "deliveryIntent": "CURIOSITY",
+          "emphasis": "LIGHT"
+        },
+        {
+          "segmentId": "SEG_EXPLAIN",
+          "order": 2,
+          "beatRef": "BEAT_EXPLAIN",
+          "segmentType": "EXPLANATION",
+          "narration": "Your paycheck gets reduced by federal withholding before you ever see it, which is why your take-home pay is lower than your stated salary.",
+          "estimatedDurationSeconds": 20,
+          "claimRefs": ["CLAIM_MAIN"],
+          "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+          "deliveryIntent": "CLARITY",
+          "emphasis": "NONE"
+        },
+        {
+          "segmentId": "SEG_STAT",
+          "order": 3,
+          "beatRef": "BEAT_EXPLAIN",
+          "segmentType": "EVIDENCE",
+          "narration": "Early filing data suggests that about 30% of first-time filers underestimate their withholding, though that figure may shift as the season continues.",
+          "estimatedDurationSeconds": 20,
+          "claimRefs": ["CLAIM_STAT"],
+          "evidenceRefs": ["EVIDENCE_WITHHOLDING_SURVEY"],
+          "qualification": "Early filing data suggests about 30% of first-time filers misjudge withholding; the figure may shift as the season continues.",
+          "deliveryIntent": "CONTRAST",
+          "emphasis": "LIGHT"
+        },
+        {
+          "segmentId": "SEG_QUOTE",
+          "order": 4,
+          "beatRef": "BEAT_QUOTE",
+          "segmentType": "EVIDENCE",
+          "narration": "The IRS put it plainly: \"Most withholding errors are simple to fix once you know where to look.\"",
+          "estimatedDurationSeconds": 25,
+          "claimRefs": ["CLAIM_QUOTE"],
+          "evidenceRefs": ["EVIDENCE_IRS_STATEMENT"],
+          "quotation": {
+            "claimId": "CLAIM_QUOTE",
+            "speaker": "Jane Doe, IRS Public Affairs",
+            "quotedText": "Most withholding errors are simple to fix once you know where to look."
+          },
+          "deliveryIntent": "REASSURANCE",
+          "emphasis": "STRONG"
+        },
+        {
+          "segmentId": "SEG_CTA",
+          "order": 5,
+          "beatRef": "BEAT_CTA",
+          "segmentType": "CTA",
+          "narration": "If you want a simple walkthrough of your own withholding, subscribe so you never miss the next explainer.",
+          "estimatedDurationSeconds": 15,
+          "claimRefs": [],
+          "evidenceRefs": [],
+          "deliveryIntent": "CALL_TO_ACTION",
+          "emphasis": "STRONG"
+        }
+      ],
+      "scriptDuration": {
+        "targetDurationSeconds": 100,
+        "totalEstimatedDurationSeconds": 95,
+        "toleranceRatio": 0.15,
+        "withinTolerance": true,
+        "wordsPerMinute": 150
+      },
+      "wordCount": 103,
+      "warnings": [],
+      "downstreamReadiness": "READY_FOR_REVIEW",
+      "readinessRationale": "Every beat is covered, the hook and CTA are properly grounded, the qualified statistic keeps its qualification, the quotation matches its source exactly, and duration is within tolerance.",
+      "readinessBlockers": []
+    },
+    "storyArchitecture": {
+      "topicId": "TOPIC_PAYCHECK_WITHHOLDING",
+      "hook": {
+        "hookType": "QUESTION",
+        "curiosityMechanism": "Most viewers assume their paycheck already reflects their real earnings — withholding quietly says otherwise.",
+        "viewerQuestion": "Why does your paycheck never match your full salary?",
+        "claimRefs": ["CLAIM_MAIN"],
+        "payoffExpectation": "Viewers will understand what withholding is and how to check their own numbers.",
+        "approxDurationSeconds": 15
+      },
+      "beats": [
+        {
+          "beatId": "BEAT_HOOK",
+          "order": 1,
+          "beatType": "HOOK",
+          "purpose": "Open with the gap between salary and take-home pay.",
+          "expectedViewerState": "Curious about why their paycheck looks smaller than expected.",
+          "claimRefs": ["CLAIM_MAIN"],
+          "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+          "requiredConcepts": ["withholding basics"],
+          "approxDurationSeconds": 15,
+          "importance": "CRITICAL",
+          "pacing": "FAST"
+        },
+        {
+          "beatId": "BEAT_EXPLAIN",
+          "order": 2,
+          "beatType": "EXPLANATION",
+          "purpose": "Explain the withholding mechanism and preliminary survey data about common errors.",
+          "expectedViewerState": "Understands why paychecks are reduced and that many first-time filers misjudge withholding.",
+          "claimRefs": ["CLAIM_MAIN", "CLAIM_STAT"],
+          "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM", "EVIDENCE_WITHHOLDING_SURVEY"],
+          "requiredConcepts": ["withholding mechanism", "early-season error rate"],
+          "approxDurationSeconds": 40,
+          "importance": "HIGH",
+          "pacing": "MODERATE",
+          "qualification": "Early filing data suggests about 30% of first-time filers misjudge withholding; the figure may shift as the season continues."
+        },
+        {
+          "beatId": "BEAT_QUOTE",
+          "order": 3,
+          "beatType": "EVIDENCE",
+          "purpose": "Ground the explanation in the IRS's own public statement.",
+          "expectedViewerState": "Trusts that fixing withholding errors is achievable.",
+          "claimRefs": ["CLAIM_QUOTE"],
+          "evidenceRefs": ["EVIDENCE_IRS_STATEMENT"],
+          "requiredConcepts": ["official reassurance"],
+          "approxDurationSeconds": 25,
+          "importance": "MEDIUM",
+          "pacing": "MODERATE"
+        },
+        {
+          "beatId": "BEAT_CTA",
+          "order": 4,
+          "beatType": "CTA",
+          "purpose": "Invite the viewer to subscribe for the next explainer.",
+          "expectedViewerState": "Motivated to follow for more.",
+          "claimRefs": [],
+          "evidenceRefs": [],
+          "requiredConcepts": ["subscribe CTA"],
+          "approxDurationSeconds": 15,
+          "importance": "LOW",
+          "pacing": "FAST"
+        }
+      ],
+      "duration": {
+        "targetDurationSeconds": 100,
+        "totalBeatDurationSeconds": 95,
+        "toleranceRatio": 0.15,
+        "withinTolerance": true
+      },
+      "payoff": {
+        "description": "Viewers leave understanding why their paycheck differs from their salary and trusting that withholding mistakes are fixable.",
+        "connectsToOpeningPromise": true,
+        "connectsToCentralQuestion": true,
+        "connectsToViewerProblem": true,
+        "resolutionClaimRefs": ["CLAIM_MAIN", "CLAIM_QUOTE"]
+      },
+      "conclusion": {
+        "summaryApproach": "Recap the withholding mechanism and reassure viewers that checking their own numbers is straightforward.",
+        "finalTakeaway": "Understanding withholding turns a confusing paycheck into a predictable one.",
+        "tone": "reassuring, practical"
+      },
+      "ctaStrategy": {
+        "ctaType": "SUBSCRIBE",
+        "rationale": "Viewers who want to understand their paycheck are a good match for future explainer content."
+      },
+      "downstreamReadiness": "READY_FOR_SCRIPT"
+    },
+    "verificationPackage": {
+      "topicId": "TOPIC_PAYCHECK_WITHHOLDING",
+      "claims": [
+        {
+          "claimId": "CLAIM_MAIN",
+          "claimText": "Federal income tax withholding reduces an employee's paycheck before net pay is deposited, which is why take-home pay is lower than gross salary.",
+          "claimType": "TECHNICAL_FACT",
+          "verificationStatus": "VERIFIED",
+          "downstreamSafety": "SAFE_TO_USE",
+          "supportingEvidenceIds": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "limitations": []
+        },
+        {
+          "claimId": "CLAIM_STAT",
+          "claimText": "Early filing data suggests that about 30% of first-time filers underestimate their federal withholding.",
+          "claimType": "STATISTIC",
+          "verificationStatus": "PARTIALLY_SUPPORTED",
+          "downstreamSafety": "USE_WITH_QUALIFICATION",
+          "supportingEvidenceIds": ["EVIDENCE_WITHHOLDING_SURVEY"],
+          "isTimeSensitive": true,
+          "freshnessConcern": "MINOR",
+          "limitations": ["Based on early-season survey data only; may not hold for the full filing season."],
+          "notesForDownstream": "Present as an early/preliminary figure, not a final result."
+        },
+        {
+          "claimId": "CLAIM_QUOTE",
+          "claimText": "Most withholding errors are simple to fix once you know where to look.",
+          "claimType": "QUOTE",
+          "verificationStatus": "VERIFIED",
+          "downstreamSafety": "SAFE_TO_USE",
+          "supportingEvidenceIds": ["EVIDENCE_IRS_STATEMENT"],
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "limitations": [],
+          "quoteProvenance": {
+            "speaker": "Jane Doe, IRS Public Affairs",
+            "speakerConfirmed": true
+          }
+        }
+      ]
+    },
+    "audienceContext": {
+      "primarySegment": "First-time salaried filers preparing to file taxes for the first time.",
+      "expertiseLevel": "BEGINNER",
+      "toneDescriptors": ["CONVERSATIONAL", "PRAGMATIC"]
+    },
+    "language": "en-US"
+  },
+  "references": [
+    {
+      "refType": "ARTIFACT",
+      "refId": "msg_415JG612AZMMRHE427SXPXZA0B",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

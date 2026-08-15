@@ -1,0 +1,405 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:script-reviewer-agent-output:v1",
+  "title": "Script Reviewer Agent Response",
+  "description": "RESPONSE / ERROR contract produced by AGT-06 script-reviewer-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Review Report — structured findings about Agent 05's script (README §1). The model emits `#/$defs/reviewReport` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). This agent NEVER rewrites the script, NEVER invents a replacement fact/quote/source, and NEVER silently corrects anything it reviews (README §2, §4). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "oneOf": [
+    { "$ref": "#/$defs/successResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+
+  "$defs": {
+
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "data"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "RESPONSE" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": {
+          "description": "PARTIAL is prohibited for this agent: a partially-produced review report is a failure (STD-000 §5.3). A report recommending REJECTED or REGENERATION_REQUIRED is still SUCCESS — an honest, thorough review is not a system failure.",
+          "const": "SUCCESS"
+        },
+        "data": { "$ref": "#/$defs/reviewReport" },
+        "issues": {
+          "description": "Non-blocking warnings alongside data (GDE-003 §9.2). Present only when at least one warning exists; never present-and-empty. Unordered. 1-20 items.",
+          "type": "array", "minItems": 1, "maxItems": 20,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "validation": { "$ref": "#/$defs/validationBlock" },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": { "type": "array", "minItems": 1, "maxItems": 40, "items": { "$ref": "#/$defs/reference" } }
+      }
+    },
+
+    "errorResponse": {
+      "description": "Produced when no work product exists: typed failure or refusal (GDE-003 §9.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "issues"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "ERROR" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": { "const": "FAILURE" },
+        "issues": {
+          "description": "All failures are reported together, never one at a time (STD-000 §6.2). Unordered. 1-50 items.",
+          "type": "array", "minItems": 1, "maxItems": 50,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": { "type": "array", "minItems": 1, "maxItems": 40, "items": { "$ref": "#/$defs/reference" } }
+      }
+    },
+
+    "isoTimestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "bcp47Tag": { "type": "string", "minLength": 2, "maxLength": 20, "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$" },
+    "prefixedId": { "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "localKey": { "description": "Response-local stable key. Unique within its containing array.", "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,31}$" },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "responseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "causationId", "createdAt", "locale", "tenantId", "channelId", "producer", "agentId", "agentVersion", "promptVersion"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId" },
+        "runId": { "$ref": "#/$defs/prefixedId" },
+        "nodeId": { "$ref": "#/$defs/prefixedId" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag" },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        },
+        "agentId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "agentVersion": { "$ref": "#/$defs/semanticVersion" },
+        "promptVersion": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "provider": { "description": "Audit only. MUST NOT influence any consumer's behaviour (STD-000 Rule 5).", "type": "string", "minLength": 2, "maxLength": 64 },
+        "modelId": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "modelVersion": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["temperature", "topP"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "topP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seed": { "type": "integer", "minimum": 0 },
+            "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 200000 }
+          }
+        }
+      }
+    },
+
+    "executionBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "attemptType", "durationMs", "costMicroUsd", "outcome"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "attemptType": { "type": "string", "enum": ["INITIAL", "REPAIR", "REGENERATION"] },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "costMicroUsd": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "finishReason": { "type": "string", "enum": ["COMPLETE", "TRUNCATED", "REFUSED", "ERROR"] },
+        "resourceClass": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "outcome": { "type": "string", "enum": ["SUCCESS", "FAILURE"] }
+      }
+    },
+
+    "validationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "stages", "findings"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["PASSED", "PASSED_WITH_WARNINGS", "FAILED", "BLOCKED", "INCONCLUSIVE"] },
+        "stages": {
+          "type": "array", "minItems": 1, "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "outcome", "durationMs"],
+            "properties": {
+              "stage": { "type": "string", "enum": ["STRUCTURAL", "BUSINESS", "CONSISTENCY", "QUALITY", "POLICY", "HUMAN"] },
+              "outcome": { "type": "string", "enum": ["PASSED", "FAILED", "BLOCKED", "INCONCLUSIVE", "SKIPPED"] },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "findings": { "type": "array", "minItems": 0, "maxItems": 300, "items": { "$ref": "#/$defs/validationFinding" } },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "AGGREGATE"] }
+          }
+        }
+      }
+    },
+
+    "validationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "path", "message", "basis"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING", "INFO"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "message": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "suggestion": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "HUMAN"] }
+      }
+    },
+
+    "errorObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "severity", "retryable", "message", "source", "context", "occurredAt"],
+      "properties": {
+        "code": { "description": "Registered catalogue code, CATEGORY.SUBJECT.CONDITION, maximum four segments (STD-000 §8.4).", "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+        "category": { "type": "string", "enum": ["VALIDATION", "AI_PROVIDER", "AI_OUTPUT", "NETWORK", "EXTERNAL_API", "TIMEOUT", "RATE_LIMIT", "QUOTA", "AUTH", "PERMISSION", "SECURITY", "POLICY_COMPLIANCE", "CONFIGURATION", "RESOURCE", "DATA_INTEGRITY", "WORKFLOW", "BUDGET", "UNKNOWN"] },
+        "severity": { "type": "string", "enum": ["FATAL", "ERROR", "WARNING", "INFO"] },
+        "retryable": { "type": "boolean" },
+        "message": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "userMessage": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "version", "stage"],
+          "properties": {
+            "component": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" },
+            "stage": { "type": "string", "enum": ["INPUT_VALIDATION", "INVOCATION", "OUTPUT_PARSE", "OUTPUT_VALIDATION", "BUSINESS_VALIDATION"] }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correlationId"],
+          "properties": {
+            "correlationId": { "$ref": "#/$defs/prefixedId" },
+            "runId": { "$ref": "#/$defs/prefixedId" },
+            "nodeId": { "$ref": "#/$defs/prefixedId" },
+            "attempt": { "type": "integer", "minimum": 1, "maximum": 10 }
+          }
+        },
+        "details": {
+          "type": "array", "minItems": 0, "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 }
+            }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "occurredAt": { "$ref": "#/$defs/isoTimestamp" },
+        "causeChain": {
+          "type": "array", "minItems": 0, "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+              "message": { "type": "string", "minLength": 5, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "reviewDecision": { "type": "string", "enum": ["APPROVED", "REPAIR_REQUIRED", "REGENERATION_REQUIRED", "REJECTED"] },
+    "nextAction": { "type": "string", "enum": ["CONTINUE", "REPAIR_SCRIPT", "REGENERATE_SCRIPT", "REJECT"] },
+
+    "reviewSummary": {
+      "description": "The exact machine-readable summary block (README §7).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "readyForScenePlanning", "blockingIssueCount", "highSeverityIssueCount", "repairableIssueCount"],
+      "properties": {
+        "decision": { "$ref": "#/$defs/reviewDecision" },
+        "readyForScenePlanning": { "type": "boolean", "description": "MUST equal (decision === APPROVED) (R-BUS-009)." },
+        "blockingIssueCount": { "type": "integer", "minimum": 0, "maximum": 100, "description": "MUST equal the count of issues with blocking === true (R-BUS-006)." },
+        "highSeverityIssueCount": { "type": "integer", "minimum": 0, "maximum": 100, "description": "MUST equal the count of issues with severity HIGH (R-BUS-007)." },
+        "repairableIssueCount": { "type": "integer", "minimum": 0, "maximum": 100, "description": "MUST equal the count of issues with repairability REPAIRABLE (R-BUS-008)." }
+      }
+    },
+
+    "issueCategory": {
+      "type": "string",
+      "enum": [
+        "UNSUPPORTED_CLAIM", "CLAIM_REFERENCE_MISMATCH", "DO_NOT_USE_VIOLATION", "QUALIFICATION_MISSING",
+        "NUMERIC_DRIFT", "UNSUPPORTED_QUOTE", "UNSUPPORTED_CAUSAL_CLAIM", "UNSUPPORTED_COMPARISON",
+        "CONFLICTING_PRESENTED_AS_CERTAIN", "OUTDATED_PRESENTED_AS_CURRENT",
+        "STORY_ALIGNMENT", "STRUCTURAL_COMPLETENESS", "DURATION", "SPOKEN_LANGUAGE_QUALITY",
+        "AUDIENCE_FIT", "ENGAGEMENT", "SAFETY", "CALL_TO_ACTION"
+      ]
+    },
+    "issueSeverity": { "type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"] },
+    "repairability": { "type": "string", "enum": ["REPAIRABLE", "NOT_REPAIRABLE"] },
+    "issueBasis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED"] },
+
+    "reviewIssue": {
+      "description": "One reviewer finding. Never contains replacement narration, a corrected number, or a rewritten sentence (README §4).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issueId", "category", "severity", "basis", "location", "description", "affectedClaimIds", "affectedEvidenceIds", "recommendation", "repairability", "blocking", "confidence"],
+      "properties": {
+        "issueId": { "$ref": "#/$defs/localKey" },
+        "category": { "$ref": "#/$defs/issueCategory" },
+        "severity": { "$ref": "#/$defs/issueSeverity" },
+        "basis": { "$ref": "#/$defs/issueBasis" },
+        "location": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "description": { "type": "string", "minLength": 10, "maxLength": 400 },
+        "affectedSegmentId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to a segmentId in the request's script.segments, when present (R-BUS-002)." },
+        "affectedBeatId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to a beatId in the request's storyArchitecture.beats, when present (R-BUS-003)." },
+        "affectedClaimIds": {
+          "description": "MUST resolve to the request's verificationPackage.claims (R-BUS-004). Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "affectedEvidenceIds": {
+          "description": "MUST resolve to a supportingEvidenceIds entry of a supplied claim (R-BUS-005). Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "recommendation": { "type": "string", "minLength": 10, "maxLength": 300, "description": "Guidance for a human or for Agent 05's next attempt — never replacement narration itself." },
+        "repairability": { "$ref": "#/$defs/repairability" },
+        "blocking": { "type": "boolean", "description": "Whether this issue alone prevents APPROVED." },
+        "confidence": { "$ref": "#/$defs/ratio" }
+      }
+    },
+
+    "dimensionStatus": { "type": "string", "enum": ["STRONG", "ACCEPTABLE", "WEAK", "FAILING"] },
+
+    "dimensionAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "$ref": "#/$defs/dimensionStatus" },
+        "notes": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "reviewDimensions": {
+      "description": "Fifteen controlled per-dimension assessments — never a single 0-100 score (README §6).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factualAccuracy", "claimProvenance", "storyAlignment", "narrativeQuality", "clarity",
+        "pacing", "audienceFit", "engagement", "qualificationPreservation", "numericalAccuracy",
+        "quoteAccuracy", "durationAccuracy", "completeness", "callToAction", "safetyCompliance"
+      ],
+      "properties": {
+        "factualAccuracy": { "$ref": "#/$defs/dimensionAssessment" },
+        "claimProvenance": { "$ref": "#/$defs/dimensionAssessment" },
+        "storyAlignment": { "$ref": "#/$defs/dimensionAssessment" },
+        "narrativeQuality": { "$ref": "#/$defs/dimensionAssessment" },
+        "clarity": { "$ref": "#/$defs/dimensionAssessment" },
+        "pacing": { "$ref": "#/$defs/dimensionAssessment" },
+        "audienceFit": { "$ref": "#/$defs/dimensionAssessment" },
+        "engagement": { "$ref": "#/$defs/dimensionAssessment" },
+        "qualificationPreservation": { "$ref": "#/$defs/dimensionAssessment" },
+        "numericalAccuracy": { "$ref": "#/$defs/dimensionAssessment" },
+        "quoteAccuracy": { "$ref": "#/$defs/dimensionAssessment" },
+        "durationAccuracy": { "$ref": "#/$defs/dimensionAssessment" },
+        "completeness": { "$ref": "#/$defs/dimensionAssessment" },
+        "callToAction": { "$ref": "#/$defs/dimensionAssessment" },
+        "safetyCompliance": { "$ref": "#/$defs/dimensionAssessment" }
+      }
+    },
+
+    "checkStatus": { "type": "string", "enum": ["PASS", "WARNING", "FAIL"] },
+
+    "reviewCheckResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "summary"],
+      "properties": {
+        "status": { "$ref": "#/$defs/checkStatus" },
+        "summary": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "reviewReport": {
+      "description": "THE REVIEW REPORT. The single deliverable of this agent — structured findings, never a rewritten script (README §1).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageKind", "topicId", "summary", "nextAction", "dimensions", "issues",
+        "factualIntegrityResult", "provenanceResult", "architectureAlignmentResult",
+        "durationResult", "audienceResult", "engagementResult", "safetyResult",
+        "recommendations", "reviewRationale"
+      ],
+      "properties": {
+        "packageKind": { "const": "REVIEW_REPORT" },
+        "topicId": { "$ref": "#/$defs/localKey", "description": "MUST equal the request's script.topicId exactly (R-BUS-023)." },
+        "summary": { "$ref": "#/$defs/reviewSummary" },
+        "nextAction": { "$ref": "#/$defs/nextAction" },
+        "dimensions": { "$ref": "#/$defs/reviewDimensions" },
+        "issues": {
+          "description": "Unordered. 0-100 items. issueId unique (R-BUS-001).",
+          "type": "array", "minItems": 0, "maxItems": 100,
+          "items": { "$ref": "#/$defs/reviewIssue" }
+        },
+        "factualIntegrityResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "provenanceResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "architectureAlignmentResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "durationResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "audienceResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "engagementResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "safetyResult": { "$ref": "#/$defs/reviewCheckResult" },
+        "recommendations": {
+          "description": "0-10 items. General guidance only — never replacement narration (README §4).",
+          "type": "array", "minItems": 0, "maxItems": 10,
+          "items": { "type": "string", "minLength": 10, "maxLength": 300 }
+        },
+        "reviewRationale": { "type": "string", "minLength": 20, "maxLength": 500 }
+      }
+    }
+  }
+}

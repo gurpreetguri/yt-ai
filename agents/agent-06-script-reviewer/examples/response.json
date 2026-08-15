@@ -1,0 +1,93 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_5H2NQ7XK9M0DVE3T8WNP1CAZR6",
+    "correlationId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+    "causationId": "msg_2K8HN4V3XS1EQCA5R7T9WZP0MJ",
+    "runId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+    "nodeId": "nod_9F3RQ7XK2M0DVE5T8WNP1CAZH6",
+    "attempt": 1,
+    "createdAt": "2026-09-02T12:15:32.500Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "script-reviewer-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_script_reviewer_agent@sha256:7a3c9e1d5b0f8462ae91d7c3b5a0298f3c7d1a6e0b6c9054ae91d7c3b5a02981",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0.3, "topP": 1, "seed": 20260902, "maxOutputTokens": 6000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "packageKind": "REVIEW_REPORT",
+    "topicId": "TOPIC_PAYCHECK_WITHHOLDING",
+    "summary": {
+      "decision": "APPROVED",
+      "readyForScenePlanning": true,
+      "blockingIssueCount": 0,
+      "highSeverityIssueCount": 0,
+      "repairableIssueCount": 0
+    },
+    "nextAction": "CONTINUE",
+    "dimensions": {
+      "factualAccuracy": { "status": "STRONG", "notes": "Every factual statement traces to a SAFE_TO_USE or properly-qualified claim." },
+      "claimProvenance": { "status": "STRONG", "notes": "All claimRefs and evidenceRefs resolve correctly and evidence belongs to its citing claim." },
+      "storyAlignment": { "status": "STRONG", "notes": "Every beat is narrated in order; hook and CTA match the architecture." },
+      "narrativeQuality": { "status": "ACCEPTABLE", "notes": "Clear arc from hook to payoff to CTA with no dead sections." },
+      "clarity": { "status": "STRONG", "notes": "Sentences are short and direct; no unclear references." },
+      "pacing": { "status": "ACCEPTABLE", "notes": "Pacing is brisk and appropriate for the short target duration." },
+      "audienceFit": { "status": "STRONG", "notes": "Vocabulary and tone match a beginner, conversational, pragmatic audience." },
+      "engagement": { "status": "ACCEPTABLE", "notes": "The hook creates genuine curiosity without overselling." },
+      "qualificationPreservation": { "status": "STRONG", "notes": "The USE_WITH_QUALIFICATION statistic keeps its qualification intact." },
+      "numericalAccuracy": { "status": "STRONG", "notes": "The only figure (30%) traces exactly to its source claim." },
+      "quoteAccuracy": { "status": "STRONG", "notes": "The quotation matches claimText and speaker exactly." },
+      "durationAccuracy": { "status": "STRONG", "notes": "95s total against a 100s target is well within the 15% tolerance." },
+      "completeness": { "status": "STRONG", "notes": "Hook, explanation, evidence, and CTA are all present." },
+      "callToAction": { "status": "STRONG", "notes": "The CTA is natural and matches ctaStrategy.ctaType SUBSCRIBE." },
+      "safetyCompliance": { "status": "STRONG", "notes": "No DO_NOT_USE claim is used anywhere in the script." }
+    },
+    "issues": [],
+    "factualIntegrityResult": { "status": "PASS", "summary": "No unsupported, altered, or fabricated factual statement was found." },
+    "provenanceResult": { "status": "PASS", "summary": "Every claim and evidence reference resolves correctly and no DO_NOT_USE claim is used." },
+    "architectureAlignmentResult": { "status": "PASS", "summary": "The script follows the approved hook, beat order, payoff, and CTA strategy." },
+    "durationResult": { "status": "PASS", "summary": "Total estimated duration is within the approved ±15% tolerance." },
+    "audienceResult": { "status": "PASS", "summary": "Vocabulary and tone match the supplied beginner, conversational audience context." },
+    "engagementResult": { "status": "PASS", "summary": "The hook, pacing, and payoff sustain curiosity without resorting to unsupported claims." },
+    "safetyResult": { "status": "PASS", "summary": "No unsafe, deceptive, or fabricated content was found." },
+    "recommendations": [],
+    "reviewRationale": "The script is fully grounded in the supplied verified claims, follows the approved story architecture in order, preserves the one required qualification, quotes its source exactly, and fits the target duration and audience — no defect blocks scene planning."
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 16840,
+    "costMicroUsd": 24300,
+    "inputTokens": 2610,
+    "outputTokens": 1980,
+    "finishReason": "COMPLETE",
+    "resourceClass": "review-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_2K8HN4V3XS1EQCA5R7T9WZP0MJ",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_script_reviewer_agent",
+      "version": "1.0.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

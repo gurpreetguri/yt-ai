@@ -1,0 +1,99 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_8T4WNP1CAZR6H2NQ7XK9M0DVE3",
+    "correlationId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+    "causationId": "msg_2K8HN4V3XS1EQCA5R7T9WZP0MJ",
+    "runId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+    "nodeId": "nod_9F3RQ7XK2M0DVE5T8WNP1CAZH6",
+    "attempt": 1,
+    "createdAt": "2026-09-02T12:15:00.900Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "script-reviewer-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_script_reviewer_agent@sha256:7a3c9e1d5b0f8462ae91d7c3b5a0298f3c7d1a6e0b6c9054ae91d7c3b5a02981"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.SCRIPT_NOT_READY",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "A script that is NOT_READY_FOR_REVIEW cannot be dispatched to the script reviewer; the workflow must resolve it first.",
+      "userMessage": "This script could not be reviewed because it is not yet ready for review.",
+      "source": {
+        "component": "script-reviewer-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+        "runId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+        "nodeId": "nod_9F3RQ7XK2M0DVE5T8WNP1CAZH6",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.script.downstreamReadiness",
+          "expected": "READY_FOR_REVIEW",
+          "actual": "NOT_READY_FOR_REVIEW",
+          "ruleId": "R-IN-001"
+        }
+      ],
+      "remediation": "Resolve the script's readiness blockers before dispatching it to the script reviewer.",
+      "occurredAt": "2026-09-02T12:15:00.905Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.DUPLICATE_CLAIM_ID",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Two supplied verified claims share the same claimId.",
+      "userMessage": "This script could not be reviewed because two supplied verified claims share the same identifier.",
+      "source": {
+        "component": "script-reviewer-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+        "runId": "run_7YB4XM2QDVN0KH9SE3T6WRP1CA",
+        "nodeId": "nod_9F3RQ7XK2M0DVE5T8WNP1CAZH6",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.verificationPackage.claims[1].claimId",
+          "expected": "a claimId unique within verificationPackage.claims",
+          "actual": "CLAIM_MAIN",
+          "ruleId": "R-IN-005"
+        }
+      ],
+      "remediation": "Assign a distinct claimId to each supplied verified claim before dispatch.",
+      "occurredAt": "2026-09-02T12:15:00.906Z"
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 2,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_2K8HN4V3XS1EQCA5R7T9WZP0MJ",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}
