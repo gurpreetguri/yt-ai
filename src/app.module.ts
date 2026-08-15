@@ -6,17 +6,18 @@ import { StrategyModule } from './agents/strategy/strategy.module';
 import { TopicDiscoveryModule } from './agents/topic-discovery/topic-discovery.module';
 import { ResearchModule } from './agents/research/research.module';
 import { FactVerificationModule } from './agents/fact-verification/fact-verification.module';
+import { StoryArchitectModule } from './agents/story-architect/story-architect.module';
 
 /**
  * Root application module.
  *
  * Only Agent 00 (Strategy Agent), Agent 01 (Topic Discovery Agent), Agent 02
- * (Research Agent), and Agent 03 (Fact Verification Agent) are wired here
- * (STD-000 §13 — no workflow engine, no other agents, no database, no queue
- * infrastructure yet). No agent calls another agent directly (STD-000 Rule
- * 2); composing them is exclusively the future workflow engine's job
- * (ARC-001 §7.2). Future agents register alongside these four, never inside
- * any of them.
+ * (Research Agent), Agent 03 (Fact Verification Agent), and Agent 04 (Story
+ * Architect Agent) are wired here (STD-000 §13 — no workflow engine, no
+ * other agents, no database, no queue infrastructure yet). No agent calls
+ * another agent directly (STD-000 Rule 2); composing them is exclusively the
+ * future workflow engine's job (ARC-001 §7.2). Future agents register
+ * alongside these five, never inside any of them.
  */
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { FactVerificationModule } from './agents/fact-verification/fact-verifica
     TopicDiscoveryModule,
     ResearchModule,
     FactVerificationModule,
+    StoryArchitectModule,
   ],
 })
 export class AppModule {}

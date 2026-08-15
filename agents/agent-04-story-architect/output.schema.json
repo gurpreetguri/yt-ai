@@ -1,0 +1,606 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:story-architect-agent-output:v1",
+  "title": "Story Architect Agent Response",
+  "description": "RESPONSE / ERROR contract produced by AGT-04 story-architect-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Story Architecture — a structured BLUEPRINT for Agent 05 Script Writer, never final narration (README §3). The model emits `#/$defs/storyArchitecture` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual story element traces to an Agent 03 verified claim; this agent never introduces a new factual claim (README §5). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "oneOf": [
+    { "$ref": "#/$defs/successResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+
+  "$defs": {
+
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "data"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "RESPONSE" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": {
+          "description": "PARTIAL is prohibited for this agent: a partially-built story architecture is a failure (STD-000 §5.3). A story that is NOT_READY_FOR_SCRIPT because upstream evidence is thin is still SUCCESS — an honest, gap-flagged architecture is not a system failure.",
+          "const": "SUCCESS"
+        },
+        "data": { "$ref": "#/$defs/storyArchitecture" },
+        "issues": {
+          "description": "Non-blocking warnings alongside data (GDE-003 §9.2). Present only when at least one warning exists; never present-and-empty. Unordered. 1-20 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "validation": { "$ref": "#/$defs/validationBlock" },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "errorResponse": {
+      "description": "Produced when no work product exists: typed failure or refusal (GDE-003 §9.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "issues"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "ERROR" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": { "const": "FAILURE" },
+        "issues": {
+          "description": "All failures are reported together, never one at a time (STD-000 §6.2). Unordered. 1-50 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "isoTimestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "bcp47Tag": { "type": "string", "minLength": 2, "maxLength": 20, "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$" },
+    "prefixedId": { "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "localKey": {
+      "description": "Response-local stable key. Unique within its containing array.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+    "jsonPath": {
+      "description": "Machine-readable location within this document, rooted at `$.` (STD-000 §8.1).",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^\\$\\.[A-Za-z0-9_.\\[\\]]+$"
+    },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "responseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "causationId", "createdAt", "locale", "tenantId", "channelId", "producer", "agentId", "agentVersion", "promptVersion"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId" },
+        "runId": { "$ref": "#/$defs/prefixedId" },
+        "nodeId": { "$ref": "#/$defs/prefixedId" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag" },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        },
+        "agentId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "agentVersion": { "$ref": "#/$defs/semanticVersion" },
+        "promptVersion": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "provider": { "description": "Audit only. MUST NOT influence any consumer's behaviour (STD-000 Rule 5).", "type": "string", "minLength": 2, "maxLength": 64 },
+        "modelId": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "modelVersion": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["temperature", "topP"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "topP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seed": { "type": "integer", "minimum": 0 },
+            "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 200000 }
+          }
+        }
+      }
+    },
+
+    "executionBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "attemptType", "durationMs", "costMicroUsd", "outcome"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "attemptType": { "type": "string", "enum": ["INITIAL", "REPAIR", "REGENERATION"] },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "costMicroUsd": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "finishReason": { "type": "string", "enum": ["COMPLETE", "TRUNCATED", "REFUSED", "ERROR"] },
+        "resourceClass": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "outcome": { "type": "string", "enum": ["SUCCESS", "FAILURE"] }
+      }
+    },
+
+    "validationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "stages", "findings"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["PASSED", "PASSED_WITH_WARNINGS", "FAILED", "BLOCKED", "INCONCLUSIVE"] },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "outcome", "durationMs"],
+            "properties": {
+              "stage": { "type": "string", "enum": ["STRUCTURAL", "BUSINESS", "CONSISTENCY", "QUALITY", "POLICY", "HUMAN"] },
+              "outcome": { "type": "string", "enum": ["PASSED", "FAILED", "BLOCKED", "INCONCLUSIVE", "SKIPPED"] },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 300,
+          "items": { "$ref": "#/$defs/validationFinding" }
+        },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "AGGREGATE"] }
+          }
+        }
+      }
+    },
+
+    "validationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "path", "message", "basis"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING", "INFO"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "message": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "suggestion": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "HUMAN"] }
+      }
+    },
+
+    "errorObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "severity", "retryable", "message", "source", "context", "occurredAt"],
+      "properties": {
+        "code": {
+          "description": "Registered catalogue code, CATEGORY.SUBJECT.CONDITION, maximum four segments (STD-000 §8.4).",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "VALIDATION", "AI_PROVIDER", "AI_OUTPUT", "NETWORK", "EXTERNAL_API", "TIMEOUT",
+            "RATE_LIMIT", "QUOTA", "AUTH", "PERMISSION", "SECURITY", "POLICY_COMPLIANCE",
+            "CONFIGURATION", "RESOURCE", "DATA_INTEGRITY", "WORKFLOW", "BUDGET", "UNKNOWN"
+          ]
+        },
+        "severity": { "type": "string", "enum": ["FATAL", "ERROR", "WARNING", "INFO"] },
+        "retryable": { "type": "boolean" },
+        "message": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "userMessage": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "version", "stage"],
+          "properties": {
+            "component": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" },
+            "stage": { "type": "string", "enum": ["INPUT_VALIDATION", "INVOCATION", "OUTPUT_PARSE", "OUTPUT_VALIDATION", "BUSINESS_VALIDATION"] }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correlationId"],
+          "properties": {
+            "correlationId": { "$ref": "#/$defs/prefixedId" },
+            "runId": { "$ref": "#/$defs/prefixedId" },
+            "nodeId": { "$ref": "#/$defs/prefixedId" },
+            "attempt": { "type": "integer", "minimum": 1, "maximum": 10 }
+          }
+        },
+        "details": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 }
+            }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "occurredAt": { "$ref": "#/$defs/isoTimestamp" },
+        "causeChain": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+              "message": { "type": "string", "minLength": 5, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "storyArchitecture": {
+      "description": "THE STORY ARCHITECTURE. The single deliverable of this agent — a structured BLUEPRINT for Agent 05 Script Writer (README §1). Contains no final narration, dialogue, camera directions, image/video prompts, captions, thumbnail concepts, or publishing metadata (README §3). Every factual element traces to an Agent 03 verified claim (README §5).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageKind", "topicId", "storyObjective", "hook", "beats", "pacingStrategy",
+        "duration", "payoff", "conclusion", "ctaStrategy", "researchGaps",
+        "downstreamReadiness", "readinessRationale", "readinessBlockers",
+        "assumptions", "declaredUnknowns", "inputSufficiency"
+      ],
+      "properties": {
+        "packageKind": { "const": "STORY_ARCHITECTURE" },
+
+        "topicId": { "$ref": "#/$defs/localKey", "description": "MUST equal the request's topicOpportunity.topicId exactly (R-BUS-021)." },
+
+        "storyObjective": { "$ref": "#/$defs/storyObjective" },
+
+        "hook": { "$ref": "#/$defs/hook" },
+
+        "beats": {
+          "description": "The narrative sequence (README §8). Unordered as an array; the meaningful order is `order`, ascending. 2-30 items. beatId unique (R-BUS-001); order unique and contiguous from 1 (R-BUS-002).",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 30,
+          "items": { "$ref": "#/$defs/storyBeat" }
+        },
+
+        "pacingStrategy": {
+          "description": "A brief rationale for how pacing serves this narrative — never decorative metadata (README §11).",
+          "type": "string", "minLength": 15, "maxLength": 400
+        },
+
+        "duration": { "$ref": "#/$defs/storyDuration" },
+
+        "payoff": { "$ref": "#/$defs/storyPayoff" },
+
+        "conclusion": { "$ref": "#/$defs/storyConclusion" },
+
+        "ctaStrategy": { "$ref": "#/$defs/ctaStrategy" },
+
+        "researchGaps": {
+          "description": "Where a story beat would need a factual claim that does not exist in the supplied verification package (README §6). Unordered. 0-15 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 15,
+          "items": { "$ref": "#/$defs/storyResearchGap" }
+        },
+
+        "downstreamReadiness": { "$ref": "#/$defs/downstreamReadiness" },
+        "readinessRationale": { "type": "string", "minLength": 20, "maxLength": 500 },
+        "readinessBlockers": {
+          "description": "Structured reasons the story is not ready, never a bare score (README §17). Required non-empty when downstreamReadiness is NOT_READY_FOR_SCRIPT (R-BUS-016); required empty when READY_FOR_SCRIPT.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 15,
+          "items": { "$ref": "#/$defs/readinessBlocker" }
+        },
+
+        "assumptions": {
+          "description": "Every judgement not directly stated by an input block. Unordered. 0-10 items. Empty array means every element was directly derivable.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["assumptionKey", "statement", "basis", "path"],
+            "properties": {
+              "assumptionKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 15, "maxLength": 300 },
+              "basis": { "type": "string", "enum": ["VERIFICATION_PACKAGE", "TOPIC_OPPORTUNITY", "TARGET_DURATION", "STORY_CONSTRAINTS", "LANGUAGE"] },
+              "path": { "$ref": "#/$defs/jsonPath" }
+            }
+          }
+        },
+
+        "declaredUnknowns": {
+          "description": "The declared-unknown mechanism (STD-000 §3.4). Every path MUST address a field absent from this document (R-BUS-019). Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "$ref": "#/$defs/jsonPath" },
+              "reason": {
+                "type": "string",
+                "enum": ["INPUT_NOT_SUPPLIED", "VERIFIED_CLAIMS_INSUFFICIENT", "NOT_DETERMINABLE_FROM_SUPPLIED_INPUT"]
+              }
+            }
+          }
+        },
+
+        "inputSufficiency": {
+          "description": "A statement about INPUTS (the supplied verification package and topic context), not about this agent's own output quality (GDE-002 §9.5).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis", "limitations"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "const": "SELF_REPORTED" },
+            "limitations": {
+              "type": "array", "minItems": 0, "maxItems": 5,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        }
+      }
+    },
+
+    "storyObjective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "viewer", "viewerProblem", "centralPromise", "transformationPayoff",
+        "emotionalDirection", "editorialAngle", "expectedTakeaway"
+      ],
+      "properties": {
+        "viewer": { "type": "string", "minLength": 10, "maxLength": 300, "description": "Who the viewer is, grounded in the supplied topic/audience context — never an invented demographic fact." },
+        "viewerProblem": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "centralPromise": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "transformationPayoff": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "emotionalDirection": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "editorialAngle": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "expectedTakeaway": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "hookType": {
+      "type": "string",
+      "enum": [
+        "CONTRADICTION", "SURPRISING_RESULT", "QUESTION", "PROBLEM", "PROMISE",
+        "DISCOVERY", "MISTAKE", "COMPARISON", "STORY_SETUP"
+      ]
+    },
+
+    "hook": {
+      "description": "Structural definition only — never final narration (README §9).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hookType", "curiosityMechanism", "viewerQuestion", "claimRefs", "payoffExpectation", "approxDurationSeconds"],
+      "properties": {
+        "hookType": { "$ref": "#/$defs/hookType" },
+        "curiosityMechanism": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "viewerQuestion": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "claimRefs": {
+          "description": "MUST resolve to the request's verificationPackage.claims (R-BUS-007); none may be DO_NOT_USE (R-BUS-005); any USE_WITH_QUALIFICATION entry requires `qualification` to be present on the hook (R-BUS-023). Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "payoffExpectation": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "approxDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 120 },
+        "qualification": {
+          "type": "string", "minLength": 10, "maxLength": 300,
+          "description": "Required when any claimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-023) — the same semantic meaning as a beat's qualification field: preserves Agent 03's caveat (e.g. a CONFLICTING or OUTDATED claim) into the hook; never dropped. Absent when no such claim is referenced."
+        }
+      }
+    },
+
+    "beatType": {
+      "type": "string",
+      "enum": [
+        "HOOK", "CONTEXT", "PROBLEM", "QUESTION", "DISCOVERY", "EXPLANATION", "COMPARISON",
+        "EVIDENCE", "COUNTERPOINT", "ESCALATION", "TURNING_POINT", "PAYOFF", "CONCLUSION", "CTA"
+      ]
+    },
+
+    "beatImportance": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "pacingValue": { "type": "string", "enum": ["FAST", "MODERATE", "SLOW"] },
+
+    "storyBeat": {
+      "description": "One structured story beat (README §10). Contains enough information for Agent 05 to write the script — never the narration itself.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "beatId", "order", "beatType", "purpose", "expectedViewerState",
+        "claimRefs", "evidenceRefs", "requiredConcepts", "approxDurationSeconds",
+        "importance", "pacing"
+      ],
+      "properties": {
+        "beatId": { "$ref": "#/$defs/localKey" },
+        "order": { "type": "integer", "minimum": 1, "maximum": 30, "description": "1-based. Unique and contiguous across beats (R-BUS-002)." },
+        "beatType": { "$ref": "#/$defs/beatType" },
+        "purpose": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "viewerQuestion": { "type": "string", "minLength": 5, "maxLength": 200, "description": "Absent means this beat does not turn on an open question." },
+        "expectedViewerState": { "type": "string", "minLength": 10, "maxLength": 250, "description": "What the viewer should understand or feel by the end of this beat." },
+        "claimRefs": {
+          "description": "MUST resolve to the request's verificationPackage.claims (R-BUS-003); none may be DO_NOT_USE (R-BUS-005); any USE_WITH_QUALIFICATION entry requires `qualification` to be present on this beat (R-BUS-006). Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "evidenceRefs": {
+          "description": "MUST resolve to a supportingEvidenceIds entry of one of the request's supplied claims (R-BUS-004); the owning claim may not be DO_NOT_USE (R-BUS-005); every entry MUST additionally belong to one of THIS beat's own claimRefs, not merely to some claim elsewhere in the package (R-BUS-022) — a beat cannot cite evidence for a claim it does not itself reference. Empty when claimRefs is empty (R-BUS-022). Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "requiredConcepts": {
+          "description": "Concepts Agent 05 must convey in this beat, named at the concept level, never as finished sentences. Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "type": "string", "minLength": 3, "maxLength": 150 }
+        },
+        "transitionIntent": { "type": "string", "minLength": 10, "maxLength": 250, "description": "How this beat connects to the next. Absent means no notable transition beyond sequence." },
+        "approxDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 600 },
+        "importance": { "$ref": "#/$defs/beatImportance" },
+        "pacing": { "$ref": "#/$defs/pacingValue" },
+        "qualification": {
+          "type": "string", "minLength": 10, "maxLength": 300,
+          "description": "Required when any claimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-006) — preserves Agent 03's caveat (e.g. a CONFLICTING or OUTDATED claim) into the architecture; never dropped."
+        },
+        "researchGapRef": {
+          "$ref": "#/$defs/localKey",
+          "description": "Present when this beat needed a factual claim that does not exist in the supplied verification package. MUST resolve to a declared researchGaps entry (R-BUS-014). Never a substitute for inventing the missing claim."
+        }
+      }
+    },
+
+    "storyDuration": {
+      "description": "Deterministically checked against the request's targetDurationSeconds (README §12). Fixed tolerance ±15% (`STORY_DURATION_TOLERANCE_RATIO` in validator.ts).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetDurationSeconds", "totalBeatDurationSeconds", "toleranceRatio", "withinTolerance"],
+      "properties": {
+        "targetDurationSeconds": { "type": "integer", "minimum": 15, "maximum": 7200, "description": "MUST equal the request's targetDurationSeconds exactly (R-BUS-025) — never altered to make an otherwise out-of-tolerance duration appear to satisfy the ±15% band." },
+        "totalBeatDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 9000, "description": "MUST equal the sum of beats[].approxDurationSeconds (R-BUS-009)." },
+        "toleranceRatio": { "const": 0.15 },
+        "withinTolerance": { "type": "boolean", "description": "MUST equal |totalBeatDurationSeconds - targetDurationSeconds| / targetDurationSeconds <= toleranceRatio (R-BUS-010)." }
+      }
+    },
+
+    "storyPayoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description", "connectsToOpeningPromise", "connectsToCentralQuestion",
+        "connectsToViewerProblem", "resolutionClaimRefs"
+      ],
+      "properties": {
+        "description": { "type": "string", "minLength": 15, "maxLength": 400 },
+        "connectsToOpeningPromise": { "type": "boolean" },
+        "connectsToCentralQuestion": { "type": "boolean" },
+        "connectsToViewerProblem": { "type": "boolean" },
+        "resolutionClaimRefs": {
+          "description": "MUST resolve to the request's verificationPackage.claims (R-BUS-008); none may be DO_NOT_USE (R-BUS-005); any USE_WITH_QUALIFICATION entry requires `qualification` to be present on the payoff (R-BUS-024). Unordered. 0-6 items.",
+          "type": "array", "minItems": 0, "maxItems": 6,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "qualification": {
+          "type": "string", "minLength": 10, "maxLength": 300,
+          "description": "Required when any resolutionClaimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-024) — the same semantic meaning as a beat's qualification field. Absent when no such claim is referenced."
+        }
+      }
+    },
+
+    "storyConclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summaryApproach", "finalTakeaway"],
+      "properties": {
+        "summaryApproach": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "finalTakeaway": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "tone": { "type": "string", "minLength": 3, "maxLength": 150 }
+      }
+    },
+
+    "ctaType": { "type": "string", "enum": ["SUBSCRIBE", "WATCH_NEXT", "COMMENT", "RESOURCE", "NONE"] },
+
+    "ctaStrategy": {
+      "description": "Structural CTA direction only — never final CTA copy (README §14).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ctaType", "rationale"],
+      "properties": {
+        "ctaType": { "$ref": "#/$defs/ctaType" },
+        "rationale": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "storyResearchGap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gapId", "description", "severity", "impactOnStory"],
+      "properties": {
+        "gapId": { "$ref": "#/$defs/localKey" },
+        "relatedBeatId": { "$ref": "#/$defs/localKey", "description": "Absent means the gap is not tied to one specific beat." },
+        "description": { "type": "string", "minLength": 15, "maxLength": 400 },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+        "impactOnStory": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "downstreamReadiness": { "type": "string", "enum": ["READY_FOR_SCRIPT", "NOT_READY_FOR_SCRIPT"] },
+
+    "readinessBlocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockerId", "description", "severity"],
+      "properties": {
+        "blockerId": { "$ref": "#/$defs/localKey" },
+        "description": { "type": "string", "minLength": 15, "maxLength": 400 },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] }
+      }
+    }
+  }
+}

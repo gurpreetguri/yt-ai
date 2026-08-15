@@ -1,0 +1,99 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVHE",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVHB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVHA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVHB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVHC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T11:40:03.220Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "story-architect-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_story_architect_agent@sha256:9e4d2c8b1a6f0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.DUPLICATE_CLAIM_ID",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "verificationPackage.claims[0] and verificationPackage.claims[2] both declare claimId CLAIM_W2_BOX1_MECHANISM.",
+      "userMessage": "Story architecture could not run because two supplied verified claims share the same identifier.",
+      "source": {
+        "component": "story-architect-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVHB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVHB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVHC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.verificationPackage.claims[2].claimId",
+          "expected": "a claimId unique within verificationPackage.claims",
+          "actual": "CLAIM_W2_BOX1_MECHANISM",
+          "ruleId": "R-IN-001"
+        }
+      ],
+      "remediation": "Assign a distinct claimId to each supplied verified claim before dispatch.",
+      "occurredAt": "2026-09-02T11:40:03.216Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.TOPIC_ID_MISMATCH",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "verificationPackage.topicId and topicOpportunity.topicId disagree; the supplied verified research and topic opportunity do not represent the same topic.",
+      "userMessage": "Story architecture could not run because the supplied verified research and topic opportunity are for different topics.",
+      "source": {
+        "component": "story-architect-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVHB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVHB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVHC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.topicOpportunity.topicId",
+          "expected": "\"TOPIC_TAX_SEASON\" (verificationPackage.topicId)",
+          "actual": "TOPIC_OTHER",
+          "ruleId": "R-IN-002"
+        }
+      ],
+      "remediation": "Confirm the workflow derived verificationPackage and topicOpportunity from the same topic before dispatch.",
+      "occurredAt": "2026-09-02T11:40:03.217Z"
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 3,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVHA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

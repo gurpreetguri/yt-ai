@@ -1,0 +1,258 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVGD",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVGB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVGA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVGB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVGC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T09:35:44.118Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "story-architect-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_story_architect_agent@sha256:9e4d2c8b1a6f0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0.7, "topP": 1, "seed": 20260902, "maxOutputTokens": 7000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "packageKind": "STORY_ARCHITECTURE",
+    "topicId": "TOPIC_TAX_SEASON",
+    "storyObjective": {
+      "viewer": "First-time salaried filers preparing to file taxes for the first time.",
+      "viewerProblem": "They don't understand why their W-2 numbers don't match their expected pay, or how confident to be about when a refund will arrive.",
+      "centralPromise": "By the end of this video, you'll be able to read your own W-2 Box 1 with confidence.",
+      "transformationPayoff": "From confused about unfamiliar form numbers to able to verify their own paycheck math.",
+      "emotionalDirection": "From mild anxiety about an unfamiliar form to calm, grounded confidence.",
+      "editorialAngle": "Arithmetic-first explanation grounded in the IRS's own guidance, not generic tax advice.",
+      "expectedTakeaway": "Box 1 excludes specific pre-tax deductions, and refund timing this season carries real uncertainty worth planning around."
+    },
+    "hook": {
+      "hookType": "CONTRADICTION",
+      "curiosityMechanism": "Most viewers assume their W-2 gross pay is what gets taxed — Box 1 quietly says otherwise.",
+      "viewerQuestion": "Why is the number in Box 1 smaller than what you actually earned?",
+      "claimRefs": ["CLAIM_W2_BOX1_MECHANISM"],
+      "payoffExpectation": "Viewers will understand exactly which deductions shrink Box 1 and be able to check their own form.",
+      "approxDurationSeconds": 20
+    },
+    "beats": [
+      {
+        "beatId": "BEAT_HOOK",
+        "order": 1,
+        "beatType": "HOOK",
+        "purpose": "Open with the counterintuitive gap between gross pay and Box 1 to create immediate curiosity.",
+        "viewerQuestion": "Why is Box 1 smaller than what you actually earned?",
+        "expectedViewerState": "Curious and slightly unsettled about a number they assumed they understood.",
+        "claimRefs": ["CLAIM_W2_BOX1_MECHANISM"],
+        "evidenceRefs": ["EVIDENCE_W2_BOX1_WAGES"],
+        "requiredConcepts": ["Box 1 vs. gross salary"],
+        "transitionIntent": "Move from the surprising gap into why understanding W-2 boxes matters before filing.",
+        "approxDurationSeconds": 20,
+        "importance": "CRITICAL",
+        "pacing": "FAST"
+      },
+      {
+        "beatId": "BEAT_CONTEXT",
+        "order": 2,
+        "beatType": "CONTEXT",
+        "purpose": "Establish why a first-time filer needs to understand their own W-2 before trusting any number on it.",
+        "expectedViewerState": "Motivated to keep watching because the stakes (accurate filing, avoiding surprises) feel personal.",
+        "claimRefs": [],
+        "evidenceRefs": [],
+        "requiredConcepts": ["first-time filing stakes", "why W-2 literacy matters"],
+        "transitionIntent": "Move from motivation into the specific mechanism behind Box 1.",
+        "approxDurationSeconds": 40,
+        "importance": "MEDIUM",
+        "pacing": "MODERATE"
+      },
+      {
+        "beatId": "BEAT_EXPLAIN_BOX1",
+        "order": 3,
+        "beatType": "EXPLANATION",
+        "purpose": "Explain exactly what Box 1 excludes and why, using the IRS's own stated mechanism.",
+        "expectedViewerState": "Understands that Box 1 is federal taxable wages, not gross pay, and knows the specific deductions responsible.",
+        "claimRefs": ["CLAIM_W2_BOX1_MECHANISM"],
+        "evidenceRefs": ["EVIDENCE_W2_BOX1_WAGES"],
+        "requiredConcepts": ["pre-tax deductions", "401(k) contribution effect", "cafeteria plan benefits"],
+        "transitionIntent": "Narrow from the general mechanism to the specific limits of what it covers.",
+        "approxDurationSeconds": 90,
+        "importance": "HIGH",
+        "pacing": "MODERATE"
+      },
+      {
+        "beatId": "BEAT_SCOPE_CAVEAT",
+        "order": 4,
+        "beatType": "EXPLANATION",
+        "purpose": "Clarify that the exclusion applies to specific deduction types, not every pre-tax benefit, to avoid overgeneralizing.",
+        "expectedViewerState": "Understands the mechanism's actual scope rather than assuming it covers every kind of benefit.",
+        "claimRefs": ["CLAIM_BOX1_OVERGENERALIZED"],
+        "evidenceRefs": ["EVIDENCE_W2_BOX1_WAGES"],
+        "requiredConcepts": ["scope of the exclusion", "not every pre-tax benefit is covered"],
+        "transitionIntent": "Shift from the mechanics of Box 1 to the open question of refund timing.",
+        "approxDurationSeconds": 60,
+        "importance": "MEDIUM",
+        "pacing": "MODERATE",
+        "qualification": "Supplied evidence names only two specific deduction types (401(k) contributions, cafeteria plan benefits); do not claim the exclusion covers every pre-tax benefit."
+      },
+      {
+        "beatId": "BEAT_REFUND_QUESTION",
+        "order": 5,
+        "beatType": "QUESTION",
+        "purpose": "Raise the question of how long a refund actually takes this season, using the IRS's own stated estimate.",
+        "viewerQuestion": "How long will my refund really take?",
+        "expectedViewerState": "Aware of the official 21-day estimate and anticipating whether it actually holds.",
+        "claimRefs": ["CLAIM_QUOTE_IRS_21_DAYS"],
+        "evidenceRefs": ["EVIDENCE_REFUND_21_DAYS"],
+        "requiredConcepts": ["21-day refund estimate", "e-file plus direct deposit"],
+        "transitionIntent": "Move from the official estimate into the reports that complicate it.",
+        "approxDurationSeconds": 50,
+        "importance": "HIGH",
+        "pacing": "MODERATE"
+      },
+      {
+        "beatId": "BEAT_REFUND_COUNTERPOINT",
+        "order": 6,
+        "beatType": "COUNTERPOINT",
+        "purpose": "Present the conflicting reports of longer refund waits this season without resolving which figure is correct.",
+        "expectedViewerState": "Holds both the official estimate and the anecdotal delay reports at once, without a false sense of certainty either way.",
+        "claimRefs": ["CLAIM_REFUND_21_DAYS"],
+        "evidenceRefs": ["EVIDENCE_REFUND_21_DAYS"],
+        "requiredConcepts": ["conflicting refund timing reports", "uncertainty this season"],
+        "transitionIntent": "Move from open uncertainty into the practical payoff of the video.",
+        "approxDurationSeconds": 70,
+        "importance": "HIGH",
+        "pacing": "SLOW",
+        "qualification": "The 21-day estimate is officially stated but some filers report much longer waits this season; present both without asserting either is definitively accurate for every filer."
+      },
+      {
+        "beatId": "BEAT_PAYOFF",
+        "order": 7,
+        "beatType": "PAYOFF",
+        "purpose": "Deliver the practical payoff: viewers can now read their own W-2 Box 1 with confidence.",
+        "expectedViewerState": "Confident they can check their own form and set realistic refund expectations.",
+        "claimRefs": ["CLAIM_W2_BOX1_MECHANISM"],
+        "evidenceRefs": ["EVIDENCE_W2_BOX1_WAGES"],
+        "requiredConcepts": ["applying the Box 1 mechanism to their own form"],
+        "transitionIntent": "Close the loop back to the opening question before the call to action.",
+        "approxDurationSeconds": 60,
+        "importance": "CRITICAL",
+        "pacing": "MODERATE"
+      },
+      {
+        "beatId": "BEAT_CTA",
+        "order": 8,
+        "beatType": "CTA",
+        "purpose": "Prompt the viewer to subscribe for the upcoming refund-tracking follow-up video.",
+        "expectedViewerState": "Motivated to follow for the next practical step.",
+        "claimRefs": [],
+        "evidenceRefs": [],
+        "requiredConcepts": ["subscribe for the refund-tracking follow-up"],
+        "approxDurationSeconds": 20,
+        "importance": "LOW",
+        "pacing": "FAST"
+      }
+    ],
+    "pacingStrategy": "Open fast to hook attention, slow into the explanation and the unresolved refund conflict where the viewer needs time to absorb nuance, then close at a brisk pace for the payoff and CTA.",
+    "duration": {
+      "targetDurationSeconds": 480,
+      "totalBeatDurationSeconds": 410,
+      "toleranceRatio": 0.15,
+      "withinTolerance": true
+    },
+    "payoff": {
+      "description": "Viewers leave able to read their own W-2 Box 1 confidently and understand why refund timing carries real uncertainty this season.",
+      "connectsToOpeningPromise": true,
+      "connectsToCentralQuestion": true,
+      "connectsToViewerProblem": true,
+      "resolutionClaimRefs": ["CLAIM_W2_BOX1_MECHANISM", "CLAIM_REFUND_21_DAYS"],
+      "qualification": "The refund-timing figure remains contested this season (CLAIM_REFUND_21_DAYS is CONFLICTING); the payoff must present it as the IRS's typical guidance, not a guaranteed outcome."
+    },
+    "conclusion": {
+      "summaryApproach": "Recap the Box 1 mechanism briefly and reinforce cautious, well-informed expectations around refund timing.",
+      "finalTakeaway": "Understanding your W-2 boxes turns filing from confusing to controllable.",
+      "tone": "reassuring, practical"
+    },
+    "ctaStrategy": {
+      "ctaType": "SUBSCRIBE",
+      "rationale": "Viewers interested in W-2 literacy are a strong match for a follow-up video on tracking their actual refund status."
+    },
+    "researchGaps": [
+      {
+        "gapId": "GAP_TIMELINE_CHANGE_UNAVAILABLE",
+        "description": "No verified claim addresses whether the IRS refund timeline changed from prior seasons; CLAIM_TIMELINE_CHANGE is UNSUPPORTED, so this angle could not be included.",
+        "severity": "MEDIUM",
+        "impactOnStory": "The video cannot address year-over-year timeline changes without additional research."
+      },
+      {
+        "gapId": "GAP_BOX12_DEFINITION_UNSAFE",
+        "description": "The Box 12 code D definition claim is marked DO_NOT_USE by Agent 03 due to insufficient primary sourcing, so it was excluded from the story entirely.",
+        "severity": "LOW",
+        "impactOnStory": "The video omits any Box 12 code explanation; could be added once a primary IRS source is verified."
+      }
+    ],
+    "downstreamReadiness": "READY_FOR_SCRIPT",
+    "readinessRationale": "Sufficient SAFE_TO_USE and properly-qualified USE_WITH_QUALIFICATION claims support a coherent, honestly-caveated narrative; duration is within tolerance and no critical (HIGH-severity) research gaps block scripting.",
+    "readinessBlockers": [],
+    "assumptions": [
+      {
+        "assumptionKey": "ASSUMPTION_FIRST_TIME_FILER",
+        "statement": "Assumed the primary viewer is a first-time filer based on topicOpportunity's angle, since no explicit audience persona was supplied.",
+        "basis": "TOPIC_OPPORTUNITY",
+        "path": "$.storyObjective.viewer"
+      }
+    ],
+    "declaredUnknowns": [],
+    "inputSufficiency": {
+      "value": 0.62,
+      "basis": "SELF_REPORTED",
+      "limitations": [
+        "Only eight verified claims were supplied, four of which are DO_NOT_USE; the narrative leans heavily on two SAFE_TO_USE claims.",
+        "The refund-timeline conflict could not be resolved and required a qualification-preserving beat rather than a definitive answer."
+      ]
+    }
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 19230,
+    "costMicroUsd": 31500,
+    "inputTokens": 2980,
+    "outputTokens": 3840,
+    "finishReason": "COMPLETE",
+    "resourceClass": "creative-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVGA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "ARTIFACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVED",
+      "version": "1.0.0",
+      "role": "SUPERSEDES",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_story_architect_agent",
+      "version": "1.0.0",
+      "integrity": "sha256:9e4d2c8b1a6f0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

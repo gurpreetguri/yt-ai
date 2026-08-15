@@ -33,6 +33,7 @@ const PROMPT_ASSETS = [
   { agentPackage: 'agent-01-topic-discovery' },
   { agentPackage: 'agent-02-research' },
   { agentPackage: 'agent-03-fact-verification' },
+  { agentPackage: 'agent-04-story-architect' },
 ];
 
 let failed = false;

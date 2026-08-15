@@ -1,0 +1,160 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "REQUEST",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVGA",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVGB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVED",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVGB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVGC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T09:35:11.042Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": {
+      "name": "workflow-engine",
+      "version": "4.2.1"
+    }
+  },
+  "data": {
+    "verificationPackage": {
+      "topicId": "TOPIC_TAX_SEASON",
+      "overallReadiness": true,
+      "claims": [
+        {
+          "claimId": "CLAIM_W2_BOX1_MECHANISM",
+          "claimText": "W-2 Box 1 reports federal taxable wages, which is lower than gross salary because it excludes certain pre-tax deductions such as 401(k) contributions and cafeteria plan benefits.",
+          "claimType": "TECHNICAL_FACT",
+          "verificationStatus": "VERIFIED",
+          "downstreamSafety": "SAFE_TO_USE",
+          "supportingEvidenceIds": ["EVIDENCE_W2_BOX1_WAGES"],
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "limitations": []
+        },
+        {
+          "claimId": "CLAIM_BOX1_OVERGENERALIZED",
+          "claimText": "W-2 Box 1 excludes every category of pre-tax employee benefit from taxable wages, not just retirement and cafeteria-plan contributions.",
+          "claimType": "TECHNICAL_FACT",
+          "verificationStatus": "PARTIALLY_SUPPORTED",
+          "downstreamSafety": "USE_WITH_QUALIFICATION",
+          "supportingEvidenceIds": ["EVIDENCE_W2_BOX1_WAGES"],
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "limitations": [
+            "Supplied evidence names only two specific deduction types; it does not establish that Box 1 excludes every category of pre-tax benefit."
+          ],
+          "notesForDownstream": "Narrow this claim to the two deduction types the evidence actually names, or qualify it explicitly as a non-exhaustive list."
+        },
+        {
+          "claimId": "CLAIM_QUOTE_IRS_21_DAYS",
+          "claimText": "The IRS was quoted as stating that most taxpayers who file electronically and choose direct deposit should expect their refund within 21 days of filing.",
+          "claimType": "QUOTE",
+          "verificationStatus": "VERIFIED",
+          "downstreamSafety": "SAFE_TO_USE",
+          "supportingEvidenceIds": ["EVIDENCE_REFUND_21_DAYS"],
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "limitations": []
+        },
+        {
+          "claimId": "CLAIM_REFUND_21_DAYS",
+          "claimText": "IRS refunds for e-filed returns with direct deposit are issued within 21 days this filing season.",
+          "claimType": "STATISTIC",
+          "verificationStatus": "CONFLICTING",
+          "downstreamSafety": "USE_WITH_QUALIFICATION",
+          "supportingEvidenceIds": ["EVIDENCE_REFUND_21_DAYS"],
+          "isTimeSensitive": true,
+          "freshnessConcern": "NONE",
+          "limitations": [
+            "The forum reports are anecdotal and unverified; the true prevalence of delayed refunds this season cannot be established from the supplied materials."
+          ],
+          "notesForDownstream": "State the 21-day figure as the IRS's typical guidance while explicitly noting that some filers report longer waits this season; do not present either figure as the sole outcome."
+        },
+        {
+          "claimId": "CLAIM_BOX12_CODE_D",
+          "claimText": "W-2 Box 12 code D denotes elective deferrals to a 401(k) cash or deferred arrangement.",
+          "claimType": "DEFINITION",
+          "verificationStatus": "INSUFFICIENT_EVIDENCE",
+          "downstreamSafety": "DO_NOT_USE",
+          "supportingEvidenceIds": ["EVIDENCE_BOX12_CODE_D"],
+          "isTimeSensitive": true,
+          "freshnessConcern": "MINOR",
+          "limitations": [
+            "Only a company blog search snippet supports this definition; no IRS or standards-body primary source was found in the supplied materials."
+          ],
+          "notesForDownstream": "Do not present this Box 12 code definition as authoritative without independent confirmation from IRS instructions; qualify or omit."
+        },
+        {
+          "claimId": "CLAIM_CAUSAL_REFUND_DELAY",
+          "claimText": "The eight-week refund delays some filers reported were caused by their returns claiming credits subject to mandatory IRS review.",
+          "claimType": "CAUSAL_CLAIM",
+          "verificationStatus": "INSUFFICIENT_EVIDENCE",
+          "downstreamSafety": "DO_NOT_USE",
+          "supportingEvidenceIds": ["EVIDENCE_REFUND_DELAYS_REPORTED"],
+          "isTimeSensitive": true,
+          "freshnessConcern": "MINOR",
+          "limitations": [
+            "The credit-review explanation is asserted only as a hypothesis in Agent 02's conflict record, not established by direct evidence.",
+            "No source explains the causal mechanism or rules out alternative explanations for the reported delays."
+          ],
+          "notesForDownstream": "Do not present mandatory-review credits as a confirmed cause of the reported delays; if mentioned at all, frame strictly as an unconfirmed possible explanation."
+        },
+        {
+          "claimId": "CLAIM_TIMELINE_CHANGE",
+          "claimText": "IRS refund processing timelines have changed for the current filing season compared to prior years.",
+          "claimType": "EVENT",
+          "verificationStatus": "UNSUPPORTED",
+          "downstreamSafety": "DO_NOT_USE",
+          "supportingEvidenceIds": [],
+          "isTimeSensitive": true,
+          "freshnessConcern": "NONE",
+          "limitations": [
+            "No supplied material addresses this specific question; see researchPackage gap GAP_TIMELINE_INSUFFICIENT."
+          ],
+          "notesForDownstream": "Do not use; recommend the workflow schedule the follow-up search Agent 02 already proposed before this claim can be evidenced."
+        },
+        {
+          "claimId": "CLAIM_OPINION_STRESSFUL",
+          "claimText": "Filing a first tax return is one of the most stressful financial experiences a young worker faces.",
+          "claimType": "OPINION",
+          "verificationStatus": "NOT_VERIFIABLE",
+          "downstreamSafety": "DO_NOT_USE",
+          "supportingEvidenceIds": [],
+          "isTimeSensitive": false,
+          "freshnessConcern": "NONE",
+          "limitations": [
+            "Subjective opinion; not verifiable against evidence by design, not due to a lack of research effort."
+          ]
+        }
+      ]
+    },
+    "topicOpportunity": {
+      "topicId": "TOPIC_TAX_SEASON",
+      "title": "What Your W-2 Actually Tells You Before You File",
+      "angle": "Walking through a real, redacted W-2 line by line so a first-time filer knows what each box changes about their refund",
+      "topicType": "TRENDING",
+      "pillarKey": "PILLAR_TAXES",
+      "audienceIntent": "LEARN"
+    },
+    "storyConstraints": {
+      "maxBeatCount": 10,
+      "pacingPreference": "MODERATE",
+      "requireCallToAction": true
+    },
+    "targetDurationSeconds": 480,
+    "language": "en-US"
+  },
+  "references": [
+    {
+      "refType": "ARTIFACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVED",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}
