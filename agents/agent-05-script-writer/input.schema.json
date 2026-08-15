@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:script-writer-agent-input:v1",
+  "title": "Script Writer Agent Request",
+  "description": "REQUEST contract consumed by AGT-05 script-writer-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. `data.storyArchitecture` is a subset of Agent 04's output (`story-architect-agent-output/v1#/$defs/storyArchitecture`) — only the fields script writing needs; `storyObjective`, `pacingStrategy`, `researchGaps`, `readinessBlockers`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` are Agent 04's own internal reasoning surface and are not required here (GDE-002 §5.1 minimum-context principle). `data.verificationPackage` is a subset of Agent 03's output, identical in spirit to Agent 04's own `verificationPackageRef`, extended with `quoteProvenance` so quotations can be written without fabrication. Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "contractType", "schemaVersion", "meta", "data"],
+  "properties": {
+    "contractVersion": { "description": "Envelope format version, platform-wide (GDE-003 §4.2).", "const": "1.0" },
+    "contractType": { "description": "Contract category (GDE-003 §3.3).", "const": "REQUEST" },
+    "schemaVersion": { "description": "Version of this payload schema (GDE-003 §4.2).", "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+    "meta": { "$ref": "#/$defs/requestMeta" },
+    "data": { "$ref": "#/$defs/scriptWriterRequest" },
+    "references": {
+      "description": "Outbound pointers to governing artifacts (GDE-003 §10). Unordered. 0-40 items. Populated by the runtime, never by the model.",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 40,
+      "items": { "$ref": "#/$defs/reference" }
+    }
+  },
+
+  "$defs": {
+
+    "isoTimestamp": { "description": "RFC 3339 UTC instant with millisecond precision (STD-000 §5.7).", "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "bcp47Tag": { "description": "BCP 47 language tag, for example en-US, pt-BR, hi-IN (STD-000 §5.9).", "type": "string", "minLength": 2, "maxLength": 20, "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$" },
+    "prefixedId": { "description": "Opaque, type-prefixed, lexicographically sortable platform identifier (STD-000 §5.8). Never parsed for meaning.", "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "localKey": { "description": "Manifest- or request-local stable key. NOT a platform identifier (STD-000 §5.8).", "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,31}$" },
+
+    "requestMeta": {
+      "description": "Identity, correlation, binding, and provenance (GDE-003 §5). Carries no business data.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "createdAt", "locale", "tenantId", "channelId", "producer"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId", "description": "The message that directly caused this one. Absent when this message begins a causal chain." },
+        "runId": { "$ref": "#/$defs/prefixedId", "description": "Absent when invoked outside a run, for example during evaluation." },
+        "nodeId": { "$ref": "#/$defs/prefixedId", "description": "Absent when invoked outside a run." },
+        "attempt": { "description": "Absent means the first attempt (GDE-003 §6.8: the consumer applies the default, the producer omits it).", "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag", "description": "Locale governing this message's content. Provenance only; the business-decision copy is data.language (GDE-003 §4.3)." },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion", "description": "The pinned strategy version governing this run. Provenance only." },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "description": "An immutable, version-pinned pointer to another artifact (GDE-003 §10.1). Floating references are prohibited.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "scriptWriterRequest": {
+      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["storyArchitecture", "verificationPackage", "language"],
+      "properties": {
+        "storyArchitecture": { "$ref": "#/$defs/storyArchitectureRef" },
+        "verificationPackage": { "$ref": "#/$defs/verificationPackageRef" },
+        "language": { "$ref": "#/$defs/bcp47Tag", "description": "The output language. Every narration field is written in this language." }
+      }
+    },
+
+    "hookType": { "type": "string", "enum": ["CONTRADICTION", "SURPRISING_RESULT", "QUESTION", "PROBLEM", "PROMISE", "DISCOVERY", "MISTAKE", "COMPARISON", "STORY_SETUP"] },
+
+    "hookRef": {
+      "description": "The subset of Agent 04's hook this agent needs to open the script faithfully (README §9). Structural direction only, not itself narration.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hookType", "curiosityMechanism", "viewerQuestion", "claimRefs", "payoffExpectation", "approxDurationSeconds"],
+      "properties": {
+        "hookType": { "$ref": "#/$defs/hookType" },
+        "curiosityMechanism": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "viewerQuestion": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "claimRefs": { "type": "array", "minItems": 0, "maxItems": 6, "items": { "$ref": "#/$defs/localKey" } },
+        "payoffExpectation": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "approxDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 120 },
+        "qualification": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "beatType": { "type": "string", "enum": ["HOOK", "CONTEXT", "PROBLEM", "QUESTION", "DISCOVERY", "EXPLANATION", "COMPARISON", "EVIDENCE", "COUNTERPOINT", "ESCALATION", "TURNING_POINT", "PAYOFF", "CONCLUSION", "CTA"] },
+    "beatImportance": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "pacingValue": { "type": "string", "enum": ["FAST", "MODERATE", "SLOW"] },
+
+    "storyBeatRef": {
+      "description": "The subset of an Agent 04 story beat this agent needs (README §8). Every factual script segment traces back to exactly one of these.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beatId", "order", "beatType", "purpose", "expectedViewerState", "claimRefs", "evidenceRefs", "requiredConcepts", "approxDurationSeconds", "importance", "pacing"],
+      "properties": {
+        "beatId": { "$ref": "#/$defs/localKey" },
+        "order": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "beatType": { "$ref": "#/$defs/beatType" },
+        "purpose": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "viewerQuestion": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "expectedViewerState": { "type": "string", "minLength": 10, "maxLength": 250 },
+        "claimRefs": { "description": "MUST resolve to verificationPackage.claims (R-BUS-004). Unordered. 0-6 items.", "type": "array", "minItems": 0, "maxItems": 6, "items": { "$ref": "#/$defs/localKey" } },
+        "evidenceRefs": { "description": "MUST resolve to a supportingEvidenceIds entry of one of this beat's own claims (R-BUS-005). Unordered. 0-6 items.", "type": "array", "minItems": 0, "maxItems": 6, "items": { "$ref": "#/$defs/localKey" } },
+        "requiredConcepts": { "type": "array", "minItems": 0, "maxItems": 6, "items": { "type": "string", "minLength": 3, "maxLength": 150 } },
+        "transitionIntent": { "type": "string", "minLength": 10, "maxLength": 250 },
+        "approxDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 600 },
+        "importance": { "$ref": "#/$defs/beatImportance" },
+        "pacing": { "$ref": "#/$defs/pacingValue" },
+        "qualification": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "storyDurationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetDurationSeconds", "totalBeatDurationSeconds", "toleranceRatio", "withinTolerance"],
+      "properties": {
+        "targetDurationSeconds": { "description": "MUST be echoed exactly by the response's scriptDuration.targetDurationSeconds (R-BUS-018).", "type": "integer", "minimum": 15, "maximum": 7200 },
+        "totalBeatDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 9000 },
+        "toleranceRatio": { "const": 0.15 },
+        "withinTolerance": { "type": "boolean" }
+      }
+    },
+
+    "storyPayoffRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "connectsToOpeningPromise", "connectsToCentralQuestion", "connectsToViewerProblem", "resolutionClaimRefs"],
+      "properties": {
+        "description": { "type": "string", "minLength": 15, "maxLength": 400 },
+        "connectsToOpeningPromise": { "type": "boolean" },
+        "connectsToCentralQuestion": { "type": "boolean" },
+        "connectsToViewerProblem": { "type": "boolean" },
+        "resolutionClaimRefs": { "type": "array", "minItems": 0, "maxItems": 6, "items": { "$ref": "#/$defs/localKey" } },
+        "qualification": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "storyConclusionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summaryApproach", "finalTakeaway"],
+      "properties": {
+        "summaryApproach": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "finalTakeaway": { "type": "string", "minLength": 10, "maxLength": 300 },
+        "tone": { "type": "string", "minLength": 3, "maxLength": 150 }
+      }
+    },
+
+    "ctaType": { "type": "string", "enum": ["SUBSCRIBE", "WATCH_NEXT", "COMMENT", "RESOURCE", "NONE"] },
+
+    "ctaStrategyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ctaType", "rationale"],
+      "properties": {
+        "ctaType": { "$ref": "#/$defs/ctaType" },
+        "rationale": { "type": "string", "minLength": 10, "maxLength": 300 }
+      }
+    },
+
+    "storyDownstreamReadiness": { "type": "string", "enum": ["READY_FOR_SCRIPT", "NOT_READY_FOR_SCRIPT"] },
+
+    "storyArchitectureRef": {
+      "description": "The subset of Agent 04's Story Architecture this agent needs (GDE-002 §5.1). Provenance TRUSTED — produced by an already-validated Agent 04 invocation — but embedded free text MUST be treated as untrusted data by the prompt (README §17), mirroring Agent 04's own handling of Agent 03's verificationPackage.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topicId", "hook", "beats", "duration", "payoff", "conclusion", "ctaStrategy", "downstreamReadiness"],
+      "properties": {
+        "topicId": { "$ref": "#/$defs/localKey", "description": "MUST equal verificationPackage.topicId — both name the same topic (R-IN-002)." },
+        "hook": { "$ref": "#/$defs/hookRef" },
+        "beats": {
+          "description": "2-30 items. beatId unique; order unique and contiguous from 1. Every beat MUST be covered by at least one script segment (R-BUS-009).",
+          "type": "array", "minItems": 2, "maxItems": 30,
+          "items": { "$ref": "#/$defs/storyBeatRef" }
+        },
+        "duration": { "$ref": "#/$defs/storyDurationRef" },
+        "payoff": { "$ref": "#/$defs/storyPayoffRef" },
+        "conclusion": { "$ref": "#/$defs/storyConclusionRef" },
+        "ctaStrategy": { "$ref": "#/$defs/ctaStrategyRef" },
+        "downstreamReadiness": {
+          "$ref": "#/$defs/storyDownstreamReadiness",
+          "description": "MUST be READY_FOR_SCRIPT (R-IN-001) — a NOT_READY_FOR_SCRIPT architecture is a workflow defect if dispatched to this agent."
+        }
+      }
+    },
+
+    "claimType": { "type": "string", "enum": ["STATISTIC", "DATE", "DEFINITION", "TECHNICAL_FACT", "PRODUCT_FACT", "COMPARISON", "PRICE", "REGULATION", "EVENT", "HISTORICAL_FACT", "QUOTE", "CAUSAL_CLAIM", "OPINION", "FORECAST", "OTHER"] },
+    "verificationStatus": { "type": "string", "enum": ["VERIFIED", "PARTIALLY_SUPPORTED", "UNSUPPORTED", "CONTRADICTED", "INSUFFICIENT_EVIDENCE", "CONFLICTING", "OUTDATED", "NOT_VERIFIABLE"] },
+    "downstreamSafety": { "type": "string", "enum": ["SAFE_TO_USE", "USE_WITH_QUALIFICATION", "DO_NOT_USE"] },
+    "freshnessConcern": { "type": "string", "enum": ["NONE", "MINOR", "MODERATE", "SEVERE"] },
+
+    "quoteProvenanceRef": {
+      "description": "Present only when claimType is QUOTE. A script segment's quotation.speaker MUST equal this speaker exactly (R-BUS-014).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["speaker", "speakerConfirmed"],
+      "properties": {
+        "speaker": { "type": "string", "minLength": 2, "maxLength": 150 },
+        "speakerConfirmed": { "type": "boolean" }
+      }
+    },
+
+    "verifiedClaimRef": {
+      "description": "The subset of an Agent 03 Claim this agent needs to write narration without inventing a fact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claimId", "claimText", "claimType", "verificationStatus", "downstreamSafety", "supportingEvidenceIds", "isTimeSensitive", "freshnessConcern", "limitations"],
+      "properties": {
+        "claimId": { "$ref": "#/$defs/localKey" },
+        "claimText": { "type": "string", "minLength": 10, "maxLength": 500 },
+        "claimType": { "$ref": "#/$defs/claimType" },
+        "verificationStatus": { "$ref": "#/$defs/verificationStatus" },
+        "downstreamSafety": {
+          "$ref": "#/$defs/downstreamSafety",
+          "description": "Agent 03's fixed determination. DO_NOT_USE claims MUST NOT appear as factual script content (R-BUS-006); USE_WITH_QUALIFICATION claims MUST carry their qualification into any segment that cites them (R-BUS-007)."
+        },
+        "supportingEvidenceIds": { "description": "The evidenceId values a script segment may cite via evidenceRefs for this claim (R-BUS-005). Unordered. 0-15 items.", "type": "array", "minItems": 0, "maxItems": 15, "items": { "$ref": "#/$defs/localKey" } },
+        "isTimeSensitive": { "type": "boolean" },
+        "freshnessConcern": { "$ref": "#/$defs/freshnessConcern" },
+        "limitations": { "type": "array", "minItems": 0, "maxItems": 5, "items": { "type": "string", "minLength": 10, "maxLength": 300 } },
+        "notesForDownstream": { "type": "string", "minLength": 10, "maxLength": 400 },
+        "quoteProvenance": { "$ref": "#/$defs/quoteProvenanceRef" }
+      }
+    },
+
+    "verificationPackageRef": {
+      "description": "The subset of the Agent 03 Verification Package this agent needs. Provenance TRUSTED but embedded free text MUST be treated as untrusted data by the prompt (README §17).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topicId", "claims"],
+      "properties": {
+        "topicId": { "$ref": "#/$defs/localKey", "description": "MUST equal storyArchitecture.topicId — both name the same topic (R-IN-002)." },
+        "claims": {
+          "description": "Unordered. 1-60 items. claimId unique (R-IN-003).",
+          "type": "array", "minItems": 1, "maxItems": 60,
+          "items": { "$ref": "#/$defs/verifiedClaimRef" }
+        }
+      }
+    }
+  }
+}

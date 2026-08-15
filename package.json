@@ -60,7 +60,8 @@
       "^@agents/agent-01-topic-discovery/(.*)$": "<rootDir>/agents/agent-01-topic-discovery/$1",
       "^@agents/agent-02-research/(.*)$": "<rootDir>/agents/agent-02-research/$1",
       "^@agents/agent-03-fact-verification/(.*)$": "<rootDir>/agents/agent-03-fact-verification/$1",
-      "^@agents/agent-04-story-architect/(.*)$": "<rootDir>/agents/agent-04-story-architect/$1"
+      "^@agents/agent-04-story-architect/(.*)$": "<rootDir>/agents/agent-04-story-architect/$1",
+      "^@agents/agent-05-script-writer/(.*)$": "<rootDir>/agents/agent-05-script-writer/$1"
     },
     "collectCoverageFrom": ["src/**/*.(t|j)s"],
     "coverageDirectory": "./coverage"

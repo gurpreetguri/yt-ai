@@ -28,7 +28,8 @@
       "@agents/agent-01-topic-discovery/*": ["agents/agent-01-topic-discovery/*"],
       "@agents/agent-02-research/*": ["agents/agent-02-research/*"],
       "@agents/agent-03-fact-verification/*": ["agents/agent-03-fact-verification/*"],
-      "@agents/agent-04-story-architect/*": ["agents/agent-04-story-architect/*"]
+      "@agents/agent-04-story-architect/*": ["agents/agent-04-story-architect/*"],
+      "@agents/agent-05-script-writer/*": ["agents/agent-05-script-writer/*"]
     }
   },
   "include": [
@@ -37,7 +38,8 @@
     "agents/agent-01-topic-discovery/**/*.ts",
     "agents/agent-02-research/**/*.ts",
     "agents/agent-03-fact-verification/**/*.ts",
-    "agents/agent-04-story-architect/**/*.ts"
+    "agents/agent-04-story-architect/**/*.ts",
+    "agents/agent-05-script-writer/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -46,6 +48,7 @@
     "agents/agent-01-topic-discovery/**/*.spec.ts",
     "agents/agent-02-research/**/*.spec.ts",
     "agents/agent-03-fact-verification/**/*.spec.ts",
-    "agents/agent-04-story-architect/**/*.spec.ts"
+    "agents/agent-04-story-architect/**/*.spec.ts",
+    "agents/agent-05-script-writer/**/*.spec.ts"
   ]
 }

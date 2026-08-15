@@ -1,0 +1,138 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_415JG612AZMMRHE427SXPXZA0B",
+    "correlationId": "run_SJG3BABM4DANX9A4C003J9TJ6V",
+    "causationId": "msg_WPC1TWF0ESAJQEHC03F2NBFJ1J",
+    "runId": "run_SJG3BABM4DANX9A4C003J9TJ6V",
+    "nodeId": "nod_T1GZVH7J30607762EVFKZZF2R4",
+    "attempt": 1,
+    "createdAt": "2026-09-02T12:05:47.331Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "script-writer-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_script_writer_agent@sha256:2f4b8e6c1a9d0357bf82c1e6d5b3a0298c3f7a1e0c6d9054bf82c1e6d5b3a029",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0.6, "topP": 1, "seed": 20260902, "maxOutputTokens": 6000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "packageKind": "NARRATION_SCRIPT",
+    "topicId": "TOPIC_PAYCHECK_WITHHOLDING",
+    "segments": [
+      {
+        "segmentId": "SEG_HOOK",
+        "order": 1,
+        "beatRef": "BEAT_HOOK",
+        "segmentType": "HOOK",
+        "narration": "Have you ever wondered why the number on your pay stub never quite matches what actually lands in your bank account?",
+        "estimatedDurationSeconds": 15,
+        "claimRefs": ["CLAIM_MAIN"],
+        "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+        "deliveryIntent": "CURIOSITY",
+        "emphasis": "LIGHT"
+      },
+      {
+        "segmentId": "SEG_EXPLAIN",
+        "order": 2,
+        "beatRef": "BEAT_EXPLAIN",
+        "segmentType": "EXPLANATION",
+        "narration": "Your paycheck gets reduced by federal withholding before you ever see it, which is why your take-home pay is lower than your stated salary.",
+        "estimatedDurationSeconds": 20,
+        "claimRefs": ["CLAIM_MAIN"],
+        "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+        "deliveryIntent": "CLARITY",
+        "emphasis": "NONE"
+      },
+      {
+        "segmentId": "SEG_STAT",
+        "order": 3,
+        "beatRef": "BEAT_EXPLAIN",
+        "segmentType": "EVIDENCE",
+        "narration": "Early filing data suggests that about 30% of first-time filers underestimate their withholding, though that figure may shift as the season continues.",
+        "estimatedDurationSeconds": 20,
+        "claimRefs": ["CLAIM_STAT"],
+        "evidenceRefs": ["EVIDENCE_WITHHOLDING_SURVEY"],
+        "qualification": "Early filing data suggests about 30% of first-time filers misjudge withholding; the figure may shift as the season continues.",
+        "deliveryIntent": "CONTRAST",
+        "emphasis": "LIGHT"
+      },
+      {
+        "segmentId": "SEG_QUOTE",
+        "order": 4,
+        "beatRef": "BEAT_QUOTE",
+        "segmentType": "EVIDENCE",
+        "narration": "The IRS put it plainly: \"Most withholding errors are simple to fix once you know where to look.\"",
+        "estimatedDurationSeconds": 25,
+        "claimRefs": ["CLAIM_QUOTE"],
+        "evidenceRefs": ["EVIDENCE_IRS_STATEMENT"],
+        "quotation": {
+          "claimId": "CLAIM_QUOTE",
+          "speaker": "Jane Doe, IRS Public Affairs",
+          "quotedText": "Most withholding errors are simple to fix once you know where to look."
+        },
+        "deliveryIntent": "REASSURANCE",
+        "emphasis": "STRONG"
+      },
+      {
+        "segmentId": "SEG_CTA",
+        "order": 5,
+        "beatRef": "BEAT_CTA",
+        "segmentType": "CTA",
+        "narration": "If you want a simple walkthrough of your own withholding, subscribe so you never miss the next explainer.",
+        "estimatedDurationSeconds": 15,
+        "claimRefs": [],
+        "evidenceRefs": [],
+        "deliveryIntent": "CALL_TO_ACTION",
+        "emphasis": "STRONG"
+      }
+    ],
+    "scriptDuration": {
+      "targetDurationSeconds": 100,
+      "totalEstimatedDurationSeconds": 95,
+      "toleranceRatio": 0.15,
+      "withinTolerance": true,
+      "wordsPerMinute": 150
+    },
+    "wordCount": 103,
+    "warnings": [],
+    "downstreamReadiness": "READY_FOR_REVIEW",
+    "readinessRationale": "Every beat is covered, the hook and CTA are properly grounded, the qualified statistic keeps its qualification, the quotation matches its source exactly, and duration is within tolerance.",
+    "readinessBlockers": []
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 14210,
+    "costMicroUsd": 21800,
+    "inputTokens": 2340,
+    "outputTokens": 2790,
+    "finishReason": "COMPLETE",
+    "resourceClass": "creative-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_WPC1TWF0ESAJQEHC03F2NBFJ1J",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_script_writer_agent",
+      "version": "1.0.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}
