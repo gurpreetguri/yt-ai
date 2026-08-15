@@ -77,78 +77,105 @@ export class AnthropicProvider implements AiProvider {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), request.timeoutMs);
 
-    // `request.structuredOutput` is intentionally not read here — see the
-    // class-level doc comment on why this provider cannot yet safely honour
-    // it. Runtime schema validation (never removed, never weakened) is what
-    // guarantees correctness regardless.
-    let response: Response;
+    // `timeoutMs` is documented as a "hard ceiling for this call" covering
+    // the COMPLETE invocation (ai-provider.interface.ts), not merely the
+    // time until `fetch()` resolves with headers. The timer is therefore
+    // cleared exactly once, in the `finally` below, only after the response
+    // body has also been read — never immediately after `fetch()` settles.
+    // Clearing it earlier would let a slow or stalled body read proceed with
+    // no timeout enforcement at all, silently reopening the gap this
+    // ceiling exists to close.
     try {
-      response = await fetch(`${baseUrl}/v1/messages`, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': apiVersion,
-        },
-        body: JSON.stringify({
-          model,
-          system: request.systemPrompt,
-          messages: [{ role: 'user', content: request.userPrompt }],
-          temperature: request.parameters.temperature,
-          top_p: request.parameters.topP,
-          max_tokens: request.parameters.maxOutputTokens ?? 4096,
-        }),
-      });
-    } catch (error) {
+      // `request.structuredOutput` is intentionally not read here — see the
+      // class-level doc comment on why this provider cannot yet safely honour
+      // it. Runtime schema validation (never removed, never weakened) is what
+      // guarantees correctness regardless.
+      let response: Response;
+      try {
+        response = await fetch(`${baseUrl}/v1/messages`, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'content-type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': apiVersion,
+          },
+          body: JSON.stringify({
+            model,
+            system: request.systemPrompt,
+            messages: [{ role: 'user', content: request.userPrompt }],
+            temperature: request.parameters.temperature,
+            top_p: request.parameters.topP,
+            max_tokens: request.parameters.maxOutputTokens ?? 4096,
+          }),
+        });
+      } catch (error) {
+        if (controller.signal.aborted) {
+          throw new AiProviderError(
+            'TIMEOUT',
+            this.providerName,
+            `Invocation exceeded ${request.timeoutMs}ms.`,
+            error,
+          );
+        }
+        throw new AiProviderError('NETWORK', this.providerName, 'Failed to reach the Anthropic API.', error);
+      }
+
+      const durationMs = Date.now() - startedAt;
+
+      // The abort signal passed to `fetch()` also covers reading its response
+      // body — an in-flight `response.json()` rejects once the timer above
+      // fires. `safeJson` swallows that rejection (along with genuinely
+      // malformed JSON) into `undefined`, so the abort state is checked
+      // explicitly, immediately after the read, before that `undefined` is
+      // ever interpreted as an ordinary bad-body response. Without this
+      // check a body-read timeout would be misreported as INVALID_RESPONSE
+      // (or a misleading provider error) instead of TIMEOUT.
+      const body = await this.safeJson(response);
       if (controller.signal.aborted) {
         throw new AiProviderError(
           'TIMEOUT',
           this.providerName,
           `Invocation exceeded ${request.timeoutMs}ms.`,
-          error,
         );
       }
-      throw new AiProviderError('NETWORK', this.providerName, 'Failed to reach the Anthropic API.', error);
+
+      if (!response.ok) {
+        throw this.toProviderError(response, body);
+      }
+
+      const payload = body as AnthropicMessagesResponse | undefined;
+      if (!payload) {
+        throw new AiProviderError(
+          'INVALID_RESPONSE',
+          this.providerName,
+          'Anthropic response body was not valid JSON.',
+        );
+      }
+
+      const text = payload.content.find((block) => block.type === 'text')?.text;
+      if (text === undefined) {
+        throw new AiProviderError(
+          'INVALID_RESPONSE',
+          this.providerName,
+          'Anthropic response contained no text content block.',
+        );
+      }
+
+      const finishReason = STOP_REASON_MAP[payload.stop_reason ?? ''] ?? 'ERROR';
+
+      return {
+        content: text,
+        finishReason,
+        provider: this.providerName,
+        modelId: payload.model,
+        inputTokens: payload.usage?.input_tokens,
+        outputTokens: payload.usage?.output_tokens,
+        durationMs,
+      };
     } finally {
       clearTimeout(timeout);
     }
-
-    const durationMs = Date.now() - startedAt;
-
-    if (!response.ok) {
-      throw this.toProviderError(response, await this.safeJson(response));
-    }
-
-    const payload = (await this.safeJson(response)) as AnthropicMessagesResponse | undefined;
-    if (!payload) {
-      throw new AiProviderError(
-        'INVALID_RESPONSE',
-        this.providerName,
-        'Anthropic response body was not valid JSON.',
-      );
-    }
-
-    const text = payload.content.find((block) => block.type === 'text')?.text;
-    if (text === undefined) {
-      throw new AiProviderError(
-        'INVALID_RESPONSE',
-        this.providerName,
-        'Anthropic response contained no text content block.',
-      );
-    }
-
-    const finishReason = STOP_REASON_MAP[payload.stop_reason ?? ''] ?? 'ERROR';
-
-    return {
-      content: text,
-      finishReason,
-      provider: this.providerName,
-      modelId: payload.model,
-      inputTokens: payload.usage?.input_tokens,
-      outputTokens: payload.usage?.output_tokens,
-      durationMs,
-    };
   }
 
   private toProviderError(response: Response, body: unknown): AiProviderError {

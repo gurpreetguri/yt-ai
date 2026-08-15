@@ -24,9 +24,15 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "paths": {
-      "@agents/agent-00-strategy/*": ["agents/agent-00-strategy/*"]
+      "@agents/agent-00-strategy/*": ["agents/agent-00-strategy/*"],
+      "@agents/agent-01-topic-discovery/*": ["agents/agent-01-topic-discovery/*"]
     }
   },
-  "include": ["src/**/*.ts", "agents/agent-00-strategy/**/*.ts"],
-  "exclude": ["node_modules", "dist", "agents/agent-00-strategy/**/*.spec.ts"]
+  "include": ["src/**/*.ts", "agents/agent-00-strategy/**/*.ts", "agents/agent-01-topic-discovery/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "agents/agent-00-strategy/**/*.spec.ts",
+    "agents/agent-01-topic-discovery/**/*.spec.ts"
+  ]
 }
