@@ -37,9 +37,27 @@ describe('AnthropicProvider', () => {
         model: 'claude-test-model',
         apiVersion: '2023-06-01',
         baseUrl: 'https://api.anthropic.invalid',
+        quality: 'BALANCED',
       },
+      openai: { apiKey: undefined, model: 'gpt-test-model', quality: 'BALANCED' },
+      gemini: { apiKey: undefined, model: 'gemini-test-model', quality: 'BALANCED' },
+      openrouter: { apiKey: undefined, model: 'openrouter-test-model', quality: 'BALANCED' },
+      groq: { apiKey: undefined, model: 'groq-test-model', quality: 'BALANCED' },
+      ollama: { baseUrl: 'http://127.0.0.1:11434', model: 'llama3', quality: 'BALANCED' },
       timeoutMs: 45_000,
       maxOutputTokens: 8_000,
+      router: {
+        mode: 'auto',
+        allowLocal: true,
+        allowFree: true,
+        allowPaid: true,
+        fallbackEnabled: true,
+        primaryProvider: undefined,
+        defaultQuality: 'BALANCED',
+        rateLimitCooldownMs: 30_000,
+        quotaExhaustedCooldownMs: 3_600_000,
+        freeProviders: [],
+      },
     };
   }
 

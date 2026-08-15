@@ -4,7 +4,15 @@
  * No code above this boundary may name a provider or a model, except when
  * recording provenance it received back from this interface. Agents depend
  * only on `AiProvider`; they never instantiate a vendor SDK client directly.
+ *
+ * `AI_PROVIDER` may resolve to a single concrete adapter (as before) or to
+ * `ModelRouterProvider` (`src/ai/router/model-router.provider.ts`), which
+ * selects among several registered adapters at runtime and fails over
+ * between them. Either way this interface — and everything an agent does
+ * with it — is unchanged; routing is entirely behind this boundary.
  */
+
+import type { AiCapabilityRequirement } from './types/ai-capability.types';
 
 /** Provider-neutral sampling parameters (STD-000 §14.3). Set by the agent's class, not the call site. */
 export interface AiInvocationParameters {
@@ -51,6 +59,14 @@ export interface AiInvocationRequest {
   readonly model?: string;
   /** Optional structured-output hint. See `AiStructuredOutputRequest`. Absent means no hint is given. */
   readonly structuredOutput?: AiStructuredOutputRequest;
+  /**
+   * Optional capability requirement for model selection (`AiCapability`,
+   * `src/ai/types/ai-capability.types.ts`). Read only by the router; a
+   * single concrete adapter ignores it (it has exactly one model, so there
+   * is nothing to select among). Absent means no capability constraint —
+   * any enabled, policy-allowed candidate is eligible.
+   */
+  readonly capabilities?: AiCapabilityRequirement;
 }
 
 /**
@@ -74,9 +90,27 @@ export interface AiInvocationResult {
   readonly durationMs: number;
 }
 
-/** The closed set of ways a provider invocation can fail before any content is available to parse. */
+/**
+ * The closed set of ways a provider invocation can fail before any content
+ * is available to parse. `QUOTA_EXHAUSTED` is distinct from `RATE_LIMIT`:
+ * `RATE_LIMIT` is a transient, short-cooldown condition (the provider says
+ * "slow down"); `QUOTA_EXHAUSTED` means a longer-lived allotment (daily/
+ * monthly budget, free-tier ceiling, ...) has run out and the provider is
+ * expected to stay unavailable until a configured reset/cooldown elapses
+ * (`src/ai/router/quota-manager.ts`). Every existing agent's own
+ * `classifyProviderErrorKind`/`mapProviderErrorKindToCode` switches already
+ * end in a `default` arm, so this addition does not require touching any
+ * agent (STD-000 §5.5 — an additive, backward-compatible union change).
+ */
 export type AiProviderErrorKind =
-  'TIMEOUT' | 'RATE_LIMIT' | 'AUTH' | 'NETWORK' | 'PROVIDER_ERROR' | 'INVALID_RESPONSE' | 'CONFIGURATION';
+  | 'TIMEOUT'
+  | 'RATE_LIMIT'
+  | 'QUOTA_EXHAUSTED'
+  | 'AUTH'
+  | 'NETWORK'
+  | 'PROVIDER_ERROR'
+  | 'INVALID_RESPONSE'
+  | 'CONFIGURATION';
 
 /**
  * Normalised provider failure. Callers branch on `kind`, never on a
@@ -86,13 +120,28 @@ export class AiProviderError extends Error {
   public readonly kind: AiProviderErrorKind;
   public readonly provider: string;
   public readonly cause?: unknown;
+  /**
+   * How long (milliseconds) the provider itself reported to wait before
+   * retrying, when it reported one (e.g. a `Retry-After` header). Never
+   * invented — a concrete adapter populates this only when the provider
+   * actually said so; `QuotaManager` falls back to its configured cooldown
+   * when this is `undefined` (`quota-manager.ts`).
+   */
+  public readonly retryAfterMs?: number;
 
-  constructor(kind: AiProviderErrorKind, provider: string, message: string, cause?: unknown) {
+  constructor(
+    kind: AiProviderErrorKind,
+    provider: string,
+    message: string,
+    cause?: unknown,
+    retryAfterMs?: number,
+  ) {
     super(message);
     this.name = 'AiProviderError';
     this.kind = kind;
     this.provider = provider;
     this.cause = cause;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 

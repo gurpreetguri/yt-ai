@@ -182,6 +182,7 @@ export function isAiProviderError(error: unknown): error is AiProviderError {
 const PROVIDER_SAFE_USER_MESSAGE: Readonly<Record<AiProviderErrorKind, string>> = {
   TIMEOUT: 'The AI provider request timed out.',
   RATE_LIMIT: 'The AI provider temporarily rejected the request.',
+  QUOTA_EXHAUSTED: 'The AI provider usage quota is exhausted.',
   AUTH: 'AI provider authentication failed.',
   NETWORK: 'The AI provider could not be reached.',
   PROVIDER_ERROR: 'The AI provider could not complete the request.',
