@@ -42,7 +42,17 @@ export type StrategyProviderErrorCode =
   | 'TIMEOUT.INVOCATION.EXCEEDED'
   | 'RATE_LIMIT.PROVIDER.EXCEEDED'
   | 'AUTH.PROVIDER.UNAUTHORIZED'
-  | 'CONFIGURATION.PROVIDER.MISSING_CREDENTIAL';
+  | 'CONFIGURATION.PROVIDER.MISSING_CREDENTIAL'
+  /**
+   * The runtime itself constructed a response envelope that fails structural
+   * validation against `output.schema.json` (checked once, at the very end
+   * of `StrategyService.execute`, before anything is returned). This is
+   * always a defect in this codebase, never a symptom of bad input or a bad
+   * model response — both of those are already reported through the codes
+   * above by the time this check runs. Non-retryable: retrying invokes the
+   * same defective code path again.
+   */
+  | 'CONFIGURATION.RUNTIME.RESPONSE_ENVELOPE_INVALID';
 
 export type StrategyRuntimeErrorCode = StrategyAgentErrorCode | StrategyProviderErrorCode;
 

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
@@ -22,8 +22,40 @@ import type { StrategyRequestData } from '@agents/agent-00-strategy/interfaces';
  * service is ever reached, per `R-IN-008`.
  */
 
-const PROMPT_FILE = join(process.cwd(), 'agents', 'agent-00-strategy', 'system-prompt.md');
 export const STRATEGY_PROMPT_ID = 'prm_strategy_agent';
+
+const PROMPT_RELATIVE_SEGMENTS = ['agents', 'agent-00-strategy', 'system-prompt.md'] as const;
+
+/**
+ * Resolves the approved prompt file's location WITHOUT depending on the
+ * process's current working directory (a production deployment may launch
+ * `node dist/src/main.js` from any directory).
+ *
+ * The primary candidate is resolved relative to this module's own compiled
+ * location (`__dirname`), which is deterministic in both places this file
+ * ever runs from:
+ *  - the TypeScript source tree (`src/agents/strategy/`, three levels below
+ *    the repo root) during development and tests;
+ *  - the compiled `dist/src/agents/strategy/` output, three levels below
+ *    `dist/`, where `npm run build` (`scripts/copy-prompt-asset.js`) copies
+ *    the approved file verbatim to `dist/agents/agent-00-strategy/` — the
+ *    same relative depth, so the same `../../../` traversal finds it.
+ *
+ * `process.cwd()` is consulted only as a secondary, best-effort fallback,
+ * never as the primary resolution strategy.
+ */
+function resolvePromptFile(): string {
+  const candidates = [
+    join(__dirname, '..', '..', '..', ...PROMPT_RELATIVE_SEGMENTS),
+    join(process.cwd(), ...PROMPT_RELATIVE_SEGMENTS),
+  ];
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (found !== undefined) return found;
+  throw new Error(
+    `strategy-agent: could not locate the approved prompt asset (system-prompt.md). Checked: ${candidates.join(', ')}. ` +
+      'Confirm the production build ran "npm run build" (which copies this asset via scripts/copy-prompt-asset.js).',
+  );
+}
 
 const USER_BLOCK_KEYS = [
   'channelProfile',
@@ -101,7 +133,7 @@ export class StrategyPromptService implements OnModuleInit {
   }
 
   private loadAndParse(): ParsedPrompt {
-    const source = readFileSync(PROMPT_FILE, 'utf8');
+    const source = readFileSync(resolvePromptFile(), 'utf8');
     const fenced = [...source.matchAll(/```text\r?\n([\s\S]*?)\r?\n```/g)].map((match) => match[1]);
 
     const systemPrompt = fenced[0];

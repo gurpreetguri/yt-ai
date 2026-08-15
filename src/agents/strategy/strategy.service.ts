@@ -4,6 +4,7 @@ import type { ValidateFunction } from 'ajv/dist/2020';
 
 import {
   STRUCTURAL_RULE_ID,
+  structuralValidate,
   validateStrategyManifest,
   validateStrategyRequest,
 } from '@agents/agent-00-strategy/validator';
@@ -20,6 +21,8 @@ import type {
   ValidationFinding,
 } from '@agents/agent-00-strategy/interfaces';
 
+import manifestOutputSchema from '@agents/agent-00-strategy/output.schema.json';
+
 import { aiConfig } from '../../config/ai.config';
 import { AI_PROVIDER, AiInvocationResult, AiProvider } from '../../ai/ai-provider.interface';
 import { generatePrefixedId } from '../../common/id.util';
@@ -32,12 +35,29 @@ import {
   mapInputFindingToErrorCode,
   mapOutputFindingToErrorCode,
   mapProviderErrorKindToCode,
+  providerSafeUserMessage,
+  redactKnownSecret,
 } from './strategy.errors';
 import { STRATEGY_PROMPT_ID, StrategyPromptService } from './strategy.prompt';
-import { STRATEGY_MANIFEST_VALIDATOR, STRATEGY_REQUEST_VALIDATOR } from './strategy.validation';
+import {
+  STRATEGY_MANIFEST_VALIDATOR,
+  STRATEGY_REQUEST_VALIDATOR,
+  STRATEGY_RESPONSE_VALIDATOR,
+} from './strategy.validation';
 import { StrategyExecutionOutcome, StrategyRuntimeError } from './strategy.types';
 
 const RUNTIME_PRODUCER = { name: 'ytv-agent-runtime', version: '0.1.0' } as const;
+
+/**
+ * The manifest's JSON Schema definition, extracted from the already-approved
+ * `output.schema.json` (never re-authored), passed to the AI provider
+ * abstraction as a structured-output HINT (`AiStructuredOutputRequest`).
+ * Whether any given provider honours it or ignores it, this service always
+ * runs the same `validateStrategyManifest` pass on the result — see
+ * `ai-provider.interface.ts` for why that hint can never replace validation.
+ */
+const MANIFEST_JSON_SCHEMA: unknown = (manifestOutputSchema as { $defs: { strategyManifest: unknown } }).$defs
+  .strategyManifest;
 
 const REFUSAL_REASON_TO_ERROR: Readonly<
   Record<
@@ -76,14 +96,80 @@ export class StrategyService {
   constructor(
     @Inject(STRATEGY_REQUEST_VALIDATOR) private readonly requestValidator: ValidateFunction,
     @Inject(STRATEGY_MANIFEST_VALIDATOR) private readonly manifestValidator: ValidateFunction,
+    @Inject(STRATEGY_RESPONSE_VALIDATOR) private readonly responseValidator: ValidateFunction,
     @Inject(AI_PROVIDER) private readonly aiProvider: AiProvider,
     @Inject(aiConfig.KEY) private readonly config: ConfigType<typeof aiConfig>,
     private readonly promptService: StrategyPromptService,
   ) {}
 
-  async execute(
+  /**
+   * Public entry point. Runs the full pipeline (`runPipeline`) and then
+   * performs one final, mandatory check that does not belong to any earlier
+   * stage: is the envelope this runtime just built actually a conformant
+   * `strategy-agent-output/v1` contract?
+   *
+   *   AI output -> manifest schema validation -> business validation
+   *   -> runtime envelope creation -> FINAL RESPONSE CONTRACT VALIDATION -> return
+   *
+   * This is deliberately separate from manifest validation (step 7 in
+   * `runPipeline`): that step checks the model's raw output against the
+   * `strategyManifest` definition; this step checks the envelope THIS
+   * SERVICE assembled — meta, status, execution, references, and (for a
+   * success) the already-manifest-validated `data` — against the full
+   * `output.schema.json` `oneOf` (`successResponse` | `errorResponse`). A
+   * defect here is always a bug in this runtime, never a symptom of bad
+   * input or a bad model response (those are already reported by the time
+   * this check runs), so it fails loudly with an internal/configuration
+   * error rather than ever returning a non-conformant contract.
+   */
+  async execute(request: StrategyAgentRequest, options: ExecuteOptions = {}): Promise<StrategyExecutionOutcome> {
+    const outcome = await this.runPipeline(request, options);
+
+    const envelopeIssues = structuralValidate(this.responseValidator, outcome.response);
+    if (envelopeIssues.length === 0) {
+      return outcome;
+    }
+
+    return this.internalEnvelopeFailure(request, options, envelopeIssues);
+  }
+
+  /**
+   * Fallback used only when the envelope this runtime just assembled is not
+   * itself a conformant `strategy-agent-output/v1` contract. Always a bug in
+   * this codebase; never returns the invalid envelope to the caller.
+   */
+  private internalEnvelopeFailure(
     request: StrategyAgentRequest,
-    options: ExecuteOptions = {},
+    options: ExecuteOptions,
+    envelopeIssues: readonly ValidationFinding[],
+  ): StrategyExecutionOutcome {
+    const attempt = request.meta.attempt ?? 1;
+    const attemptType = options.attemptType ?? 'INITIAL';
+    const paths = envelopeIssues.map((issue) => issue.path).join(', ');
+    return this.failure(
+      request,
+      [
+        buildRuntimeError({
+          code: 'CONFIGURATION.RUNTIME.RESPONSE_ENVELOPE_INVALID',
+          category: 'CONFIGURATION',
+          retryable: false,
+          stage: 'OUTPUT_VALIDATION',
+          message: `Runtime constructed a response envelope that fails structural validation against output.schema.json (${envelopeIssues.length} finding(s) at: ${paths}).`,
+          userMessage: 'This request could not be completed due to an internal configuration error.',
+          correlationId: request.meta.correlationId,
+          runId: request.meta.runId,
+          nodeId: request.meta.nodeId,
+          attempt,
+        }),
+      ],
+      { attempt, attemptType, durationMs: 0, costMicroUsd: 0, outcome: 'FAILURE' },
+      { retryable: false },
+    );
+  }
+
+  private async runPipeline(
+    request: StrategyAgentRequest,
+    options: ExecuteOptions,
   ): Promise<StrategyExecutionOutcome> {
     const startedAt = Date.now();
     const attempt = request.meta.attempt ?? 1;
@@ -149,6 +235,7 @@ export class StrategyService {
         userPrompt: rendered.userPrompt,
         parameters: { temperature: 0.2, topP: 1.0, maxOutputTokens: this.config.maxOutputTokens },
         timeoutMs: this.config.timeoutMs,
+        structuredOutput: { schemaName: 'strategyManifest', schema: MANIFEST_JSON_SCHEMA },
       });
     } catch (error) {
       const kind = isAiProviderError(error) ? error.kind : 'PROVIDER_ERROR';
@@ -161,10 +248,17 @@ export class StrategyService {
             category: classification.category,
             retryable: classification.retryable,
             stage: 'INVOCATION',
+            // Internal diagnostic only — "for engineers, specific" (interfaces.ts).
+            // May legitimately echo non-sensitive provider-supplied error text;
+            // never place this in `userMessage`. The configured provider
+            // credential is redacted defensively in case a provider ever
+            // echoes a submitted value back in its own error body.
             message: isAiProviderError(error)
-              ? error.message
+              ? redactKnownSecret(error.message, this.config.anthropic.apiKey)
               : 'Unexpected error during AI provider invocation.',
-            userMessage: 'This channel strategy could not be prepared right now. It may succeed on retry.',
+            // Sanitized, provider-agnostic text — never the raw provider error,
+            // never a payload, never a credential, never a path (strategy.errors.ts).
+            userMessage: providerSafeUserMessage(kind),
             correlationId,
             runId: request.meta.runId,
             nodeId: request.meta.nodeId,
@@ -222,6 +316,48 @@ export class StrategyService {
       );
     }
 
+    // 4b. A provider-level REFUSED finish reason is handled explicitly, before
+    //    any normal manifest processing. Two distinct outcomes:
+    //     - the content still carries the structured refusal payload the
+    //       prompt's contract requires (system-prompt.md §6) — map it exactly
+    //       as an in-band refusal would be mapped (case 6 below);
+    //     - the provider refused without that payload (e.g. an upstream
+    //       safety filter, not the model's own prompted refusal) — this is an
+    //       output defect, not a manifest, and must never fall through to
+    //       manifest parsing/validation.
+    if (aiResult.finishReason === 'REFUSED') {
+      let refusedContent: unknown;
+      try {
+        refusedContent = JSON.parse(aiResult.content);
+      } catch {
+        refusedContent = undefined;
+      }
+      if (isStrategyRefusal(refusedContent)) {
+        return this.refusalFailure(refusedContent, request, correlationId, attempt, attemptType, startedAt, aiResult);
+      }
+      return this.failure(
+        request,
+        [
+          buildRuntimeError({
+            code: 'AI_OUTPUT.JSON.PARSE_FAILED',
+            category: 'AI_OUTPUT',
+            retryable: true,
+            stage: 'OUTPUT_PARSE',
+            message:
+              'Provider signalled finishReason=REFUSED without a structured refusal payload matching the prompt contract (system-prompt.md §6).',
+            userMessage:
+              'The AI provider declined to complete this request in the expected format. It may succeed on retry.',
+            correlationId,
+            runId: request.meta.runId,
+            nodeId: request.meta.nodeId,
+            attempt,
+          }),
+        ],
+        this.executionBlock(attempt, attemptType, startedAt, 'FAILURE', aiResult),
+        { retryable: true, suggestedNextAttemptType: 'REGENERATION' },
+      );
+    }
+
     // 5. Parse the raw model output. Never strip code fences and retry silently
     //    — that would hide a prompt regression (test-cases.md X-06).
     let parsed: unknown;
@@ -254,32 +390,7 @@ export class StrategyService {
     //    contract (system-prompt.md §6) — map it to a registered error code
     //    and stop. Never attempt to salvage a partial manifest from it.
     if (isStrategyRefusal(parsed)) {
-      const mapping = REFUSAL_REASON_TO_ERROR[parsed.refusal.reasonCode];
-      const isSecurity = mapping.category === 'SECURITY';
-      return this.failure(
-        request,
-        [
-          buildRuntimeError({
-            code: mapping.code,
-            category: mapping.category,
-            retryable: false,
-            stage: 'OUTPUT_VALIDATION',
-            message: `Model declined to produce a manifest (${parsed.refusal.reasonCode}): ${parsed.refusal.details}`,
-            userMessage: isSecurity
-              ? 'This request could not be processed because supplied content attempted to alter agent instructions.'
-              : 'This channel strategy could not be prepared from the supplied inputs.',
-            remediation: isSecurity
-              ? 'Escalate immediately. Do not retry automatically; a human must review the offending input block.'
-              : undefined,
-            correlationId,
-            runId: request.meta.runId,
-            nodeId: request.meta.nodeId,
-            attempt,
-          }),
-        ],
-        this.executionBlock(attempt, attemptType, startedAt, 'FAILURE', aiResult),
-        { retryable: false },
-      );
+      return this.refusalFailure(parsed, request, correlationId, attempt, attemptType, startedAt, aiResult);
     }
 
     // 7. Validate the manifest structurally, then against business rules
@@ -335,6 +446,49 @@ export class StrategyService {
         ],
       },
     };
+  }
+
+  /**
+   * Shared by both refusal paths: an in-band structured refusal returned as
+   * normal (COMPLETE) content, and a provider-level REFUSED finish reason
+   * whose content still parses as the same structured refusal shape. Maps
+   * `reasonCode` to the registered error code exactly once, in one place.
+   */
+  private refusalFailure(
+    refusal: StrategyRefusal,
+    request: StrategyAgentRequest,
+    correlationId: string,
+    attempt: number,
+    attemptType: ExecutionAttemptType,
+    startedAt: number,
+    aiResult: AiInvocationResult,
+  ): StrategyExecutionOutcome {
+    const mapping = REFUSAL_REASON_TO_ERROR[refusal.refusal.reasonCode];
+    const isSecurity = mapping.category === 'SECURITY';
+    return this.failure(
+      request,
+      [
+        buildRuntimeError({
+          code: mapping.code,
+          category: mapping.category,
+          retryable: false,
+          stage: 'OUTPUT_VALIDATION',
+          message: `Model declined to produce a manifest (${refusal.refusal.reasonCode}): ${refusal.refusal.details}`,
+          userMessage: isSecurity
+            ? 'This request could not be processed because supplied content attempted to alter agent instructions.'
+            : 'This channel strategy could not be prepared from the supplied inputs.',
+          remediation: isSecurity
+            ? 'Escalate immediately. Do not retry automatically; a human must review the offending input block.'
+            : undefined,
+          correlationId,
+          runId: request.meta.runId,
+          nodeId: request.meta.nodeId,
+          attempt,
+        }),
+      ],
+      this.executionBlock(attempt, attemptType, startedAt, 'FAILURE', aiResult),
+      { retryable: false },
+    );
   }
 
   private inputFindingToRuntimeError(

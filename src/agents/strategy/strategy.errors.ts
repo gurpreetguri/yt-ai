@@ -159,3 +159,49 @@ export function classifyProviderErrorKind(kind: AiProviderErrorKind): {
 export function isAiProviderError(error: unknown): error is AiProviderError {
   return error instanceof AiProviderError;
 }
+
+/**
+ * The ONLY sanitized, user-facing text for a provider-layer failure.
+ *
+ * `AiProviderError.message` (and any raw `Error.message` from an
+ * unrecognised failure) is a diagnostic string that may legitimately
+ * originate from the provider's own error body (`anthropic.provider.ts`
+ * reads `body.error.message` from the vendor's HTTP response) or from a
+ * network stack. It is suitable ONLY for `StandardError.message` — "for
+ * engineers, specific" (interfaces.ts) — and MUST NEVER be forwarded into
+ * `userMessage`. This function is the single place that produces the safe
+ * alternative, so no call site can accidentally leak a raw provider payload,
+ * an API key, a filesystem path, or prompt/input content into a user-facing
+ * field.
+ */
+const PROVIDER_SAFE_USER_MESSAGE: Readonly<Record<AiProviderErrorKind, string>> = {
+  TIMEOUT: 'The AI provider request timed out.',
+  RATE_LIMIT: 'The AI provider temporarily rejected the request.',
+  AUTH: 'AI provider authentication failed.',
+  NETWORK: 'The AI provider could not be reached.',
+  PROVIDER_ERROR: 'The AI provider could not complete the request.',
+  INVALID_RESPONSE: 'The AI provider returned an unexpected response.',
+  CONFIGURATION: 'The AI provider is not configured.',
+};
+
+export function providerSafeUserMessage(kind: AiProviderErrorKind): string {
+  return PROVIDER_SAFE_USER_MESSAGE[kind];
+}
+
+/**
+ * Redacts every occurrence of a known secret value (e.g. the configured
+ * provider API key) from a diagnostic string before it is stored in
+ * `StandardError.message`.
+ *
+ * `message` is documented as "for engineers, specific" (interfaces.ts) and
+ * is allowed to carry non-sensitive provider diagnostic text — but a
+ * provider that echoes a submitted credential back in an error body (most
+ * do not, but none of them are contractually promising not to) must never
+ * cause that credential to reach a stored error object. This is a narrow,
+ * targeted redaction of a value this runtime itself holds, not a general
+ * secret-scanning heuristic over arbitrary text.
+ */
+export function redactKnownSecret(text: string, secret: string | undefined): string {
+  if (secret === undefined || secret.length < 6) return text;
+  return text.split(secret).join('[REDACTED]');
+}

@@ -15,6 +15,29 @@ export interface AiInvocationParameters {
 }
 
 /**
+ * A provider-neutral request for schema-constrained ("structured") output
+ * (implementation-checklist.md §4: "Request schema-constrained generation
+ * where the provider supports it — then validate anyway"). This is a HINT,
+ * never a substitute for runtime validation:
+ *
+ *  - A provider that can honor it is free to use whatever native mechanism
+ *    it has (OpenAI-style `response_format`, Gemini's `responseSchema`,
+ *    Claude's forced tool-use, ...) — that mechanism is entirely internal to
+ *    the provider implementation and never crosses this interface.
+ *  - A provider that cannot honor it MUST silently ignore it and return
+ *    ordinary text content, exactly as if it had not been supplied.
+ *  - Either way, the caller still runs the same JSON.parse + JSON Schema
+ *    validation pipeline on the result. Constrained decoding guarantees
+ *    shape, not semantic validity (`implementation-checklist.md` §4).
+ */
+export interface AiStructuredOutputRequest {
+  /** A stable name for the target shape, for provider-side logging/caching only. Never parsed for meaning. */
+  readonly schemaName: string;
+  /** The JSON Schema the output must conform to. Passed through opaquely — this interface never inspects it. */
+  readonly schema: unknown;
+}
+
+/**
  * A single model invocation. `systemPrompt` and `userPrompt` are already fully
  * rendered — the provider never sees template variables, only final text.
  */
@@ -26,6 +49,8 @@ export interface AiInvocationRequest {
   readonly timeoutMs: number;
   /** Optional model override. Absent means the provider's configured default. */
   readonly model?: string;
+  /** Optional structured-output hint. See `AiStructuredOutputRequest`. Absent means no hint is given. */
+  readonly structuredOutput?: AiStructuredOutputRequest;
 }
 
 /**
