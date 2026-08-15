@@ -62,7 +62,8 @@
       "^@agents/agent-03-fact-verification/(.*)$": "<rootDir>/agents/agent-03-fact-verification/$1",
       "^@agents/agent-04-story-architect/(.*)$": "<rootDir>/agents/agent-04-story-architect/$1",
       "^@agents/agent-05-script-writer/(.*)$": "<rootDir>/agents/agent-05-script-writer/$1",
-      "^@agents/agent-06-script-reviewer/(.*)$": "<rootDir>/agents/agent-06-script-reviewer/$1"
+      "^@agents/agent-06-script-reviewer/(.*)$": "<rootDir>/agents/agent-06-script-reviewer/$1",
+      "^@agents/agent-07-scene-planner/(.*)$": "<rootDir>/agents/agent-07-scene-planner/$1"
     },
     "collectCoverageFrom": ["src/**/*.(t|j)s"],
     "coverageDirectory": "./coverage"

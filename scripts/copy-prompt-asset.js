@@ -36,6 +36,7 @@ const PROMPT_ASSETS = [
   { agentPackage: 'agent-04-story-architect' },
   { agentPackage: 'agent-05-script-writer' },
   { agentPackage: 'agent-06-script-reviewer' },
+  { agentPackage: 'agent-07-scene-planner' },
 ];
 
 let failed = false;

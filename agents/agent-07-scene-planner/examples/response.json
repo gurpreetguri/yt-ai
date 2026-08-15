@@ -1,0 +1,177 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_TDV2CZ7YS7V68TFF9XSB6M1J7J",
+    "correlationId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+    "causationId": "msg_7NJZEYCV4EN1P988CFRSG8SN7Z",
+    "runId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+    "nodeId": "nod_ERFPAGXRRJJZWQMWXJCE501288",
+    "attempt": 1,
+    "createdAt": "2026-09-02T12:20:41.220Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "scene-planner-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_scene_planner_agent@sha256:1b6c9f0d3a5e8172bd94c0f6a3b7e0298d3c9a5f1b6c9054bd94c0f6a3b7e029",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0.5, "topP": 1, "seed": 20260902, "maxOutputTokens": 7000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "packageKind": "SCENE_PLAN",
+    "topicId": "TOPIC_PAYCHECK_WITHHOLDING",
+    "scenes": [
+      {
+        "sceneId": "SCENE_HOOK",
+        "order": 1,
+        "segmentRefs": ["SEG_HOOK"],
+        "beatRef": "BEAT_HOOK",
+        "startTimeSeconds": 0,
+        "endTimeSeconds": 15,
+        "durationSeconds": 15,
+        "sceneType": "HOOK_VISUAL",
+        "visualPurpose": "Open with the surprising gap between salary and take-home pay to hook viewer curiosity.",
+        "visualElements": [
+          { "type": "TEXT_OVERLAY", "description": "Bold on-screen question contrasting salary versus take-home pay", "importance": "PRIMARY" }
+        ],
+        "informationToShow": [],
+        "claimRefs": ["CLAIM_MAIN"],
+        "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM"],
+        "transition": "CUT",
+        "onScreenTextIntent": [
+          { "kind": "TITLE", "text": "Why is your paycheck smaller than your salary?" }
+        ],
+        "assetRequirements": [
+          { "category": "TEXT_GRAPHIC", "description": "Animated title card contrasting salary and take-home pay", "importance": "PRIMARY" }
+        ]
+      },
+      {
+        "sceneId": "SCENE_EXPLAIN",
+        "order": 2,
+        "segmentRefs": ["SEG_EXPLAIN", "SEG_STAT"],
+        "beatRef": "BEAT_EXPLAIN",
+        "startTimeSeconds": 15,
+        "endTimeSeconds": 55,
+        "durationSeconds": 40,
+        "sceneType": "DIAGRAM",
+        "visualPurpose": "Explain the withholding mechanism and show the preliminary survey figure with its qualification intact.",
+        "visualElements": [
+          { "type": "DIAGRAM", "description": "Simple diagram showing gross pay minus withholding equals take-home pay", "importance": "PRIMARY" },
+          { "type": "CHART", "description": "Small chart illustrating the about 30% early-season misjudgment figure", "importance": "SECONDARY" }
+        ],
+        "informationToShow": [
+          "Gross pay minus withholding equals take-home pay",
+          "About 30% of first-time filers misjudge withholding early in the season"
+        ],
+        "claimRefs": ["CLAIM_MAIN", "CLAIM_STAT"],
+        "evidenceRefs": ["EVIDENCE_WITHHOLDING_MECHANISM", "EVIDENCE_WITHHOLDING_SURVEY"],
+        "qualification": "Early filing data suggests about 30% of first-time filers misjudge withholding; the figure may shift as the season continues.",
+        "transition": "FADE",
+        "onScreenTextIntent": [
+          { "kind": "STATISTIC", "text": "~30% early-season figure", "claimRef": "CLAIM_STAT" }
+        ],
+        "assetRequirements": [
+          { "category": "DIAGRAM", "description": "Withholding mechanism diagram", "importance": "PRIMARY" },
+          { "category": "CHART", "description": "Early-season misjudgment chart", "importance": "SECONDARY" }
+        ]
+      },
+      {
+        "sceneId": "SCENE_QUOTE",
+        "order": 3,
+        "segmentRefs": ["SEG_QUOTE"],
+        "beatRef": "BEAT_QUOTE",
+        "startTimeSeconds": 55,
+        "endTimeSeconds": 80,
+        "durationSeconds": 25,
+        "sceneType": "QUOTE",
+        "visualPurpose": "Ground the explanation in the IRS's own public statement to build trust.",
+        "visualElements": [
+          { "type": "TEXT_OVERLAY", "description": "On-screen quote card attributed to the IRS spokesperson", "importance": "PRIMARY" }
+        ],
+        "informationToShow": [],
+        "claimRefs": ["CLAIM_QUOTE"],
+        "evidenceRefs": ["EVIDENCE_IRS_STATEMENT"],
+        "quotation": {
+          "claimId": "CLAIM_QUOTE",
+          "speaker": "Jane Doe, IRS Public Affairs",
+          "quotedText": "Most withholding errors are simple to fix once you know where to look."
+        },
+        "transition": "CUT",
+        "onScreenTextIntent": [
+          { "kind": "TITLE", "text": "Jane Doe, IRS Public Affairs" }
+        ],
+        "assetRequirements": [
+          { "category": "TEXT_GRAPHIC", "description": "Quote card graphic with attribution", "importance": "PRIMARY" }
+        ]
+      },
+      {
+        "sceneId": "SCENE_CTA",
+        "order": 4,
+        "segmentRefs": ["SEG_CTA"],
+        "beatRef": "BEAT_CTA",
+        "startTimeSeconds": 80,
+        "endTimeSeconds": 95,
+        "durationSeconds": 15,
+        "sceneType": "CTA",
+        "visualPurpose": "Invite the viewer to subscribe for the next explainer.",
+        "visualElements": [
+          { "type": "TEXT_OVERLAY", "description": "Subscribe call-to-action graphic with channel branding placeholder", "importance": "PRIMARY" }
+        ],
+        "informationToShow": [],
+        "claimRefs": [],
+        "evidenceRefs": [],
+        "transition": "NONE",
+        "onScreenTextIntent": [
+          { "kind": "TITLE", "text": "Subscribe for the next explainer" }
+        ],
+        "assetRequirements": [
+          { "category": "TEXT_GRAPHIC", "description": "Subscribe CTA animation", "importance": "PRIMARY" }
+        ]
+      }
+    ],
+    "planDuration": {
+      "targetDurationSeconds": 100,
+      "totalPlannedDurationSeconds": 95,
+      "toleranceRatio": 0.15,
+      "withinTolerance": true
+    },
+    "warnings": [],
+    "downstreamReadiness": "READY_FOR_VISUAL_DIRECTION",
+    "readinessRationale": "Every non-transition script segment is covered, scene order follows the script, timeline is contiguous and within tolerance, the qualified statistic keeps its qualification, and the quotation matches its source exactly.",
+    "readinessBlockers": []
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 15920,
+    "costMicroUsd": 26400,
+    "inputTokens": 2780,
+    "outputTokens": 2210,
+    "finishReason": "COMPLETE",
+    "resourceClass": "planning-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_7NJZEYCV4EN1P988CFRSG8SN7Z",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_scene_planner_agent",
+      "version": "1.0.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

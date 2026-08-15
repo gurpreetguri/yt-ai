@@ -1,0 +1,99 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_AG5ABXN3CSYEY5SY4H3YPBK6P2",
+    "correlationId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+    "causationId": "msg_7NJZEYCV4EN1P988CFRSG8SN7Z",
+    "runId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+    "nodeId": "nod_ERFPAGXRRJJZWQMWXJCE501288",
+    "attempt": 1,
+    "createdAt": "2026-09-02T12:20:00.900Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "scene-planner-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_scene_planner_agent@sha256:1b6c9f0d3a5e8172bd94c0f6a3b7e0298d3c9a5f1b6c9054bd94c0f6a3b7e029"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.REVIEW_NOT_APPROVED",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "The scene planner must not bypass Script Reviewer approval; a decision other than APPROVED cannot be dispatched for scene planning.",
+      "userMessage": "This scene plan could not be produced because the script has not been approved by the reviewer.",
+      "source": {
+        "component": "scene-planner-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+        "runId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+        "nodeId": "nod_ERFPAGXRRJJZWQMWXJCE501288",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.reviewResult.decision",
+          "expected": "APPROVED",
+          "actual": "REPAIR_REQUIRED",
+          "ruleId": "R-IN-002"
+        }
+      ],
+      "remediation": "Resolve the script reviewer's blocking issues and obtain an APPROVED decision before dispatching to the scene planner.",
+      "occurredAt": "2026-09-02T12:20:00.905Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.DUPLICATE_CLAIM_ID",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Two supplied verified claims share the same claimId.",
+      "userMessage": "This scene plan could not be produced because two supplied verified claims share the same identifier.",
+      "source": {
+        "component": "scene-planner-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+        "runId": "run_8QJQVF2210DRCEFTQJBVCDYM18",
+        "nodeId": "nod_ERFPAGXRRJJZWQMWXJCE501288",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.verificationPackage.claims[1].claimId",
+          "expected": "a claimId unique within verificationPackage.claims",
+          "actual": "CLAIM_MAIN",
+          "ruleId": "R-IN-009"
+        }
+      ],
+      "remediation": "Assign a distinct claimId to each supplied verified claim before dispatch.",
+      "occurredAt": "2026-09-02T12:20:00.906Z"
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 2,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_7NJZEYCV4EN1P988CFRSG8SN7Z",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

@@ -30,7 +30,8 @@
       "@agents/agent-03-fact-verification/*": ["agents/agent-03-fact-verification/*"],
       "@agents/agent-04-story-architect/*": ["agents/agent-04-story-architect/*"],
       "@agents/agent-05-script-writer/*": ["agents/agent-05-script-writer/*"],
-      "@agents/agent-06-script-reviewer/*": ["agents/agent-06-script-reviewer/*"]
+      "@agents/agent-06-script-reviewer/*": ["agents/agent-06-script-reviewer/*"],
+      "@agents/agent-07-scene-planner/*": ["agents/agent-07-scene-planner/*"]
     }
   },
   "include": [
@@ -41,7 +42,8 @@
     "agents/agent-03-fact-verification/**/*.ts",
     "agents/agent-04-story-architect/**/*.ts",
     "agents/agent-05-script-writer/**/*.ts",
-    "agents/agent-06-script-reviewer/**/*.ts"
+    "agents/agent-06-script-reviewer/**/*.ts",
+    "agents/agent-07-scene-planner/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -52,6 +54,7 @@
     "agents/agent-03-fact-verification/**/*.spec.ts",
     "agents/agent-04-story-architect/**/*.spec.ts",
     "agents/agent-05-script-writer/**/*.spec.ts",
-    "agents/agent-06-script-reviewer/**/*.spec.ts"
+    "agents/agent-06-script-reviewer/**/*.spec.ts",
+    "agents/agent-07-scene-planner/**/*.spec.ts"
   ]
 }
