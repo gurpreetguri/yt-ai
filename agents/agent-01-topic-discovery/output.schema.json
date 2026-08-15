@@ -1,0 +1,539 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:topic-discovery-agent-output:v1",
+  "title": "Topic Discovery Agent Response",
+  "description": "RESPONSE / ERROR contract produced by AGT-01 topic-discovery-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Topic Opportunity Set. The model emits `#/$defs/topicOpportunitySet` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every topic is an OPPORTUNITY, not a verified fact: no claim in this contract has been fact-checked, and none may be treated as grounded until Agent 02 research runs (STD-000 §4.7). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "oneOf": [
+    { "$ref": "#/$defs/successResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+
+  "$defs": {
+
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "data"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "RESPONSE" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": {
+          "description": "PARTIAL is prohibited for this agent: a partially-ranked topic set is a failure (STD-000 §5.3).",
+          "const": "SUCCESS"
+        },
+        "data": { "$ref": "#/$defs/topicOpportunitySet" },
+        "issues": {
+          "description": "Non-blocking warnings alongside data (GDE-003 §9.2). Present only when at least one warning exists; never present-and-empty. Unordered. 1-20 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "validation": { "$ref": "#/$defs/validationBlock" },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "errorResponse": {
+      "description": "Produced when no work product exists: typed failure or refusal (GDE-003 §9.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "issues"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "ERROR" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": { "const": "FAILURE" },
+        "issues": {
+          "description": "All failures are reported together, never one at a time (STD-000 §6.2). Unordered. 1-50 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "isoTimestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "calendarDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "bcp47Tag": { "type": "string", "minLength": 2, "maxLength": 20, "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$" },
+    "prefixedId": { "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "localKey": {
+      "description": "Manifest-local stable key. Unique within its containing array.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+    "jsonPath": {
+      "description": "Machine-readable location within this document, rooted at `$.` (STD-000 §8.1).",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^\\$\\.[A-Za-z0-9_.\\[\\]]+$"
+    },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "responseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "causationId", "createdAt", "locale", "tenantId", "channelId", "producer", "agentId", "agentVersion", "promptVersion"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId" },
+        "runId": { "$ref": "#/$defs/prefixedId" },
+        "nodeId": { "$ref": "#/$defs/prefixedId" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag" },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        },
+        "agentId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "agentVersion": { "$ref": "#/$defs/semanticVersion" },
+        "promptVersion": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "provider": { "description": "Audit only. MUST NOT influence any consumer's behaviour (STD-000 Rule 5).", "type": "string", "minLength": 2, "maxLength": 64 },
+        "modelId": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "modelVersion": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["temperature", "topP"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "topP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seed": { "type": "integer", "minimum": 0 },
+            "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 200000 }
+          }
+        }
+      }
+    },
+
+    "executionBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "attemptType", "durationMs", "costMicroUsd", "outcome"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "attemptType": { "type": "string", "enum": ["INITIAL", "REPAIR", "REGENERATION"] },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "costMicroUsd": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "finishReason": { "type": "string", "enum": ["COMPLETE", "TRUNCATED", "REFUSED", "ERROR"] },
+        "resourceClass": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "outcome": { "type": "string", "enum": ["SUCCESS", "FAILURE"] }
+      }
+    },
+
+    "validationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "stages", "findings"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["PASSED", "PASSED_WITH_WARNINGS", "FAILED", "BLOCKED", "INCONCLUSIVE"] },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "outcome", "durationMs"],
+            "properties": {
+              "stage": { "type": "string", "enum": ["STRUCTURAL", "BUSINESS", "CONSISTENCY", "QUALITY", "POLICY", "HUMAN"] },
+              "outcome": { "type": "string", "enum": ["PASSED", "FAILED", "BLOCKED", "INCONCLUSIVE", "SKIPPED"] },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 200,
+          "items": { "$ref": "#/$defs/validationFinding" }
+        },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "AGGREGATE"] }
+          }
+        }
+      }
+    },
+
+    "validationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "path", "message", "basis"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING", "INFO"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "message": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "suggestion": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "HUMAN"] }
+      }
+    },
+
+    "errorObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "severity", "retryable", "message", "source", "context", "occurredAt"],
+      "properties": {
+        "code": {
+          "description": "Registered catalogue code, CATEGORY.SUBJECT.CONDITION, maximum four segments (STD-000 §8.4).",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "VALIDATION", "AI_PROVIDER", "AI_OUTPUT", "NETWORK", "EXTERNAL_API", "TIMEOUT",
+            "RATE_LIMIT", "QUOTA", "AUTH", "PERMISSION", "SECURITY", "POLICY_COMPLIANCE",
+            "CONFIGURATION", "RESOURCE", "DATA_INTEGRITY", "WORKFLOW", "BUDGET", "UNKNOWN"
+          ]
+        },
+        "severity": { "type": "string", "enum": ["FATAL", "ERROR", "WARNING", "INFO"] },
+        "retryable": { "type": "boolean" },
+        "message": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "userMessage": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "version", "stage"],
+          "properties": {
+            "component": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" },
+            "stage": { "type": "string", "enum": ["INPUT_VALIDATION", "INVOCATION", "OUTPUT_PARSE", "OUTPUT_VALIDATION", "BUSINESS_VALIDATION"] }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correlationId"],
+          "properties": {
+            "correlationId": { "$ref": "#/$defs/prefixedId" },
+            "runId": { "$ref": "#/$defs/prefixedId" },
+            "nodeId": { "$ref": "#/$defs/prefixedId" },
+            "attempt": { "type": "integer", "minimum": 1, "maximum": 10 }
+          }
+        },
+        "details": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 }
+            }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "occurredAt": { "$ref": "#/$defs/isoTimestamp" },
+        "causeChain": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+              "message": { "type": "string", "minLength": 5, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "topicOpportunitySet": {
+      "description": "THE TOPIC OPPORTUNITY SET. The single deliverable of this agent. Ranked, scored candidate topics for Agent 02 Research to evaluate — never verified facts, never commissioned topics, never scripts (README §3).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["setKind", "requestedCount", "deliveredCount", "topics", "assumptions", "declaredUnknowns", "inputSufficiency"],
+      "properties": {
+        "setKind": { "const": "TOPIC_OPPORTUNITY_SET" },
+
+        "requestedCount": {
+          "description": "Echoes the request's requestedTopicCount.",
+          "type": "integer", "minimum": 1, "maximum": 50
+        },
+
+        "deliveredCount": {
+          "description": "MUST equal topics.length (R-BUS-001). MAY be less than requestedCount only when the shortfall is explained in assumptions or declaredUnknowns (R-BUS-002).",
+          "type": "integer", "minimum": 0, "maximum": 50
+        },
+
+        "topics": {
+          "description": "Ordering is meaningful: ascending rank, which is non-increasing in overallScore (R-BUS-006, R-BUS-007). 0-50 items. Titles unique after normalisation (R-BUS-008).",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": { "$ref": "#/$defs/topicOpportunity" }
+        },
+
+        "assumptions": {
+          "description": "Every judgement not directly stated by an input block. Unordered. 0-10 items. Empty array means every element was directly derivable.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["assumptionKey", "statement", "basis", "path"],
+            "properties": {
+              "assumptionKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 15, "maxLength": 300 },
+              "basis": {
+                "type": "string",
+                "enum": ["STRATEGY_BINDING", "EXISTING_CONTENT_INVENTORY", "DISCOVERY_CONSTRAINTS", "TREND_CONTEXT", "REQUESTED_COUNT"]
+              },
+              "path": { "$ref": "#/$defs/jsonPath" }
+            }
+          }
+        },
+
+        "declaredUnknowns": {
+          "description": "The declared-unknown mechanism (STD-000 §3.4). Each entry names a field omitted because it could not be determined, or explains a count shortfall. Every path MUST address a field absent from this document (R-BUS-013). Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "$ref": "#/$defs/jsonPath" },
+              "reason": {
+                "type": "string",
+                "enum": ["INPUT_NOT_SUPPLIED", "INPUT_INSUFFICIENT", "DISCOVERY_SPACE_EXHAUSTED", "NOT_DETERMINABLE_WITHOUT_RESEARCH"]
+              }
+            }
+          }
+        },
+
+        "inputSufficiency": {
+          "description": "A statement about INPUTS, not about output quality: this agent does not assess its own quality (GDE-002 §9.5).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis", "limitations"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "const": "SELF_REPORTED" },
+            "limitations": {
+              "type": "array", "minItems": 0, "maxItems": 5,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        }
+      }
+    },
+
+    "topicOpportunity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "topicId", "title", "angle", "topicType", "pillarKey", "audienceIntent",
+        "scoreBreakdown", "overallScore", "rank", "productionConsiderations",
+        "risks", "researchPriority", "duplicateStatus"
+      ],
+      "properties": {
+        "topicId": { "$ref": "#/$defs/localKey", "description": "Stable within this response only. A durable identifier is assigned downstream on commission." },
+        "title": { "type": "string", "minLength": 10, "maxLength": 120 },
+        "angle": {
+          "description": "The specific promise or framing that distinguishes this topic from a generic treatment of its subject.",
+          "type": "string", "minLength": 20, "maxLength": 300
+        },
+        "topicType": {
+          "type": "string",
+          "enum": [
+            "EVERGREEN", "TRENDING", "NEWS_DRIVEN", "EDUCATIONAL", "COMPARISON",
+            "TUTORIAL", "LIST", "PROBLEM_SOLUTION", "OPINION_ANALYSIS", "CASE_STUDY"
+          ]
+        },
+        "pillarKey": { "$ref": "#/$defs/localKey", "description": "MUST resolve to the request's strategyBinding.contentPillars (R-BUS-003)." },
+        "targetPersonaKey": { "$ref": "#/$defs/localKey", "description": "Absent means the topic serves the audience broadly rather than one persona. When present, MUST resolve to strategyBinding.audience.personas (R-BUS-004)." },
+        "audienceIntent": {
+          "description": "The viewer's dominant reason for seeking this content.",
+          "type": "string",
+          "enum": ["LEARN", "COMPARE", "DECIDE", "SOLVE_PROBLEM", "STAY_INFORMED", "BE_ENTERTAINED"]
+        },
+
+        "scoreBreakdown": {
+          "description": "Seven transparent dimensions, each independently scored and justified. overallScore is their declared weighted sum (R-BUS-005); see README §8 for the weight table. Every score is MODEL_ASSESSED judgement, not measured fact.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "audienceIntent", "strategicFit", "differentiation", "timeliness",
+            "evergreenPotential", "productionFeasibility", "growthPotential"
+          ],
+          "properties": {
+            "audienceIntent": { "$ref": "#/$defs/scoreDimension" },
+            "strategicFit": { "$ref": "#/$defs/scoreDimension" },
+            "differentiation": { "$ref": "#/$defs/scoreDimension" },
+            "timeliness": { "$ref": "#/$defs/scoreDimension" },
+            "evergreenPotential": { "$ref": "#/$defs/scoreDimension" },
+            "productionFeasibility": { "$ref": "#/$defs/scoreDimension" },
+            "growthPotential": { "$ref": "#/$defs/scoreDimension" }
+          }
+        },
+
+        "overallScore": {
+          "description": "Weighted sum of scoreBreakdown, rounded to 2 decimals (R-BUS-005). A relative ranking aid, never a claim of objective merit. multipleOf enforces the two-decimal representation structurally; R-BUS-005 separately enforces that the value matches the declared weighted formula.",
+          "$ref": "#/$defs/ratio",
+          "type": "number",
+          "multipleOf": 0.01
+        },
+
+        "rank": {
+          "description": "1-based. Unique and contiguous across topics (R-BUS-006), non-increasing in overallScore as rank increases (R-BUS-007).",
+          "type": "integer", "minimum": 1, "maximum": 50
+        },
+
+        "timelinessWindow": {
+          "description": "Present when topicType is TRENDING or NEWS_DRIVEN; absent when topicType is EVERGREEN (R-BUS-011). Optional for other types.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["relevantFrom", "relevantUntil", "rationale"],
+          "properties": {
+            "relevantFrom": { "$ref": "#/$defs/calendarDate" },
+            "relevantUntil": { "$ref": "#/$defs/calendarDate", "description": "Strictly later than relevantFrom." },
+            "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+          }
+        },
+
+        "productionConsiderations": {
+          "description": "Concrete production notes distinct from the feasibility score's rationale — required assets, complexity flags, dependency on unavailable material. Unordered. 0-6 items. Empty array means no notable considerations.",
+          "type": "array",
+          "minItems": 0, "maxItems": 6,
+          "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+        },
+
+        "risks": {
+          "description": "Unordered. 0-8 items. Empty array means no material risk was identified.",
+          "type": "array",
+          "minItems": 0, "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["riskKey", "category", "description", "severity"],
+            "properties": {
+              "riskKey": { "$ref": "#/$defs/localKey" },
+              "category": {
+                "type": "string",
+                "enum": ["FACTUAL_COMPLEXITY", "LEGAL_SENSITIVITY", "AUDIENCE_MISMATCH", "SATURATION", "PRODUCTION_COMPLEXITY", "PLATFORM_POLICY"]
+              },
+              "description": { "type": "string", "minLength": 15, "maxLength": 300 },
+              "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] }
+            }
+          }
+        },
+
+        "researchPriority": {
+          "description": "How urgently Agent 02 should take up this topic relative to others in the set.",
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"]
+        },
+
+        "duplicateStatus": {
+          "description": "Discriminated union on `classification` (GDE-003 §6.7); the variant is never inferred from which fields are present.",
+          "oneOf": [
+            { "$ref": "#/$defs/duplicateStatusNone" },
+            { "$ref": "#/$defs/duplicateStatusMatched" }
+          ]
+        }
+      }
+    },
+
+    "scoreDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "rationale"],
+      "properties": {
+        "score": { "$ref": "#/$defs/ratio" },
+        "rationale": { "type": "string", "minLength": 20, "maxLength": 300 }
+      }
+    },
+
+    "duplicateStatusNone": {
+      "description": "No match found against the supplied existingContentInventory.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification"],
+      "properties": {
+        "classification": { "const": "NONE" }
+      }
+    },
+
+    "duplicateStatusMatched": {
+      "description": "A match was found. matchedTopicRefId MUST resolve to a supplied existingContentInventory entry (R-BUS-010).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "matchedTopicRefId", "similarityBasis"],
+      "properties": {
+        "classification": {
+          "type": "string",
+          "enum": ["EXACT_DUPLICATE", "NEAR_DUPLICATE", "SAME_SUBJECT_DIFFERENT_ANGLE", "TRIVIAL_WORDING_VARIANT"]
+        },
+        "matchedTopicRefId": { "$ref": "#/$defs/prefixedId" },
+        "similarityBasis": {
+          "description": "What specifically matched: title equivalence, subject overlap, or wording variance.",
+          "type": "string", "minLength": 15, "maxLength": 300
+        }
+      }
+    }
+  }
+}

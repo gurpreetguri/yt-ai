@@ -1,0 +1,135 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVBE",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVBA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVBC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T11:47:03.220Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "topic-discovery-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_topic_discovery_agent@sha256:9b3f7a2e1c6d8054af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.LANGUAGE_MISMATCH",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Requested language de-DE is not present in strategyBinding.audience.languages, which declares only en-US.",
+      "userMessage": "Topic discovery could not run because the requested language does not match the channel's configured audience languages.",
+      "source": {
+        "component": "topic-discovery-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVBC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.language",
+          "expected": "an entry present in strategyBinding.audience.languages",
+          "actual": "\"de-DE\"",
+          "ruleId": "R-IN-001"
+        }
+      ],
+      "remediation": "Request en-US, or bind the channel to a strategy version that declares de-DE as an audience language.",
+      "occurredAt": "2026-09-02T11:47:03.216Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.PILLAR_CONSTRAINTS_CONTRADICTORY",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "Pillar PILLAR_TAXES appears in both discoveryConstraints.requiredPillarKeys and discoveryConstraints.excludePillarKeys.",
+      "userMessage": "Topic discovery could not run because its pillar constraints contradict each other.",
+      "source": {
+        "component": "topic-discovery-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVBC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.discoveryConstraints",
+          "expected": "requiredPillarKeys and excludePillarKeys sharing no key",
+          "actual": "PILLAR_TAXES",
+          "ruleId": "R-IN-002"
+        }
+      ],
+      "remediation": "Remove PILLAR_TAXES from either requiredPillarKeys or excludePillarKeys.",
+      "occurredAt": "2026-09-02T11:47:03.217Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.CONSTRAINT_UNSATISFIABLE",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "discoveryConstraints.excludePillarKeys names all 4 declared content pillars, leaving no eligible discovery space.",
+      "userMessage": "Topic discovery could not run because every content pillar was excluded from this request.",
+      "source": {
+        "component": "topic-discovery-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVBB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVBC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.discoveryConstraints.excludePillarKeys",
+          "expected": "at least one pillar left eligible for discovery",
+          "actual": "4 of 4 pillars excluded",
+          "ruleId": "R-IN-005"
+        }
+      ],
+      "remediation": "Remove at least one pillar from excludePillarKeys so a feasible discovery space remains.",
+      "occurredAt": "2026-09-02T11:47:03.218Z"
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 6,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVBA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "strategy_chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+      "version": "1.3.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

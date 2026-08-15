@@ -1,0 +1,244 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAF",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVAB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVAB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVAC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T08:10:34.880Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "topic-discovery-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_topic_discovery_agent@sha256:9b3f7a2e1c6d8054af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0.7, "topP": 1, "seed": 20260902, "maxOutputTokens": 6000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "setKind": "TOPIC_OPPORTUNITY_SET",
+    "requestedCount": 5,
+    "deliveredCount": 5,
+    "topics": [
+      {
+        "topicId": "TOPIC_TAX_SEASON",
+        "title": "What Your W-2 Actually Tells You Before You File",
+        "angle": "Walking through a real, redacted W-2 line by line so a first-time filer knows what each box changes about their refund",
+        "topicType": "TRENDING",
+        "pillarKey": "PILLAR_TAXES",
+        "audienceIntent": "LEARN",
+        "scoreBreakdown": {
+          "audienceIntent": { "score": 0.85, "rationale": "Directly answers the question first-time filers search for every January: what their own form means." },
+          "strategicFit": { "score": 0.90, "rationale": "Occupies the taxes pillar's declared seasonal emphasis window exactly as planned in the strategy." },
+          "differentiation": { "score": 0.75, "rationale": "Most competing content explains tax rules abstractly; a redacted real-document walkthrough is a distinct format in this category." },
+          "timeliness": { "score": 0.95, "rationale": "Matches the observed category-wide content gap ahead of the January filing season (OBS_TAX_SEASON_GAP)." },
+          "evergreenPotential": { "score": 0.40, "rationale": "Relevance is concentrated in the filing season each year; value outside that window is limited." },
+          "productionFeasibility": { "score": 0.80, "rationale": "Fits the long-form duration envelope with one prepared document and no external dependency." },
+          "growthPotential": { "score": 0.85, "rationale": "Seasonal search volume for first-time filing questions extends reach beyond the existing subscriber base." }
+        },
+        "overallScore": 0.78,
+        "rank": 1,
+        "timelinessWindow": {
+          "relevantFrom": "2027-01-15",
+          "relevantUntil": "2027-04-15",
+          "rationale": "Matches the channel's declared tax filing season seasonal emphasis and the observed category-wide content gap."
+        },
+        "productionConsiderations": [
+          "Requires a real W-2 form redacted for privacy before filming",
+          "Best filmed and published before mid-January to land inside the seasonal window"
+        ],
+        "risks": [
+          {
+            "riskKey": "RISK_TAX_ACCURACY",
+            "category": "FACTUAL_COMPLEXITY",
+            "description": "Payroll withholding rules vary by state and require verification before scripting.",
+            "severity": "MEDIUM"
+          }
+        ],
+        "researchPriority": "URGENT",
+        "duplicateStatus": { "classification": "NONE" }
+      },
+      {
+        "topicId": "TOPIC_CREDIT_CARD_COST",
+        "title": "The Real Cost of Carrying a Balance on One Credit Card",
+        "angle": "Showing in arithmetic how a minimum payment quietly doubles the price of an ordinary purchase",
+        "topicType": "EDUCATIONAL",
+        "pillarKey": "PILLAR_BUDGETING",
+        "targetPersonaKey": "PERSONA_FIRST_SALARY",
+        "audienceIntent": "SOLVE_PROBLEM",
+        "scoreBreakdown": {
+          "audienceIntent": { "score": 0.80, "rationale": "Addresses recurring viewer confusion about minimum payments noted in comment sentiment (OBS_CREDIT_CARD_INTEREST)." },
+          "strategicFit": { "score": 0.85, "rationale": "Falls squarely within the budgeting pillar's arithmetic-first mandate." },
+          "differentiation": { "score": 0.80, "rationale": "Framed as a single reproducible calculation rather than generic debt-avoidance advice." },
+          "timeliness": { "score": 0.30, "rationale": "Relevant year-round; no seasonal or news-driven basis was supplied." },
+          "evergreenPotential": { "score": 0.90, "rationale": "The underlying arithmetic does not change with market conditions or the calendar." },
+          "productionFeasibility": { "score": 0.85, "rationale": "A single on-screen amortisation table fits the existing production template with no new assets." },
+          "growthPotential": { "score": 0.70, "rationale": "Addresses a widely searched, category-general question likely to reach new viewers." }
+        },
+        "overallScore": 0.77,
+        "rank": 2,
+        "productionConsiderations": [
+          "Needs a clear on-screen amortisation table sourced from the channel's standard calculation template"
+        ],
+        "risks": [],
+        "researchPriority": "HIGH",
+        "duplicateStatus": { "classification": "NONE" }
+      },
+      {
+        "topicId": "TOPIC_RAISE_TAKEHOME",
+        "title": "How a Raise Changes Your Take-Home Pay, Step by Step",
+        "angle": "Tracing a raise through withholding and contribution changes to show the actual increase in a paycheck",
+        "topicType": "EDUCATIONAL",
+        "pillarKey": "PILLAR_CAREER_INCOME",
+        "targetPersonaKey": "PERSONA_MID_CAREER",
+        "audienceIntent": "LEARN",
+        "scoreBreakdown": {
+          "audienceIntent": { "score": 0.75, "rationale": "Answers a question raised naturally by the adjacent negotiation topic already in production." },
+          "strategicFit": { "score": 0.80, "rationale": "Extends the career and income pillar into the arithmetic of a raise's actual effect." },
+          "differentiation": { "score": 0.70, "rationale": "Framed as a step-by-step trace rather than a general statement that raises are taxed at a higher bracket." },
+          "timeliness": { "score": 0.30, "rationale": "Relevant year-round; no seasonal or news-driven basis was supplied." },
+          "evergreenPotential": { "score": 0.85, "rationale": "The mechanism does not depend on current tax-year specifics beyond the bracket structure." },
+          "productionFeasibility": { "score": 0.80, "rationale": "Uses the same paycheck-arithmetic template as prior budgeting content." },
+          "growthPotential": { "score": 0.65, "rationale": "Serves an already-engaged segment more than it reaches new viewers." }
+        },
+        "overallScore": 0.71,
+        "rank": 3,
+        "productionConsiderations": [],
+        "risks": [
+          {
+            "riskKey": "RISK_TAX_BRACKET_COMPLEXITY",
+            "category": "FACTUAL_COMPLEXITY",
+            "description": "Marginal tax bracket mechanics are easy to state incorrectly and require careful verification.",
+            "severity": "MEDIUM"
+          }
+        ],
+        "researchPriority": "MEDIUM",
+        "duplicateStatus": { "classification": "NONE" }
+      },
+      {
+        "topicId": "TOPIC_EMERGENCY_FUND_COMPARE",
+        "title": "Emergency Fund: Three Months or Six",
+        "angle": "Comparing the two common sizing thresholds against the viewer's own fixed-cost number",
+        "topicType": "COMPARISON",
+        "pillarKey": "PILLAR_BUDGETING",
+        "targetPersonaKey": "PERSONA_FIRST_SALARY",
+        "audienceIntent": "DECIDE",
+        "scoreBreakdown": {
+          "audienceIntent": { "score": 0.70, "rationale": "Answers a decision question adjacent to, but narrower than, the existing published sizing video." },
+          "strategicFit": { "score": 0.75, "rationale": "Still within the budgeting pillar's arithmetic-first mandate." },
+          "differentiation": { "score": 0.55, "rationale": "Overlaps substantially with a published topic already answering the sizing question." },
+          "timeliness": { "score": 0.25, "rationale": "Relevant year-round; no seasonal or news-driven basis was supplied." },
+          "evergreenPotential": { "score": 0.80, "rationale": "The comparison does not depend on market conditions or the calendar." },
+          "productionFeasibility": { "score": 0.85, "rationale": "Reuses the existing sizing video's arithmetic template directly." },
+          "growthPotential": { "score": 0.55, "rationale": "Largely serves viewers who would find the existing published video through search." }
+        },
+        "overallScore": 0.65,
+        "rank": 4,
+        "productionConsiderations": [],
+        "risks": [],
+        "researchPriority": "LOW",
+        "duplicateStatus": {
+          "classification": "NEAR_DUPLICATE",
+          "matchedTopicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE1",
+          "similarityBasis": "The published topic 'How Large Should Your Emergency Fund Be' already answers the sizing question directly; this angle reframes it as a threshold comparison rather than covering new ground."
+        }
+      },
+      {
+        "topicId": "TOPIC_EMPLOYER_MATCH_ANGLE",
+        "title": "Is Your Employer Retirement Match Really Free Money",
+        "angle": "Reframing the existing match explainer as a decision question about whether to increase a contribution rate",
+        "topicType": "EVERGREEN",
+        "pillarKey": "PILLAR_INVESTING_BASICS",
+        "targetPersonaKey": "PERSONA_MID_CAREER",
+        "audienceIntent": "DECIDE",
+        "scoreBreakdown": {
+          "audienceIntent": { "score": 0.60, "rationale": "The underlying question is already answered by a published video; this only reframes it." },
+          "strategicFit": { "score": 0.65, "rationale": "Still within the investing fundamentals pillar, though it adds little beyond the existing coverage." },
+          "differentiation": { "score": 0.35, "rationale": "The published topic already explains the mechanism this angle relies on." },
+          "timeliness": { "score": 0.20, "rationale": "Relevant year-round; no seasonal or news-driven basis was supplied." },
+          "evergreenPotential": { "score": 0.75, "rationale": "The underlying mechanism is stable, independent of the calendar." },
+          "productionFeasibility": { "score": 0.85, "rationale": "Reuses the existing match explainer's research and arithmetic directly." },
+          "growthPotential": { "score": 0.40, "rationale": "Unlikely to reach viewers the published video has not already reached." }
+        },
+        "overallScore": 0.55,
+        "rank": 5,
+        "productionConsiderations": [],
+        "risks": [],
+        "researchPriority": "LOW",
+        "duplicateStatus": {
+          "classification": "SAME_SUBJECT_DIFFERENT_ANGLE",
+          "matchedTopicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE2",
+          "similarityBasis": "The published topic 'Employer 401k Match Explained' already covers the mechanism; this angle only reframes it as a decision question without adding new substance."
+        }
+      }
+    ],
+    "assumptions": [
+      {
+        "assumptionKey": "ASSUMPTION_SEASONAL_WINDOW",
+        "statement": "The tax season relevance window is assumed to fall in the next occurring January-to-April period, since no explicit target year was supplied.",
+        "basis": "TREND_CONTEXT",
+        "path": "$.topics[0].timelinessWindow"
+      }
+    ],
+    "declaredUnknowns": [],
+    "inputSufficiency": {
+      "value": 0.88,
+      "basis": "SELF_REPORTED",
+      "limitations": [
+        "No explicit guidance was supplied on how many of the five slots should favour timely over evergreen topics"
+      ]
+    }
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 16340,
+    "costMicroUsd": 21500,
+    "inputTokens": 2480,
+    "outputTokens": 3260,
+    "finishReason": "COMPLETE",
+    "resourceClass": "research-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "CONFIGURATION",
+      "refId": "strategy_chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+      "version": "1.3.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_topic_discovery_agent",
+      "version": "1.0.0",
+      "integrity": "sha256:9b3f7a2e1c6d8054af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "EXTERNAL",
+      "refId": "res_trend_scan_2026_09",
+      "version": "2026-08-30",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+      "trust": "UNTRUSTED"
+    }
+  ]
+}

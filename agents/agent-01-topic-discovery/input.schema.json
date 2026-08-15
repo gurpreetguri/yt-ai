@@ -1,0 +1,381 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:topic-discovery-agent-input:v1",
+  "title": "Topic Discovery Agent Request",
+  "description": "REQUEST contract consumed by AGT-01 topic-discovery-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points. All durations are integer milliseconds.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "contractType", "schemaVersion", "meta", "data"],
+  "properties": {
+    "contractVersion": {
+      "description": "Envelope format version, platform-wide (GDE-003 §4.2).",
+      "const": "1.0"
+    },
+    "contractType": {
+      "description": "Contract category (GDE-003 §3.3).",
+      "const": "REQUEST"
+    },
+    "schemaVersion": {
+      "description": "Version of this payload schema (GDE-003 §4.2).",
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$"
+    },
+    "meta": { "$ref": "#/$defs/requestMeta" },
+    "data": { "$ref": "#/$defs/topicDiscoveryRequest" },
+    "references": {
+      "description": "Outbound pointers to governing artifacts (GDE-003 §10). Unordered. 0-20 items. Populated by the runtime, never by the model.",
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/reference" }
+    }
+  },
+
+  "$defs": {
+
+    "isoTimestamp": {
+      "description": "RFC 3339 UTC instant with millisecond precision (STD-000 §5.7).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+
+    "calendarDate": {
+      "description": "Date-only value in YYYY-MM-DD form (STD-000 §5.7).",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+
+    "bcp47Tag": {
+      "description": "BCP 47 language tag, for example en-US, pt-BR, hi-IN (STD-000 §5.9).",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 20,
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$"
+    },
+
+    "prefixedId": {
+      "description": "Opaque, type-prefixed, lexicographically sortable platform identifier (STD-000 §5.8). Never parsed for meaning.",
+      "type": "string",
+      "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+
+    "localKey": {
+      "description": "Manifest- or request-local stable key. NOT a platform identifier (STD-000 §5.8).",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "requestMeta": {
+      "description": "Identity, correlation, binding, and provenance (GDE-003 §5). Carries no business data.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "createdAt", "locale", "tenantId", "channelId", "producer"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId", "description": "The message that directly caused this one. Absent when this message begins a causal chain." },
+        "runId": { "$ref": "#/$defs/prefixedId", "description": "Absent when invoked outside a run, for example during evaluation." },
+        "nodeId": { "$ref": "#/$defs/prefixedId", "description": "Absent when invoked outside a run." },
+        "attempt": {
+          "description": "Absent means the first attempt (GDE-003 §6.8: the consumer applies the default, the producer omits it).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag", "description": "Locale governing this message's content. Provenance only; the business-decision copy is data.language (GDE-003 §4.3)." },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion", "description": "The pinned strategy version governing this run. Provenance only; the business-decision copy is data.strategyBinding.strategyVersion." },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "description": "An immutable, version-pinned pointer to another artifact (GDE-003 §10.1). Floating references are prohibited.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": {
+          "type": "string",
+          "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"]
+        },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": {
+          "type": "string",
+          "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"]
+        },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": {
+          "type": "string",
+          "enum": ["TRUSTED", "UNTRUSTED"]
+        }
+      }
+    },
+
+    "topicDiscoveryRequest": {
+      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): the strategy binding carries only the elements topic discovery needs, never the full Strategy Manifest.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategyBinding", "existingContentInventory", "language", "requestedTopicCount"],
+      "properties": {
+        "strategyBinding": { "$ref": "#/$defs/strategyBinding" },
+        "existingContentInventory": {
+          "description": "Prior topics in every lifecycle state, for duplicate detection (R-BUS-009, R-BUS-010). Unordered. 0-300 items. Empty array means this channel has no history yet.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 300,
+          "items": { "$ref": "#/$defs/existingTopic" }
+        },
+        "discoveryConstraints": { "$ref": "#/$defs/discoveryConstraints" },
+        "trendContext": { "$ref": "#/$defs/trendContext" },
+        "language": {
+          "$ref": "#/$defs/bcp47Tag",
+          "description": "The output language. Every title, angle, and rationale is written in this language. MUST be present in strategyBinding.audience.languages (R-IN-001)."
+        },
+        "requestedTopicCount": {
+          "description": "How many ranked topic opportunities are wanted. The agent MAY deliver fewer when the constrained discovery space is exhausted (R-BUS-002).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    },
+
+    "strategyBinding": {
+      "description": "The strategy subset this agent needs (GDE-002 §5.4). Never the full Strategy Manifest.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategyVersion", "contentPillars", "audience", "formatStrategy", "prohibitedTopics"],
+      "properties": {
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "contentPillars": {
+          "description": "The themes every candidate topic must map to. Unordered. 2-6 items, matching the Strategy Manifest bounds (GDE-003 §3, AGT-00 output).",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pillarKey", "name", "description", "targetShareRatio"],
+            "properties": {
+              "pillarKey": { "$ref": "#/$defs/localKey" },
+              "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+              "description": { "type": "string", "minLength": 40, "maxLength": 400 },
+              "targetShareRatio": { "$ref": "#/$defs/ratio" }
+            }
+          }
+        },
+        "audience": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primarySegment", "personas", "languages"],
+          "properties": {
+            "primarySegment": { "type": "string", "minLength": 10, "maxLength": 200 },
+            "personas": {
+              "description": "Unordered. 1-3 items.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["personaKey", "name", "expertiseLevel"],
+                "properties": {
+                  "personaKey": { "$ref": "#/$defs/localKey" },
+                  "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+                  "expertiseLevel": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED", "MIXED"] }
+                }
+              }
+            },
+            "languages": {
+              "description": "Unordered. 1-5 items. MUST include data.language (R-IN-001).",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/bcp47Tag" }
+            }
+          }
+        },
+        "seoDirection": {
+          "description": "Absent means no SEO topic clusters govern this discovery pass.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topicClusters"],
+          "properties": {
+            "topicClusters": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["clusterKey", "name", "seedKeywords"],
+                "properties": {
+                  "clusterKey": { "$ref": "#/$defs/localKey" },
+                  "name": { "type": "string", "minLength": 3, "maxLength": 60 },
+                  "seedKeywords": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 10,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "minLength": 2, "maxLength": 60 }
+                  },
+                  "pillarKey": { "$ref": "#/$defs/localKey" }
+                }
+              }
+            }
+          }
+        },
+        "formatStrategy": {
+          "description": "Needed to evaluate production feasibility against declared duration envelopes and format types.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["formats"],
+          "properties": {
+            "formats": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["formatKey", "formatType", "targetMinDurationMs", "targetMaxDurationMs"],
+                "properties": {
+                  "formatKey": { "$ref": "#/$defs/localKey" },
+                  "formatType": { "type": "string", "enum": ["LONG_FORM", "SHORT_FORM", "LIVE"] },
+                  "targetMinDurationMs": { "type": "integer", "minimum": 15000, "maximum": 7200000 },
+                  "targetMaxDurationMs": { "type": "integer", "minimum": 15000, "maximum": 7200000 }
+                }
+              }
+            }
+          }
+        },
+        "prohibitedTopics": {
+          "description": "Subjects the channel must never cover. Every candidate topic MUST avoid these (R-BUS-012). Unordered. 0-30 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 2, "maxLength": 80 }
+        }
+      }
+    },
+
+    "existingTopic": {
+      "description": "One prior topic in any lifecycle state, supplied for duplicate detection. Not a source of new facts; carries no authority over this agent's decisions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topicRefId", "title", "status", "recordedAt"],
+      "properties": {
+        "topicRefId": { "$ref": "#/$defs/prefixedId" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "angle": { "type": "string", "minLength": 3, "maxLength": 400 },
+        "pillarKey": {
+          "$ref": "#/$defs/localKey",
+          "description": "Absent means the topic predates the current pillar structure or its pillar was retired."
+        },
+        "status": {
+          "description": "CLOSED enumeration.",
+          "type": "string",
+          "enum": ["PUBLISHED", "IN_PRODUCTION", "PROPOSED", "REJECTED"]
+        },
+        "rejectionReason": {
+          "description": "Present only when status is REJECTED.",
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 300
+        },
+        "recordedAt": {
+          "$ref": "#/$defs/calendarDate",
+          "description": "When this topic entered its current status."
+        }
+      },
+      "dependentRequired": { "rejectionReason": ["status"] }
+    },
+
+    "discoveryConstraints": {
+      "description": "Absent means no discovery constraints beyond the strategy binding itself.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredPillarKeys": {
+          "description": "Every entry MUST resolve to strategyBinding.contentPillars (R-IN-003) and MUST be disjoint from excludePillarKeys (R-IN-002). Unordered. 0-6 items. Absent or empty means every pillar is eligible.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "excludePillarKeys": {
+          "description": "Every entry MUST resolve to strategyBinding.contentPillars (R-IN-004) and MUST NOT cover every declared pillar (R-IN-005). Unordered. 0-6 items. Absent or empty means no pillar is excluded.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "allowedTopicTypes": {
+          "description": "Subset of the closed topic-type taxonomy. Absent means every topic type is eligible. Unordered. 1-10 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "EVERGREEN", "TRENDING", "NEWS_DRIVEN", "EDUCATIONAL", "COMPARISON",
+              "TUTORIAL", "LIST", "PROBLEM_SOLUTION", "OPINION_ANALYSIS", "CASE_STUDY"
+            ]
+          }
+        }
+      }
+    },
+
+    "trendContext": {
+      "description": "UNTRUSTED. Originates outside the platform (GDE-002 §5.6). Delimited, labelled as data, and size-bounded before invocation. Absent means timeliness scoring relies on the topic's inherent nature only, and the omission is recorded in assumptions.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRefId", "collectedAt", "observations"],
+      "properties": {
+        "sourceRefId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "collectedAt": { "$ref": "#/$defs/isoTimestamp" },
+        "observations": {
+          "description": "Unordered. 0-30 items (R-IN-006). Each observation is untrusted content and carries no authority.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["observationKey", "statement"],
+            "properties": {
+              "observationKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 10, "maxLength": 500 },
+              "observedAt": { "$ref": "#/$defs/calendarDate" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

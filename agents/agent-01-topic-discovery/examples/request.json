@@ -1,0 +1,177 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "REQUEST",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAA",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVAB",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVAB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVAC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T08:10:11.042Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": {
+      "name": "workflow-engine",
+      "version": "4.2.1"
+    }
+  },
+  "data": {
+    "strategyBinding": {
+      "strategyVersion": "1.3.0",
+      "contentPillars": [
+        {
+          "pillarKey": "PILLAR_BUDGETING",
+          "name": "Everyday Budgeting",
+          "description": "How money moves between a paycheck, fixed costs, and savings, shown as arithmetic the viewer can reproduce with their own numbers.",
+          "targetShareRatio": 0.3
+        },
+        {
+          "pillarKey": "PILLAR_INVESTING_BASICS",
+          "name": "Investing Fundamentals",
+          "description": "The mechanics of long-horizon investing at the level an employee actually encounters them: employer plans, contribution limits, fees, and diversification.",
+          "targetShareRatio": 0.3
+        },
+        {
+          "pillarKey": "PILLAR_CAREER_INCOME",
+          "name": "Career and Income",
+          "description": "Income as the largest variable in an early-career financial position, covering salary bands, benefit valuation, and negotiation preparation.",
+          "targetShareRatio": 0.25
+        },
+        {
+          "pillarKey": "PILLAR_TAXES",
+          "name": "Employee Taxes",
+          "description": "Payroll and filing mechanics for salaried employees: withholding, deductions available without itemising, and refund timing.",
+          "targetShareRatio": 0.15
+        }
+      ],
+      "audience": {
+        "primarySegment": "Early-career salaried professionals building their first savings and investing habits",
+        "personas": [
+          { "personaKey": "PERSONA_FIRST_SALARY", "name": "First Salary Saver", "expertiseLevel": "BEGINNER" },
+          { "personaKey": "PERSONA_MID_CAREER", "name": "Mid-Career Consolidator", "expertiseLevel": "INTERMEDIATE" }
+        ],
+        "languages": ["en-US"]
+      },
+      "seoDirection": {
+        "topicClusters": [
+          {
+            "clusterKey": "CLUSTER_EMERGENCY_FUND",
+            "name": "Emergency Funds",
+            "seedKeywords": ["emergency fund", "how much to save", "three months expenses"],
+            "pillarKey": "PILLAR_BUDGETING"
+          },
+          {
+            "clusterKey": "CLUSTER_EMPLOYER_MATCH",
+            "name": "Employer Retirement Match",
+            "seedKeywords": ["employer match", "workplace pension", "contribution rate"],
+            "pillarKey": "PILLAR_INVESTING_BASICS"
+          },
+          {
+            "clusterKey": "CLUSTER_TAX_FILING",
+            "name": "Employee Tax Filing",
+            "seedKeywords": ["tax withholding", "first tax return", "refund timing", "payroll deductions"]
+          }
+        ]
+      },
+      "formatStrategy": {
+        "formats": [
+          { "formatKey": "FMT_LONG_EXPLAINER", "formatType": "LONG_FORM", "targetMinDurationMs": 480000, "targetMaxDurationMs": 900000 },
+          { "formatKey": "FMT_SHORT_VERTICAL", "formatType": "SHORT_FORM", "targetMinDurationMs": 45000, "targetMaxDurationMs": 60000 }
+        ]
+      },
+      "prohibitedTopics": [
+        "cryptocurrency speculation",
+        "get rich quick schemes",
+        "individual stock picks",
+        "day trading strategies"
+      ]
+    },
+    "existingContentInventory": [
+      {
+        "topicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE1",
+        "title": "How Large Should Your Emergency Fund Be",
+        "angle": "A sizing method based on fixed costs rather than a fixed multiple of months",
+        "pillarKey": "PILLAR_BUDGETING",
+        "status": "PUBLISHED",
+        "recordedAt": "2026-03-02"
+      },
+      {
+        "topicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE2",
+        "title": "Employer 401k Match Explained",
+        "angle": "What the match is worth expressed as an immediate return on contribution",
+        "pillarKey": "PILLAR_INVESTING_BASICS",
+        "status": "PUBLISHED",
+        "recordedAt": "2026-04-10"
+      },
+      {
+        "topicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE3",
+        "title": "Negotiating Your First Raise",
+        "angle": "Preparing evidence before a compensation conversation",
+        "pillarKey": "PILLAR_CAREER_INCOME",
+        "status": "IN_PRODUCTION",
+        "recordedAt": "2026-07-01"
+      },
+      {
+        "topicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE4",
+        "title": "Crypto Trading for Beginners",
+        "status": "REJECTED",
+        "rejectionReason": "Violates prohibited topic: cryptocurrency speculation",
+        "recordedAt": "2026-05-15"
+      },
+      {
+        "topicRefId": "top_01J8Z3K7QF9RCTB2NR9E5THVE5",
+        "title": "What a Payslip Actually Shows",
+        "angle": "Reading a payslip line by line",
+        "pillarKey": "PILLAR_TAXES",
+        "status": "PROPOSED",
+        "recordedAt": "2026-08-01"
+      }
+    ],
+    "discoveryConstraints": {
+      "allowedTopicTypes": ["EVERGREEN", "TRENDING", "EDUCATIONAL", "COMPARISON", "TUTORIAL", "CASE_STUDY"]
+    },
+    "trendContext": {
+      "sourceRefId": "res_trend_scan_2026_09",
+      "collectedAt": "2026-08-30T09:00:00.000Z",
+      "observations": [
+        {
+          "observationKey": "OBS_TAX_SEASON_GAP",
+          "statement": "Search interest in first-time tax filing questions rises sharply every January and no channel in this category publishes recurring content ahead of that window.",
+          "observedAt": "2026-08-25"
+        },
+        {
+          "observationKey": "OBS_SHORT_FORM_GROWTH",
+          "statement": "Short vertical explainers under sixty seconds continue to grow as a first-touch discovery path for viewers new to the category.",
+          "observedAt": "2026-08-26"
+        },
+        {
+          "observationKey": "OBS_CREDIT_CARD_INTEREST",
+          "statement": "Comment threads on comparable channels show recurring confusion about how minimum payments extend the true cost of a credit card balance.",
+          "observedAt": "2026-08-27"
+        }
+      ]
+    },
+    "language": "en-US",
+    "requestedTopicCount": 5
+  },
+  "references": [
+    {
+      "refType": "CONFIGURATION",
+      "refId": "strategy_chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+      "version": "1.3.0",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "EXTERNAL",
+      "refId": "res_trend_scan_2026_09",
+      "version": "2026-08-30",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+      "trust": "UNTRUSTED"
+    }
+  ]
+}
