@@ -1,0 +1,665 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:contract:research-agent-output:v1",
+  "title": "Research Agent Response",
+  "description": "RESPONSE / ERROR contract produced by AGT-02 research-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Research Package (the D1 research dossier deliverable, ARC-001 §5.3). The model emits `#/$defs/researchPackage` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every claim in this contract is EVIDENCE, not a verified fact: no finding in this package has been fact-checked, and none may be treated as established truth until Agent 03 Fact Verification runs (STD-000 §4.7). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "oneOf": [
+    { "$ref": "#/$defs/successResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+
+  "$defs": {
+
+    "successResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "data"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "RESPONSE" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": {
+          "description": "PARTIAL is prohibited for this agent: a partially-assembled research package is a failure (STD-000 §5.3). Sparse-but-honest research (many gaps, low completeness) is still SUCCESS — sparsity is content, not a system failure.",
+          "const": "SUCCESS"
+        },
+        "data": { "$ref": "#/$defs/researchPackage" },
+        "issues": {
+          "description": "Non-blocking warnings alongside data (GDE-003 §9.2). Present only when at least one warning exists; never present-and-empty. Unordered. 1-20 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "validation": { "$ref": "#/$defs/validationBlock" },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "errorResponse": {
+      "description": "Produced when no work product exists: typed failure or refusal (GDE-003 §9.2).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "contractType", "schemaVersion", "meta", "status", "issues"],
+      "properties": {
+        "contractVersion": { "const": "1.0" },
+        "contractType": { "const": "ERROR" },
+        "schemaVersion": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "meta": { "$ref": "#/$defs/responseMeta" },
+        "status": { "const": "FAILURE" },
+        "issues": {
+          "description": "All failures are reported together, never one at a time (STD-000 §6.2). Unordered. 1-50 items.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": { "$ref": "#/$defs/errorObject" }
+        },
+        "execution": { "$ref": "#/$defs/executionBlock" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/reference" }
+        }
+      }
+    },
+
+    "isoTimestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "calendarDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "bcp47Tag": { "type": "string", "minLength": 2, "maxLength": 20, "pattern": "^[A-Za-z]{2,3}(-[A-Za-z]{4})?(-([A-Za-z]{2}|\\d{3}))?$" },
+    "prefixedId": { "type": "string", "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "semanticVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "localKey": {
+      "description": "Response-local stable key. Unique within its containing array.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,31}$"
+    },
+    "jsonPath": {
+      "description": "Machine-readable location within this document, rooted at `$.` (STD-000 §8.1).",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^\\$\\.[A-Za-z0-9_.\\[\\]]+$"
+    },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+    "httpsUrl": {
+      "description": "Absolute, scheme-qualified, https-only (STD-000 §5.9).",
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 2000,
+      "pattern": "^https://[^\\s]+$"
+    },
+
+    "responseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["messageId", "correlationId", "causationId", "createdAt", "locale", "tenantId", "channelId", "producer", "agentId", "agentVersion", "promptVersion"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/prefixedId" },
+        "correlationId": { "$ref": "#/$defs/prefixedId" },
+        "causationId": { "$ref": "#/$defs/prefixedId" },
+        "runId": { "$ref": "#/$defs/prefixedId" },
+        "nodeId": { "$ref": "#/$defs/prefixedId" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "createdAt": { "$ref": "#/$defs/isoTimestamp" },
+        "locale": { "$ref": "#/$defs/bcp47Tag" },
+        "tenantId": { "$ref": "#/$defs/prefixedId" },
+        "channelId": { "$ref": "#/$defs/prefixedId" },
+        "strategyVersion": { "$ref": "#/$defs/semanticVersion" },
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" }
+          }
+        },
+        "agentId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "agentVersion": { "$ref": "#/$defs/semanticVersion" },
+        "promptVersion": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "provider": { "description": "Audit only. MUST NOT influence any consumer's behaviour (STD-000 Rule 5).", "type": "string", "minLength": 2, "maxLength": 64 },
+        "modelId": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "modelVersion": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["temperature", "topP"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "topP": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seed": { "type": "integer", "minimum": 0 },
+            "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 200000 }
+          }
+        }
+      }
+    },
+
+    "executionBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "attemptType", "durationMs", "costMicroUsd", "outcome"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "attemptType": { "type": "string", "enum": ["INITIAL", "REPAIR", "REGENERATION"] },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "costMicroUsd": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "finishReason": { "type": "string", "enum": ["COMPLETE", "TRUNCATED", "REFUSED", "ERROR"] },
+        "resourceClass": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "outcome": { "type": "string", "enum": ["SUCCESS", "FAILURE"] }
+      }
+    },
+
+    "validationBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "stages", "findings"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["PASSED", "PASSED_WITH_WARNINGS", "FAILED", "BLOCKED", "INCONCLUSIVE"] },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "outcome", "durationMs"],
+            "properties": {
+              "stage": { "type": "string", "enum": ["STRUCTURAL", "BUSINESS", "CONSISTENCY", "QUALITY", "POLICY", "HUMAN"] },
+              "outcome": { "type": "string", "enum": ["PASSED", "FAILED", "BLOCKED", "INCONCLUSIVE", "SKIPPED"] },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 300,
+          "items": { "$ref": "#/$defs/validationFinding" }
+        },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "AGGREGATE"] }
+          }
+        }
+      }
+    },
+
+    "validationFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "severity", "path", "message", "basis"],
+      "properties": {
+        "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["BLOCKER", "ERROR", "WARNING", "INFO"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "message": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "suggestion": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "basis": { "type": "string", "enum": ["DETERMINISTIC", "MODEL_ASSESSED", "HUMAN"] }
+      }
+    },
+
+    "errorObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "category", "severity", "retryable", "message", "source", "context", "occurredAt"],
+      "properties": {
+        "code": {
+          "description": "Registered catalogue code, CATEGORY.SUBJECT.CONDITION, maximum four segments (STD-000 §8.4).",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "VALIDATION", "AI_PROVIDER", "AI_OUTPUT", "NETWORK", "EXTERNAL_API", "TIMEOUT",
+            "RATE_LIMIT", "QUOTA", "AUTH", "PERMISSION", "SECURITY", "POLICY_COMPLIANCE",
+            "CONFIGURATION", "RESOURCE", "DATA_INTEGRITY", "WORKFLOW", "BUDGET", "UNKNOWN"
+          ]
+        },
+        "severity": { "type": "string", "enum": ["FATAL", "ERROR", "WARNING", "INFO"] },
+        "retryable": { "type": "boolean" },
+        "message": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "userMessage": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "version", "stage"],
+          "properties": {
+            "component": { "type": "string", "minLength": 3, "maxLength": 64 },
+            "version": { "$ref": "#/$defs/semanticVersion" },
+            "stage": { "type": "string", "enum": ["INPUT_VALIDATION", "INVOCATION", "OUTPUT_PARSE", "OUTPUT_VALIDATION", "BUSINESS_VALIDATION"] }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correlationId"],
+          "properties": {
+            "correlationId": { "$ref": "#/$defs/prefixedId" },
+            "runId": { "$ref": "#/$defs/prefixedId" },
+            "nodeId": { "$ref": "#/$defs/prefixedId" },
+            "attempt": { "type": "integer", "minimum": 1, "maximum": 10 }
+          }
+        },
+        "details": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "expected": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "actual": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "ruleId": { "type": "string", "minLength": 3, "maxLength": 64 }
+            }
+          }
+        },
+        "remediation": { "type": "string", "minLength": 5, "maxLength": 400 },
+        "occurredAt": { "$ref": "#/$defs/isoTimestamp" },
+        "causeChain": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(\\.[A-Z][A-Z0-9_]*){1,3}$" },
+              "message": { "type": "string", "minLength": 5, "maxLength": 500 }
+            }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refType", "refId", "version", "role", "scope"],
+      "properties": {
+        "refType": { "type": "string", "enum": ["ARTIFACT", "ASSET", "PROMPT", "WORKFLOW", "CONTRACT", "CONFIGURATION", "EXTERNAL"] },
+        "refId": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "integrity": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "role": { "type": "string", "enum": ["INPUT", "SOURCE", "PARENT", "SUPERSEDES", "GOVERNS", "PRODUCES"] },
+        "scope": { "$ref": "#/$defs/prefixedId" },
+        "trust": { "type": "string", "enum": ["TRUSTED", "UNTRUSTED"] }
+      }
+    },
+
+    "scoreDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "rationale"],
+      "properties": {
+        "score": { "$ref": "#/$defs/ratio" },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 }
+      }
+    },
+
+    "researchPackage": {
+      "description": "THE RESEARCH PACKAGE. The single deliverable of this agent — the D1 research dossier (ARC-001 §5.3, §4.3). Structured evidence for a topic opportunity, never a verified fact and never editorial truth: no claim here has been fact-checked (README §3). Agent 03 Fact Verification performs the final determination.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageKind", "topicId", "researchQuestions", "sources", "evidence", "conflicts", "gaps",
+        "completeness", "recommendedFollowUpSearches", "assumptions", "declaredUnknowns", "inputSufficiency"
+      ],
+      "properties": {
+        "packageKind": { "const": "RESEARCH_PACKAGE" },
+
+        "topicId": { "$ref": "#/$defs/localKey", "description": "Echoes the request's topicOpportunity.topicId. This package researches exactly one topic." },
+
+        "researchQuestions": {
+          "description": "Explicit, structured research questions identified BEFORE evidence collection (README §8). Unordered by priority; ordering carries no meaning. 1-15 items. questionId unique (R-BUS-001).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 15,
+          "items": { "$ref": "#/$defs/researchQuestion" }
+        },
+
+        "sources": {
+          "description": "The structured source model (README §9). Unordered. 0-40 items. sourceId unique (R-BUS-002).",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/source" }
+        },
+
+        "evidence": {
+          "description": "The structured evidence model (README §10). Unordered. 0-80 items. evidenceId unique (R-BUS-003). Every item traceable to exactly one source and one research question (R-BUS-004, R-BUS-005).",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 80,
+          "items": { "$ref": "#/$defs/evidenceItem" }
+        },
+
+        "conflicts": {
+          "description": "Explicitly represented disagreement between sources (README §11). Never silently resolved by picking one side. Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/conflict" }
+        },
+
+        "gaps": {
+          "description": "Information gaps: unanswered questions, insufficient or weak sources, stale information (README §12). Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/researchGap" }
+        },
+
+        "completeness": { "$ref": "#/$defs/completenessAssessment" },
+
+        "recommendedFollowUpSearches": {
+          "description": "Additional search queries this agent recommends the workflow's research/search provider run next. A DECLARATION for the workflow to act on, never an action this agent performs itself (STD-000 §3.10, Rule 4). Unordered. 0-10 items. Empty array means no further search is recommended.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/followUpSearch" }
+        },
+
+        "assumptions": {
+          "description": "Every judgement not directly stated by an input block. Unordered. 0-10 items. Empty array means every element was directly derivable.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["assumptionKey", "statement", "basis", "path"],
+            "properties": {
+              "assumptionKey": { "$ref": "#/$defs/localKey" },
+              "statement": { "type": "string", "minLength": 15, "maxLength": 300 },
+              "basis": {
+                "type": "string",
+                "enum": ["TOPIC_OPPORTUNITY", "RESEARCH_MATERIALS", "RESEARCH_CONSTRAINTS", "EXISTING_RESEARCH", "REQUESTED_DEPTH"]
+              },
+              "path": { "$ref": "#/$defs/jsonPath" }
+            }
+          }
+        },
+
+        "declaredUnknowns": {
+          "description": "The declared-unknown mechanism (STD-000 §3.4). Every path MUST address a field absent from this document (R-BUS-015). Unordered. 0-20 items.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "$ref": "#/$defs/jsonPath" },
+              "reason": {
+                "type": "string",
+                "enum": ["INPUT_NOT_SUPPLIED", "INPUT_INSUFFICIENT", "MATERIALS_INSUFFICIENT", "NOT_DETERMINABLE_WITHOUT_FURTHER_RESEARCH"]
+              }
+            }
+          }
+        },
+
+        "inputSufficiency": {
+          "description": "A statement about INPUTS (the supplied research materials), not about this agent's own output quality (GDE-002 §9.5).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "basis", "limitations"],
+          "properties": {
+            "value": { "$ref": "#/$defs/ratio" },
+            "basis": { "const": "SELF_REPORTED" },
+            "limitations": {
+              "type": "array", "minItems": 0, "maxItems": 5,
+              "items": { "type": "string", "minLength": 10, "maxLength": 200 }
+            }
+          }
+        }
+      }
+    },
+
+    "researchQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questionId", "questionText", "questionType", "priority", "status"],
+      "properties": {
+        "questionId": { "$ref": "#/$defs/localKey" },
+        "questionText": { "type": "string", "minLength": 15, "maxLength": 300 },
+        "questionType": {
+          "type": "string",
+          "enum": [
+            "CORE_CLAIM", "SUPPORTING_FACT", "STATISTIC", "DATE_OR_TIMELINE", "DEFINITION",
+            "OFFICIAL_POSITION", "COMPETING_EXPLANATION", "RECENT_CHANGE", "LIMITATION_OR_EXCEPTION", "OTHER"
+          ]
+        },
+        "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+        "status": {
+          "description": "ANSWERED and PARTIALLY_ANSWERED and CONFLICTING each require at least one evidence item referencing this question (R-BUS-012). UNANSWERED requires none (R-BUS-013). Every question requires either evidence or a gap entry (R-BUS-017).",
+          "type": "string",
+          "enum": ["ANSWERED", "PARTIALLY_ANSWERED", "UNANSWERED", "CONFLICTING"]
+        }
+      }
+    },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "title", "sourceType", "sourceStatus", "accessedAt", "sourceQuality"],
+      "properties": {
+        "sourceId": { "$ref": "#/$defs/localKey" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 300 },
+        "publisher": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "sourceType": {
+          "description": "Not all source types carry equal authority (README §9). Closed taxonomy.",
+          "type": "string",
+          "enum": [
+            "OFFICIAL_DOCUMENTATION", "GOVERNMENT", "ACADEMIC_PAPER", "STANDARDS_ORGANIZATION", "COMPANY",
+            "PRIMARY_SOURCE", "REPUTABLE_NEWS", "INDUSTRY_PUBLICATION", "EXPERT_SOURCE", "SECONDARY_SOURCE",
+            "COMMUNITY_DISCUSSION", "SEARCH_RESULT", "OTHER"
+          ]
+        },
+        "sourceStatus": {
+          "description": "The SEARCH_RESULT vs SOURCE distinction (README §13). SEARCH_RESULT_ONLY means only a search snippet was seen — the full source was never read. FETCHED means the underlying document's content was actually retrieved and read. MUST match the materialKind of the researchMaterials entry named by derivedFromMaterialId when present: FETCHED_DOCUMENT requires FETCHED, SEARCH_RESULT requires SEARCH_RESULT_ONLY (R-BUS-018) — a SEARCH_RESULT material can never be upgraded to FETCHED. A search snippet is never represented as fully verified source evidence (R-BUS-007, R-BUS-008).",
+          "type": "string",
+          "enum": ["SEARCH_RESULT_ONLY", "FETCHED"]
+        },
+        "author": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "language": { "$ref": "#/$defs/bcp47Tag" },
+        "publishedAt": { "$ref": "#/$defs/calendarDate" },
+        "lastUpdatedAt": { "$ref": "#/$defs/calendarDate" },
+        "accessedAt": { "$ref": "#/$defs/isoTimestamp", "description": "When the underlying material was retrieved by the research/search provider." },
+        "derivedFromMaterialId": {
+          "$ref": "#/$defs/localKey",
+          "description": "MUST resolve to a supplied request researchMaterials entry when present (R-BUS-006). Mutually exclusive with derivedFromExistingSourceRefId; exactly one of the two MUST be present (R-BUS-006) — a source ungrounded in either is a fabricated source."
+        },
+        "derivedFromExistingSourceRefId": {
+          "$ref": "#/$defs/prefixedId",
+          "description": "MUST resolve to a supplied request existingResearch.sources entry when present (R-BUS-006)."
+        },
+        "sourceQuality": { "$ref": "#/$defs/sourceQuality" }
+      }
+    },
+
+    "sourceQuality": {
+      "description": "Transparent, explicit dimensions (README §14). No unexplained single score. Every score is MODEL_ASSESSED judgement, not a measured or independently calibrated fact (STD-000 §6.5).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "relevance", "freshness", "primarySourceStatus", "specificity", "corroboration"],
+      "properties": {
+        "authority": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = no institutional backing or unverifiable origin. 1.0 = the definitive authority for this claim (original documentation, government registry, standards body, or the primary party the claim is about)." },
+        "relevance": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = tangential. 1.0 = directly and specifically addresses the research question it is attached to via evidence." },
+        "freshness": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = stale relative to the topic's rate of change. 1.0 = current as of accessedAt, or the topic is evergreen and freshness is not a material factor." },
+        "primarySourceStatus": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = a secondary rehash of someone else's reporting. 1.0 = the original party, document, or dataset the claim is about." },
+        "specificity": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = vague or general-purpose content. 1.0 = specific to the exact claim, figure, or date it is cited for." },
+        "corroboration": { "$ref": "#/$defs/scoreDimension", "description": "0.0 = the only source found for this material. 1.0 = independently corroborated by other supplied sources of a different sourceType." }
+      }
+    },
+
+    "evidenceText": {
+      "description": "Discriminated union on extractionType (GDE-003 §6.7). A QUOTATION MUST be verbatim from the cited source's supplied content. Where exact quotation is not available, a PARAPHRASE is used and labelled as such — never presented as a quotation (README §10).",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["extractionType", "text"],
+          "properties": {
+            "extractionType": { "const": "QUOTATION" },
+            "text": { "type": "string", "minLength": 5, "maxLength": 800 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["extractionType", "text"],
+          "properties": {
+            "extractionType": { "const": "PARAPHRASE" },
+            "text": { "type": "string", "minLength": 5, "maxLength": 800 }
+          }
+        }
+      ]
+    },
+
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId", "researchQuestionId", "sourceId", "claim", "evidenceText",
+        "evidenceStrength", "relevance", "freshness", "verificationStatus", "limitations"
+      ],
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/localKey" },
+        "researchQuestionId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to a declared researchQuestions entry (R-BUS-005)." },
+        "sourceId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to a declared sources entry (R-BUS-004)." },
+        "claim": { "type": "string", "minLength": 10, "maxLength": 400, "description": "The proposition this evidence supports. Never presented as an established fact — a proposition awaiting Agent 03 verification." },
+        "evidenceText": { "$ref": "#/$defs/evidenceText" },
+        "supportingContext": { "type": "string", "minLength": 10, "maxLength": 500 },
+        "locationInSource": { "type": "string", "minLength": 2, "maxLength": 200, "description": "Page, section, or anchor within the source, where available." },
+        "evidenceDate": { "$ref": "#/$defs/calendarDate", "description": "The publication or update date specifically relevant to this evidence item, which may differ from the source's overall dates." },
+        "evidenceStrength": {
+          "description": "SEARCH_RESULT_ONLY sources cannot support STRONG evidence (R-BUS-007) — a snippet alone is never strong evidence.",
+          "type": "string",
+          "enum": ["STRONG", "MODERATE", "WEAK", "ANECDOTAL"]
+        },
+        "relevance": { "$ref": "#/$defs/ratio" },
+        "freshness": { "$ref": "#/$defs/ratio" },
+        "verificationStatus": {
+          "description": "This agent's own bounded judgement, never a final determination (README §3). SEARCH_RESULT_ONLY sources cannot be CORROBORATED (R-BUS-008).",
+          "type": "string",
+          "enum": ["REQUIRES_VERIFICATION", "CORROBORATED", "CONFLICTING", "UNRESOLVED"]
+        },
+        "limitations": {
+          "description": "Unordered. 0-5 items. Empty array means no material limitation was identified.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": { "type": "string", "minLength": 10, "maxLength": 300 }
+        },
+        "notesForVerification": { "type": "string", "minLength": 10, "maxLength": 400, "description": "What Agent 03 specifically needs to check to move this evidence's claim to a verified state." }
+      }
+    },
+
+    "conflict": {
+      "description": "Explicitly represented disagreement between sources (README §11). Never silently resolved by this agent — resolution is Agent 03's responsibility.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflictId", "researchQuestionId", "description", "conflictingEvidenceIds"],
+      "properties": {
+        "conflictId": { "$ref": "#/$defs/localKey" },
+        "researchQuestionId": { "$ref": "#/$defs/localKey", "description": "MUST resolve to a declared researchQuestions entry (R-BUS-010)." },
+        "description": { "type": "string", "minLength": 20, "maxLength": 500 },
+        "conflictingEvidenceIds": {
+          "description": "At least two entries, each distinct (no evidence item cited twice within the same conflict) and each resolving to a declared evidence item (R-BUS-009). Every resolved evidence item's researchQuestionId MUST equal this conflict's researchQuestionId (R-BUS-019) — a conflict's two sides must address the same question. Unordered.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "possibleReason": {
+          "type": "string",
+          "minLength": 15,
+          "maxLength": 400,
+          "description": "A hypothesis for why the sources disagree — differing methodology, differing dates, differing scope. Never a resolution."
+        }
+      }
+    },
+
+    "researchGap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gapId", "gapType", "description", "severity"],
+      "properties": {
+        "gapId": { "$ref": "#/$defs/localKey" },
+        "gapType": {
+          "type": "string",
+          "enum": [
+            "UNANSWERED_QUESTION", "INSUFFICIENT_SOURCES", "WEAK_SOURCES_ONLY", "STALE_INFORMATION",
+            "NO_PRIMARY_SOURCE", "CONFLICTING_UNRESOLVED", "OUT_OF_SCOPE_FOR_SUPPLIED_MATERIALS"
+          ]
+        },
+        "researchQuestionId": { "$ref": "#/$defs/localKey", "description": "Absent means the gap concerns the research generally rather than one question. When present, MUST resolve to a declared researchQuestions entry (R-BUS-011)." },
+        "description": { "type": "string", "minLength": 20, "maxLength": 400 },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] }
+      }
+    },
+
+    "completenessAssessment": {
+      "description": "Structured completeness dimensions (README §15). No single unexplained research score.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalQuestions", "answeredCount", "partiallyAnsweredCount", "unansweredCount", "conflictingCount",
+        "weakOrIndirectSourceIds", "readyForFactVerification", "readinessRationale"
+      ],
+      "properties": {
+        "totalQuestions": { "type": "integer", "minimum": 1, "maximum": 15, "description": "MUST equal researchQuestions.length (R-BUS-014)." },
+        "answeredCount": { "type": "integer", "minimum": 0, "maximum": 15, "description": "MUST equal the count of researchQuestions with status ANSWERED (R-BUS-014)." },
+        "partiallyAnsweredCount": { "type": "integer", "minimum": 0, "maximum": 15, "description": "MUST equal the count of researchQuestions with status PARTIALLY_ANSWERED (R-BUS-014)." },
+        "unansweredCount": { "type": "integer", "minimum": 0, "maximum": 15, "description": "MUST equal the count of researchQuestions with status UNANSWERED (R-BUS-014)." },
+        "conflictingCount": { "type": "integer", "minimum": 0, "maximum": 15, "description": "MUST equal the count of researchQuestions with status CONFLICTING (R-BUS-014)." },
+        "weakOrIndirectSourceIds": {
+          "description": "sourceId values of sources this agent judges weak or indirect for the claims they support. Unordered. 0-40 items. Empty array means no source was flagged.",
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/localKey" }
+        },
+        "readyForFactVerification": {
+          "description": "MODEL_ASSESSED judgement: is this package sufficient for Agent 03 to begin fact verification? Not a guarantee that every claim will verify — only that enough structured evidence exists to attempt it.",
+          "type": "boolean"
+        },
+        "readinessRationale": { "type": "string", "minLength": 20, "maxLength": 500 }
+      }
+    },
+
+    "followUpSearch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["queryId", "queryText", "rationale"],
+      "properties": {
+        "queryId": { "$ref": "#/$defs/localKey" },
+        "queryText": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "rationale": { "type": "string", "minLength": 15, "maxLength": 300 },
+        "targetQuestionId": { "$ref": "#/$defs/localKey", "description": "Absent means the query serves the research generally. When present, MUST resolve to a declared researchQuestions entry." }
+      }
+    }
+  }
+}

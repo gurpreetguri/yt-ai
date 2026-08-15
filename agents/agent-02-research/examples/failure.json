@@ -1,0 +1,99 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "ERROR",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVDE",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVDB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVDA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVDB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVDC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T11:12:03.220Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "research-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_research_agent@sha256:4d1f6c9a2b7e0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038"
+  },
+  "status": "FAILURE",
+  "issues": [
+    {
+      "code": "VALIDATION.INPUT.SOURCE_COUNT_BOUNDS_CONTRADICTORY",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "researchConstraints.minSources (6) exceeds researchConstraints.maxSources (4); the source count constraint is unsatisfiable.",
+      "userMessage": "Research could not run because the minimum and maximum source counts requested contradict each other.",
+      "source": {
+        "component": "research-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVDB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVDB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVDC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.researchConstraints",
+          "expected": "minSources <= maxSources",
+          "actual": "minSources=6, maxSources=4",
+          "ruleId": "R-IN-001"
+        }
+      ],
+      "remediation": "Raise maxSources to at least 6, or lower minSources to at most 4.",
+      "occurredAt": "2026-09-02T11:12:03.216Z"
+    },
+    {
+      "code": "VALIDATION.INPUT.DUPLICATE_MATERIAL_ID",
+      "category": "VALIDATION",
+      "severity": "ERROR",
+      "retryable": false,
+      "message": "researchMaterials[0] and researchMaterials[2] both declare materialId MATERIAL_IRS_W2_GUIDE.",
+      "userMessage": "Research could not run because two supplied research materials share the same identifier.",
+      "source": {
+        "component": "research-agent",
+        "version": "1.0.0",
+        "stage": "INPUT_VALIDATION"
+      },
+      "context": {
+        "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVDB",
+        "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVDB",
+        "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVDC",
+        "attempt": 1
+      },
+      "details": [
+        {
+          "path": "$.data.researchMaterials[2].materialId",
+          "expected": "a materialId unique within researchMaterials",
+          "actual": "MATERIAL_IRS_W2_GUIDE",
+          "ruleId": "R-IN-002"
+        }
+      ],
+      "remediation": "Assign a distinct materialId to each supplied research material before dispatch.",
+      "occurredAt": "2026-09-02T11:12:03.217Z"
+    }
+  ],
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 5,
+    "costMicroUsd": 0,
+    "outcome": "FAILURE"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVDA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    }
+  ]
+}

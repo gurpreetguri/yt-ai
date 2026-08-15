@@ -1,0 +1,108 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "REQUEST",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVCA",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVCB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAF",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVCB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVCC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T09:05:11.042Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": {
+      "name": "workflow-engine",
+      "version": "4.2.1"
+    }
+  },
+  "data": {
+    "topicOpportunity": {
+      "topicId": "TOPIC_TAX_SEASON",
+      "title": "What Your W-2 Actually Tells You Before You File",
+      "angle": "Walking through a real, redacted W-2 line by line so a first-time filer knows what each box changes about their refund",
+      "topicType": "TRENDING",
+      "pillarKey": "PILLAR_TAXES",
+      "audienceIntent": "LEARN",
+      "researchPriority": "URGENT"
+    },
+    "researchConstraints": {
+      "minSources": 2,
+      "maxSources": 8,
+      "requiredSourceTypes": ["GOVERNMENT", "REPUTABLE_NEWS"],
+      "excludedDomains": ["betting-tips.example"],
+      "maxSourceAgeDays": 730
+    },
+    "researchMaterials": [
+      {
+        "materialId": "MATERIAL_IRS_W2_GUIDE",
+        "materialKind": "FETCHED_DOCUMENT",
+        "url": "https://www.irs.gov/forms-pubs/about-form-w-2",
+        "title": "About Form W-2, Wage and Tax Statement",
+        "publisherHint": "Internal Revenue Service",
+        "content": "Form W-2 reports wages paid and taxes withheld for each employee. Box 1 shows federal taxable wages, which is typically lower than gross salary because it excludes pre-tax deductions such as traditional 401(k) contributions and section 125 cafeteria plan benefits. Box 2 shows federal income tax withheld. Employers must furnish Form W-2 to employees by January 31 each year.",
+        "retrievedAt": "2026-09-02T08:40:00.000Z",
+        "claimedPublishedAt": "2025-11-03",
+        "claimedLastUpdatedAt": "2026-01-05",
+        "sourceTypeHint": "GOVERNMENT",
+        "searchQueryRef": "IRS Form W-2 box definitions"
+      },
+      {
+        "materialId": "MATERIAL_NEWS_REFUND_DELAY",
+        "materialKind": "FETCHED_DOCUMENT",
+        "url": "https://www.reuters.com/markets/us/irs-2027-filing-season-refund-timeline",
+        "title": "IRS opens 2027 filing season, sets refund expectations",
+        "publisherHint": "Reuters",
+        "content": "The Internal Revenue Service said Monday that most taxpayers who file electronically and choose direct deposit should expect their refund within 21 days of filing, consistent with prior seasons. The agency noted returns claiming certain credits may take longer due to mandatory review periods.",
+        "retrievedAt": "2026-09-02T08:42:30.000Z",
+        "claimedPublishedAt": "2027-01-20",
+        "sourceTypeHint": "REPUTABLE_NEWS",
+        "searchQueryRef": "IRS refund timeline 2027 filing season"
+      },
+      {
+        "materialId": "MATERIAL_FORUM_W2_CONFUSION",
+        "materialKind": "SEARCH_RESULT",
+        "url": "https://forum.example/threads/refund-taking-way-longer-than-21-days",
+        "title": "Refund taking way longer than 21 days this year?",
+        "publisherHint": "personal finance community forum",
+        "content": "Filed end of January, still nothing eight weeks later. A few other people in this thread are reporting the same delay and nobody seems to know why the usual 21-day estimate isn't holding this season.",
+        "retrievedAt": "2026-09-02T08:44:10.000Z",
+        "sourceTypeHint": "COMMUNITY_DISCUSSION",
+        "searchQueryRef": "IRS refund delayed 2027"
+      },
+      {
+        "materialId": "MATERIAL_PAYROLL_BLOG",
+        "materialKind": "SEARCH_RESULT",
+        "url": "https://www.adp.com/resources/articles-and-insights/articles/w/understanding-your-w2.aspx",
+        "title": "Understanding Your W-2",
+        "publisherHint": "ADP",
+        "content": "Box 12 uses single or double letter codes to report items like retirement plan contributions and certain benefits. Code D generally denotes elective deferrals to a 401(k) cash or deferred arrangement.",
+        "retrievedAt": "2026-09-02T08:46:00.000Z",
+        "sourceTypeHint": "COMPANY",
+        "searchQueryRef": "W-2 box 12 code D meaning"
+      }
+    ],
+    "requestedDepth": "STANDARD",
+    "language": "en-US"
+  },
+  "references": [
+    {
+      "refType": "ARTIFACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAF",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "EXTERNAL",
+      "refId": "search_job_w2_refund_2026_09_02",
+      "version": "2026-09-02",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+      "trust": "UNTRUSTED"
+    }
+  ]
+}

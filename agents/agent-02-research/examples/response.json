@@ -1,0 +1,324 @@
+{
+  "contractVersion": "1.0",
+  "contractType": "RESPONSE",
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "messageId": "msg_01J8Z3K7QF9RCTB2NR9E5THVCD",
+    "correlationId": "run_01J8Z3K7QF9RCTB2NR9E5THVCB",
+    "causationId": "msg_01J8Z3K7QF9RCTB2NR9E5THVCA",
+    "runId": "run_01J8Z3K7QF9RCTB2NR9E5THVCB",
+    "nodeId": "nod_01J8Z3K7QF9RCTB2NR9E5THVCC",
+    "attempt": 1,
+    "createdAt": "2026-09-02T09:05:38.910Z",
+    "locale": "en-US",
+    "tenantId": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+    "channelId": "chn_01J8Z3K7QF9RCTB2NR9E5THVAE",
+    "strategyVersion": "1.3.0",
+    "producer": { "name": "agent-runtime", "version": "3.4.0" },
+    "agentId": "research-agent",
+    "agentVersion": "1.0.0",
+    "promptVersion": "prm_research_agent@sha256:4d1f6c9a2b7e0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+    "provider": "provider-a",
+    "modelId": "model-a-large",
+    "modelVersion": "2026-06-01",
+    "parameters": { "temperature": 0, "topP": 1, "seed": 20260902, "maxOutputTokens": 8000 }
+  },
+  "status": "SUCCESS",
+  "data": {
+    "packageKind": "RESEARCH_PACKAGE",
+    "topicId": "TOPIC_TAX_SEASON",
+    "researchQuestions": [
+      {
+        "questionId": "QUESTION_CORE_W2_BOXES",
+        "questionText": "What does each box on a W-2 actually represent for a first-time filer, and why does Box 1 differ from gross salary?",
+        "questionType": "CORE_CLAIM",
+        "priority": "HIGH",
+        "status": "ANSWERED"
+      },
+      {
+        "questionId": "QUESTION_REFUND_TIMELINE",
+        "questionText": "How long does the IRS typically take to issue a refund after e-filing this season?",
+        "questionType": "STATISTIC",
+        "priority": "HIGH",
+        "status": "CONFLICTING"
+      },
+      {
+        "questionId": "QUESTION_BOX12_DEFINITION",
+        "questionText": "What does W-2 Box 12 code D mean for a typical salaried filer with an employer retirement plan?",
+        "questionType": "DEFINITION",
+        "priority": "MEDIUM",
+        "status": "PARTIALLY_ANSWERED"
+      },
+      {
+        "questionId": "QUESTION_TIMELINE_CHANGE",
+        "questionText": "Has the IRS refund processing timeline changed specifically for the current filing season compared to prior years?",
+        "questionType": "RECENT_CHANGE",
+        "priority": "LOW",
+        "status": "UNANSWERED"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "SOURCE_IRS_W2_GUIDE",
+        "title": "About Form W-2, Wage and Tax Statement",
+        "publisher": "Internal Revenue Service",
+        "url": "https://www.irs.gov/forms-pubs/about-form-w-2",
+        "sourceType": "GOVERNMENT",
+        "sourceStatus": "FETCHED",
+        "language": "en-US",
+        "publishedAt": "2025-11-03",
+        "lastUpdatedAt": "2026-01-05",
+        "accessedAt": "2026-09-02T08:40:00.000Z",
+        "derivedFromMaterialId": "MATERIAL_IRS_W2_GUIDE",
+        "sourceQuality": {
+          "authority": { "score": 1.0, "rationale": "The IRS is the definitive federal authority for the meaning of its own tax form." },
+          "relevance": { "score": 0.95, "rationale": "Directly defines Box 1 and Box 2, which is exactly what the core claim question asks." },
+          "freshness": { "score": 0.9, "rationale": "Last updated January 2026, within the current filing season." },
+          "primarySourceStatus": { "score": 1.0, "rationale": "This is the original party defining the form's own fields." },
+          "specificity": { "score": 0.9, "rationale": "States the specific mechanism by which Box 1 differs from gross salary." },
+          "corroboration": { "score": 0.4, "rationale": "No second government or standards-body source in the supplied materials independently restates this mechanism." }
+        }
+      },
+      {
+        "sourceId": "SOURCE_REUTERS_REFUND",
+        "title": "IRS opens 2027 filing season, sets refund expectations",
+        "publisher": "Reuters",
+        "url": "https://www.reuters.com/markets/us/irs-2027-filing-season-refund-timeline",
+        "sourceType": "REPUTABLE_NEWS",
+        "sourceStatus": "FETCHED",
+        "publishedAt": "2027-01-20",
+        "accessedAt": "2026-09-02T08:42:30.000Z",
+        "derivedFromMaterialId": "MATERIAL_NEWS_REFUND_DELAY",
+        "sourceQuality": {
+          "authority": { "score": 0.75, "rationale": "A wire service directly quoting the IRS, though not the IRS itself." },
+          "relevance": { "score": 0.9, "rationale": "States the 21-day refund estimate the research question asks about directly." },
+          "freshness": { "score": 0.95, "rationale": "Dated within the current filing season the topic addresses." },
+          "primarySourceStatus": { "score": 0.5, "rationale": "Reports the IRS's statement rather than being the IRS's own publication." },
+          "specificity": { "score": 0.8, "rationale": "Gives a specific day count rather than a vague characterisation." },
+          "corroboration": { "score": 0.3, "rationale": "Consistent with general IRS guidance but not independently corroborated by a second source in the supplied materials." }
+        }
+      },
+      {
+        "sourceId": "SOURCE_FORUM_BOX12",
+        "title": "Refund taking way longer than 21 days this year?",
+        "publisher": "personal finance community forum",
+        "url": "https://forum.example/threads/refund-taking-way-longer-than-21-days",
+        "sourceType": "COMMUNITY_DISCUSSION",
+        "sourceStatus": "SEARCH_RESULT_ONLY",
+        "accessedAt": "2026-09-02T08:44:10.000Z",
+        "derivedFromMaterialId": "MATERIAL_FORUM_W2_CONFUSION",
+        "sourceQuality": {
+          "authority": { "score": 0.1, "rationale": "Anonymous forum posts carry no institutional backing." },
+          "relevance": { "score": 0.6, "rationale": "Directly discusses refund delay, the subject of the timeline question." },
+          "freshness": { "score": 0.5, "rationale": "Undated post; only the retrieval date is known." },
+          "primarySourceStatus": { "score": 0.2, "rationale": "Individual anecdotal reports, not the IRS or an aggregator of verified cases." },
+          "specificity": { "score": 0.3, "rationale": "General complaint without case-specific detail such as credits claimed." },
+          "corroboration": { "score": 0.2, "rationale": "Only this one snippet was seen; the underlying thread was not fetched." }
+        }
+      },
+      {
+        "sourceId": "SOURCE_ADP_BLOG",
+        "title": "Understanding Your W-2",
+        "publisher": "ADP",
+        "url": "https://www.adp.com/resources/articles-and-insights/articles/w/understanding-your-w2.aspx",
+        "sourceType": "COMPANY",
+        "sourceStatus": "SEARCH_RESULT_ONLY",
+        "accessedAt": "2026-09-02T08:46:00.000Z",
+        "derivedFromMaterialId": "MATERIAL_PAYROLL_BLOG",
+        "sourceQuality": {
+          "authority": { "score": 0.45, "rationale": "A payroll processor has practical expertise but is not the issuing authority for the form." },
+          "relevance": { "score": 0.85, "rationale": "Directly addresses the meaning of Box 12 code D." },
+          "freshness": { "score": 0.5, "rationale": "No publication date was captured in the supplied snippet." },
+          "primarySourceStatus": { "score": 0.2, "rationale": "A secondary explainer, not the IRS's own code definitions." },
+          "specificity": { "score": 0.7, "rationale": "Names the specific code and its typical meaning." },
+          "corroboration": { "score": 0.15, "rationale": "No IRS or standards-body source in the supplied materials confirms this code definition." }
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "evidenceId": "EVIDENCE_W2_BOX1_WAGES",
+        "researchQuestionId": "QUESTION_CORE_W2_BOXES",
+        "sourceId": "SOURCE_IRS_W2_GUIDE",
+        "claim": "Box 1 reports federal taxable wages, which is lower than gross salary because it excludes certain pre-tax deductions.",
+        "evidenceText": {
+          "extractionType": "PARAPHRASE",
+          "text": "Box 1 shows federal taxable wages, typically lower than gross salary because it excludes pre-tax deductions such as traditional 401(k) contributions and cafeteria plan benefits."
+        },
+        "supportingContext": "The IRS's own description of what each W-2 box represents, directly from the form's official guidance page.",
+        "locationInSource": "Form W-2 box description section",
+        "evidenceDate": "2026-01-05",
+        "evidenceStrength": "STRONG",
+        "relevance": 0.95,
+        "freshness": 0.9,
+        "verificationStatus": "REQUIRES_VERIFICATION",
+        "limitations": [],
+        "notesForVerification": "Confirm the specific list of pre-tax deduction types is current for the applicable tax year before treating it as exhaustive."
+      },
+      {
+        "evidenceId": "EVIDENCE_REFUND_21_DAYS",
+        "researchQuestionId": "QUESTION_REFUND_TIMELINE",
+        "sourceId": "SOURCE_REUTERS_REFUND",
+        "claim": "The IRS states that most e-filed refunds with direct deposit are issued within 21 days.",
+        "evidenceText": {
+          "extractionType": "QUOTATION",
+          "text": "most taxpayers who file electronically and choose direct deposit should expect their refund within 21 days of filing"
+        },
+        "supportingContext": "Reuters reporting the IRS's own stated expectation at the opening of the filing season.",
+        "evidenceDate": "2027-01-20",
+        "evidenceStrength": "STRONG",
+        "relevance": 0.9,
+        "freshness": 0.95,
+        "verificationStatus": "REQUIRES_VERIFICATION",
+        "limitations": ["Reported by a news outlet rather than sourced directly from an IRS publication in the supplied materials."],
+        "notesForVerification": "Cross-check against the IRS's own current-season refund guidance page for the exact wording and any caveats on covered credits."
+      },
+      {
+        "evidenceId": "EVIDENCE_REFUND_DELAYS_REPORTED",
+        "researchQuestionId": "QUESTION_REFUND_TIMELINE",
+        "sourceId": "SOURCE_FORUM_BOX12",
+        "claim": "Some filers report refunds taking substantially longer than 21 days this season.",
+        "evidenceText": {
+          "extractionType": "PARAPHRASE",
+          "text": "A filer reports still waiting eight weeks after filing, with other thread participants reporting similar delays."
+        },
+        "supportingContext": "Anecdotal community reports, not independently verified case details.",
+        "evidenceStrength": "WEAK",
+        "relevance": 0.6,
+        "freshness": 0.4,
+        "verificationStatus": "CONFLICTING",
+        "limitations": [
+          "Anonymous, unverified anecdotal reports with no case-specific detail such as credits claimed.",
+          "Only a search snippet was seen; the full thread was never fetched."
+        ],
+        "notesForVerification": "Determine whether reported delays correlate with returns claiming credits subject to mandatory review, which the IRS statement itself carves out as an exception."
+      },
+      {
+        "evidenceId": "EVIDENCE_BOX12_CODE_D",
+        "researchQuestionId": "QUESTION_BOX12_DEFINITION",
+        "sourceId": "SOURCE_ADP_BLOG",
+        "claim": "W-2 Box 12 code D generally denotes elective deferrals to a 401(k) cash or deferred arrangement.",
+        "evidenceText": {
+          "extractionType": "PARAPHRASE",
+          "text": "Code D generally denotes elective deferrals to a 401(k) cash or deferred arrangement."
+        },
+        "supportingContext": "A payroll processor's general explainer on W-2 box codes.",
+        "evidenceStrength": "MODERATE",
+        "relevance": 0.85,
+        "freshness": 0.5,
+        "verificationStatus": "REQUIRES_VERIFICATION",
+        "limitations": ["No IRS or standards-body source in the supplied materials confirms this code definition directly."],
+        "notesForVerification": "Confirm against the current IRS Form W-2 instructions' own Box 12 code table before treating this as authoritative."
+      }
+    ],
+    "conflicts": [
+      {
+        "conflictId": "CONFLICT_REFUND_TIMELINE",
+        "researchQuestionId": "QUESTION_REFUND_TIMELINE",
+        "description": "Reuters reporting cites an official IRS estimate of a 21-day refund turnaround, while a community forum discussion reports refunds taking eight weeks or more this season.",
+        "conflictingEvidenceIds": ["EVIDENCE_REFUND_21_DAYS", "EVIDENCE_REFUND_DELAYS_REPORTED"],
+        "possibleReason": "The delayed cases may involve credits subject to mandatory review, which the IRS statement itself notes can extend the typical timeline; alternatively the forum reports may be unrepresentative or unverified."
+      }
+    ],
+    "gaps": [
+      {
+        "gapId": "GAP_TIMELINE_INSUFFICIENT",
+        "gapType": "INSUFFICIENT_SOURCES",
+        "researchQuestionId": "QUESTION_TIMELINE_CHANGE",
+        "description": "No supplied material specifically addresses whether IRS refund processing timelines changed for the current filing season versus prior seasons; available materials describe the current season's stated timeline only, not a year-over-year comparison.",
+        "severity": "MEDIUM"
+      },
+      {
+        "gapId": "GAP_BOX12_NO_PRIMARY",
+        "gapType": "NO_PRIMARY_SOURCE",
+        "researchQuestionId": "QUESTION_BOX12_DEFINITION",
+        "description": "Box 12 code D guidance is only supported by a company blog search snippet; no IRS or standards-body primary source was found in the supplied materials.",
+        "severity": "MEDIUM"
+      }
+    ],
+    "completeness": {
+      "totalQuestions": 4,
+      "answeredCount": 1,
+      "partiallyAnsweredCount": 1,
+      "unansweredCount": 1,
+      "conflictingCount": 1,
+      "weakOrIndirectSourceIds": ["SOURCE_FORUM_BOX12", "SOURCE_ADP_BLOG"],
+      "readyForFactVerification": true,
+      "readinessRationale": "The core claim and the refund-timeline conflict both carry citable, traceable evidence for Agent 03 to evaluate. The Box 12 definition and the recent-change question remain weakly or entirely unsupported and should be treated as lower-confidence pending the recommended follow-up searches."
+    },
+    "recommendedFollowUpSearches": [
+      {
+        "queryId": "FOLLOWUP_REFUND_TIMELINE_CHANGE",
+        "queryText": "IRS refund processing timeline changes current filing season versus prior year",
+        "rationale": "No supplied material directly compares this season's refund timeline to prior seasons; a targeted search against the IRS's current operations updates page would close this gap.",
+        "targetQuestionId": "QUESTION_TIMELINE_CHANGE"
+      },
+      {
+        "queryId": "FOLLOWUP_BOX12_PRIMARY_SOURCE",
+        "queryText": "IRS Form W-2 instructions box 12 code table",
+        "rationale": "Definition evidence for Box 12 code D currently rests on a company blog snippet only; the official IRS W-2 instructions would provide primary-source grounding.",
+        "targetQuestionId": "QUESTION_BOX12_DEFINITION"
+      }
+    ],
+    "assumptions": [
+      {
+        "assumptionKey": "ASSUMPTION_FILING_SEASON_YEAR",
+        "statement": "The relevant filing season is assumed to be the next occurring January-to-April window, since the topic opportunity did not specify a target tax year.",
+        "basis": "TOPIC_OPPORTUNITY",
+        "path": "$.researchQuestions[1]"
+      }
+    ],
+    "declaredUnknowns": [],
+    "inputSufficiency": {
+      "value": 0.72,
+      "basis": "SELF_REPORTED",
+      "limitations": [
+        "Only one government source and one news source were supplied; broader corroboration for the refund-timeline conflict was not available in the given materials.",
+        "No supplied material was a fetched, full IRS instructions document for Box 12 code definitions."
+      ]
+    }
+  },
+  "execution": {
+    "attempt": 1,
+    "attemptType": "INITIAL",
+    "durationMs": 21870,
+    "costMicroUsd": 34200,
+    "inputTokens": 3120,
+    "outputTokens": 4460,
+    "finishReason": "COMPLETE",
+    "resourceClass": "research-standard",
+    "outcome": "SUCCESS"
+  },
+  "references": [
+    {
+      "refType": "CONTRACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVCA",
+      "version": "1.0.0",
+      "role": "PARENT",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "ARTIFACT",
+      "refId": "msg_01J8Z3K7QF9RCTB2NR9E5THVAF",
+      "version": "1.0.0",
+      "role": "SUPERSEDES",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "PROMPT",
+      "refId": "prm_research_agent",
+      "version": "1.0.0",
+      "integrity": "sha256:4d1f6c9a2b7e0358af92b1e7d6c4a0389b3f7a2e1c6d8054af92b1e7d6c4a038",
+      "role": "GOVERNS",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD"
+    },
+    {
+      "refType": "EXTERNAL",
+      "refId": "search_job_w2_refund_2026_09_02",
+      "version": "2026-09-02",
+      "role": "SOURCE",
+      "scope": "ten_01J8Z3K7QF9RCTB2NR9E5THVAD",
+      "trust": "UNTRUSTED"
+    }
+  ]
+}
