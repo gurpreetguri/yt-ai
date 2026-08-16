@@ -455,7 +455,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
               path,
               expected: 'no reference to a claim whose downstreamSafety is DO_NOT_USE',
               actual: claimId,
-              message: 'A DO_NOT_USE claim was used as factual story content; Agent 03\'s determination was not respected.',
+              message: 'A DO_NOT_USE claim was used as factual story content; the Verification Package\'s determination was not respected.',
             }));
           }
         });
@@ -496,7 +496,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
               path: `$.beats[${beatIndex}].qualification`,
               expected: 'present, because this beat cites a USE_WITH_QUALIFICATION claim',
               actual: 'absent',
-              message: 'A beat cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per Agent 03) without preserving its qualification.',
+              message: 'A beat cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per the Verification Package) without preserving its qualification.',
             })];
       });
     },
@@ -838,7 +838,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
             path: '$.hook.qualification',
             expected: 'present, because the hook cites a USE_WITH_QUALIFICATION claim',
             actual: 'absent',
-            message: 'The hook cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per Agent 03) without preserving its qualification.',
+            message: 'The hook cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per the Verification Package) without preserving its qualification.',
           })];
     },
   },
@@ -860,7 +860,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
             path: '$.payoff.qualification',
             expected: 'present, because the payoff cites a USE_WITH_QUALIFICATION claim',
             actual: 'absent',
-            message: 'The payoff cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per Agent 03) without preserving its qualification.',
+            message: 'The payoff cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per the Verification Package) without preserving its qualification.',
           })];
     },
   },

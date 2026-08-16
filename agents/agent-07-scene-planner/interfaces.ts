@@ -259,7 +259,7 @@ export interface QuoteProvenanceRef {
   readonly speakerConfirmed: boolean;
 }
 
-/** The subset of an Agent 03 Claim this agent needs to plan visuals without inventing a fact. */
+/** The subset of a verified Claim this agent needs to plan visuals without inventing a fact. */
 export interface VerifiedClaimRef {
   readonly claimId: LocalKey;
   readonly claimText: string;
@@ -275,7 +275,7 @@ export interface VerifiedClaimRef {
   readonly quoteProvenance?: QuoteProvenanceRef;
 }
 
-/** The subset of the Agent 03 Verification Package this agent needs. */
+/** The subset of the Verification Package this agent needs. */
 export interface VerificationPackageRef {
   readonly topicId: LocalKey;
   /** 1-60 items. claimId unique (R-IN-009). */
@@ -352,7 +352,7 @@ export interface CtaStrategyRef {
 
 export type StoryDownstreamReadiness = 'READY_FOR_SCRIPT' | 'NOT_READY_FOR_SCRIPT';
 
-/** The subset of Agent 04's Story Architecture this agent needs (GDE-002 §5.1 minimum-context principle). */
+/** The subset of the Story Architecture this agent needs (GDE-002 §5.1 minimum-context principle). */
 export interface StoryArchitectureRef {
   readonly topicId: LocalKey;
   readonly hook: HookRef;
@@ -376,14 +376,14 @@ export type DeliveryIntent =
 
 export type Emphasis = 'NONE' | 'LIGHT' | 'STRONG';
 
-/** A direct quotation inside a segment, as Agent 05 emitted it. */
+/** A direct quotation inside a segment, as emitted in the Narration Script. */
 export interface QuotationRef {
   readonly claimId: LocalKey;
   readonly speaker: string;
   readonly quotedText: string;
 }
 
-/** The subset of an Agent 05 `ScriptSegment` this agent needs to plan its visuals. */
+/** The subset of a Narration Script `ScriptSegment` this agent needs to plan its visuals. */
 export interface ScriptSegmentRef {
   readonly segmentId: LocalKey;
   /** 1-based. Unique and contiguous across segments. */
@@ -412,7 +412,7 @@ export interface ScriptDurationRef {
 
 export type ScriptDownstreamReadiness = 'READY_FOR_REVIEW' | 'NOT_READY_FOR_REVIEW';
 
-/** The subset of Agent 05's Narration Script this agent needs — effectively the whole thing, since every scene must map back to it. */
+/** The subset of the Narration Script this agent needs — effectively the whole thing, since every scene must map back to it. */
 export interface NarrationScriptRef {
   readonly topicId: LocalKey;
   /** 2-80 items. segmentId unique; order unique and contiguous from 1. */
@@ -427,9 +427,9 @@ export type ReviewDecision = 'APPROVED' | 'REPAIR_REQUIRED' | 'REGENERATION_REQU
 export type NextAction = 'CONTINUE' | 'REPAIR_SCRIPT' | 'REGENERATE_SCRIPT' | 'REJECT';
 
 /**
- * The subset of Agent 06's Review Report this agent needs. This is the
- * approval gate: Agent 07 MUST NOT plan scenes for a script Agent 06 has not
- * approved (README §3). `topicId` here is Agent 06's own echoed topic
+ * The subset of the Review Report this agent needs. This is the
+ * approval gate: Agent 07 MUST NOT plan scenes for a script the Review Report has not
+ * approved (README §3). `topicId` here is the Review Report's own echoed topic
  * identity (`script-reviewer-agent-output/v1` `R-BUS-023`), used to confirm
  * the review actually pertains to the topic this request otherwise agrees
  * on (R-IN-008) — this pipeline has no other cross-artifact identity
@@ -438,7 +438,7 @@ export type NextAction = 'CONTINUE' | 'REPAIR_SCRIPT' | 'REGENERATE_SCRIPT' | 'R
 export interface ReviewResultRef {
   readonly topicId: LocalKey;
   readonly decision: ReviewDecision;
-  /** MUST be true (R-IN-004) — Agent 06's own readiness determination, echoed. */
+  /** MUST be true (R-IN-004) — the Review Report's own readiness determination, echoed. */
   readonly readyForScenePlanning: boolean;
   /** MUST be CONTINUE (R-IN-003). */
   readonly nextAction: NextAction;
@@ -520,7 +520,7 @@ export interface SceneQuotation {
 }
 
 /**
- * One planned scene (README §5). Every scene traces to one or more Agent 05
+ * One planned scene (README §5). Every scene traces to one or more Narration Script
  * script segments via `segmentRefs`; every factual visual element traces to
  * a claim in `claimRefs`, and every `evidenceRefs` entry traces to one of
  * those same claims (README §7, §8).

@@ -782,7 +782,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
             path: '$.issues',
             expected: `an UNSUPPORTED_QUOTE issue referencing segment "${segment.segmentId}" with severity CRITICAL and blocking=true`,
             actual: 'no matching issue reported',
-            message: 'The script contains a quotation not supported by Agent 03\'s verified claim; the review either failed to report it, reported the wrong segment, or downgraded its severity/blocking status. A fabricated or mismatched quote is always CRITICAL and always blocking.',
+            message: 'The script contains a quotation not supported by the Verification Package\'s verified claim; the review either failed to report it, reported the wrong segment, or downgraded its severity/blocking status. A fabricated or mismatched quote is always CRITICAL and always blocking.',
           }));
         }
       });

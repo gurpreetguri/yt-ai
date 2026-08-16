@@ -113,7 +113,7 @@ Reviewed using the SAME fixed ±15% tolerance Agent 04 and Agent 05 already use 
 
 ## 12. Audience fit
 
-Compared against `audienceContext` — a minimum-context subset of Agent 00's `AudienceDefinition`/`BrandBinding` and Agent 01's `StrategyAudienceRef` (`primarySegment`, `expertiseLevel`, `toneDescriptors`, the exact same closed `ToneDescriptor` vocabulary Agent 00 already registers). Agent 06 never invents an audience preference not present in this supplied context.
+Compared against `audienceContext` — a minimum-context subset of the Strategy Manifest's `AudienceDefinition`/`BrandBinding` and the Topic Candidates' `StrategyAudienceRef` (`primarySegment`, `expertiseLevel`, `toneDescriptors`, the exact same closed `ToneDescriptor` vocabulary the Strategy Manifest already registers). Agent 06 never invents an audience preference not present in this supplied context.
 
 ## 13. Validation rules — summary
 

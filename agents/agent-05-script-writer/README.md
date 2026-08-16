@@ -26,13 +26,13 @@ Agent 06 Script Reviewer (not yet implemented)
 
 ## 2. Responsibilities
 
-Agent 05 is a **writer**. Given a structural blueprint (Agent 04's beats, hook, payoff, conclusion, CTA strategy) and a closed set of verified claims (Agent 03's claims, each with a fixed `verificationStatus` and `downstreamSafety`), it composes the actual spoken words a narrator would read — nothing more, nothing less.
+Agent 05 is a **writer**. Given a structural blueprint (the Story Architecture's beats, hook, payoff, conclusion, CTA strategy) and a closed set of verified claims (the Verification Package's claims, each with a fixed `verificationStatus` and `downstreamSafety`), it composes the actual spoken words a narrator would read — nothing more, nothing less.
 
 It does not:
 
 - research anything (no web search, no external calls of any kind — see `implementation-checklist.md` §2);
-- verify or re-verify anything (Agent 03's `verificationStatus`/`downstreamSafety` are consumed as given, never re-derived);
-- restructure the story (Agent 04's beat sequence, hook, payoff, and CTA strategy are consumed as given, never redesigned);
+- verify or re-verify anything (the Verification Package's `verificationStatus`/`downstreamSafety` are consumed as given, never re-derived);
+- restructure the story (the Story Architecture's beat sequence, hook, payoff, and CTA strategy are consumed as given, never redesigned);
 - invent a fact, a statistic, a date, a price, a ranking, a benchmark, a quotation, a source, or a URL that does not already trace to a supplied verified claim.
 
 ## 3. Boundaries — what Agent 05 is NOT
@@ -49,7 +49,7 @@ Those all belong to later stages (Agent 06 Script Reviewer, and further downstre
 
 ## 4. Downstream safety — respected absolutely
 
-Agent 03's `downstreamSafety` on each verified claim is fixed and non-negotiable (identical rule to Agent 04's own README §6):
+The Verification Package's `downstreamSafety` on each verified claim is fixed and non-negotiable (identical rule to Agent 04's own README §6):
 
 | `downstreamSafety` | Meaning here |
 |---|---|
@@ -57,7 +57,7 @@ Agent 03's `downstreamSafety` on each verified claim is fixed and non-negotiable
 | `USE_WITH_QUALIFICATION` | May be narrated ONLY with its qualification preserved in the segment's own `qualification` field (R-BUS-007). |
 | `DO_NOT_USE` | MUST NOT appear as factual narration anywhere — not via `claimRefs`, not indirectly via `evidenceRefs` belonging to it (R-BUS-006). |
 
-Agent 05 never upgrades `USE_WITH_QUALIFICATION` to `SAFE_TO_USE`, never narrates a `DO_NOT_USE` claim, and never second-guesses Agent 03's determination. This is enforced deterministically by `validator.ts`, not left to prompt compliance alone.
+Agent 05 never upgrades `USE_WITH_QUALIFICATION` to `SAFE_TO_USE`, never narrates a `DO_NOT_USE` claim, and never second-guesses the Verification Package's determination. This is enforced deterministically by `validator.ts`, not left to prompt compliance alone.
 
 ## 5. Field traceability — the provenance chain
 
@@ -66,17 +66,17 @@ Every factual script segment traces through a fixed chain:
 ```
 Script Segment
       ↓ beatRef
-Story Beat (Agent 04)
+Story Beat (Story Architecture)
       ↓ claimRefs
-Verified Claim (Agent 03)
+Verified Claim (Verification Package)
       ↓ evidenceRefs → supportingEvidenceIds
 Evidence
 ```
 
 `validator.ts` enforces every link deterministically:
 
-- `beatRef` must resolve to a beat Agent 04 actually supplied (R-BUS-003), and every supplied beat must be narrated by at least one segment (R-BUS-009) — no beat silently skipped, no beat invented.
-- `claimRefs` must resolve to a claim Agent 03 actually supplied (R-BUS-004).
+- `beatRef` must resolve to a beat the Story Architecture actually supplied (R-BUS-003), and every supplied beat must be narrated by at least one segment (R-BUS-009) — no beat silently skipped, no beat invented.
+- `claimRefs` must resolve to a claim the Verification Package actually supplied (R-BUS-004).
 - `evidenceRefs` must resolve to a `supportingEvidenceIds` entry of **one of that same segment's own `claimRefs`** (R-BUS-005, R-BUS-008) — not merely to some claim elsewhere in the package. Identical provenance principle to Agent 04's own R-BUS-022.
 
 This is strictly reference-graph validation — string/set membership checks, never semantic understanding of narration content (with the single deliberate exception of R-BUS-016's numeric-token check, itself a string match, not semantic analysis).
@@ -137,7 +137,7 @@ A comparison segment may compare only what supplied claims establish. There is n
 
 ## 17. Security — untrusted content
 
-`storyArchitecture` and `verificationPackage` are provenance-**TRUSTED** (already-validated platform artifacts, produced by already-validated Agent 03/04 invocations) but their embedded free text (claim text, beat purposes, limitations, notes) is treated as **untrusted data** by the prompt — identical discipline to every prior agent's handling of its own upstream input (Agent 04 README §15, Agent 03 README §17). `script-writer.prompt.ts` neutralises the `<<<`/`>>>` delimiter sequences recursively through both entire blocks before rendering, and the system prompt explicitly instructs the model never to follow an embedded instruction regardless of claimed authority (system-prompt.md §4c rule 34).
+`storyArchitecture` and `verificationPackage` are provenance-**TRUSTED** (already-validated platform artifacts, produced by already-validated upstream invocations) but their embedded free text (claim text, beat purposes, limitations, notes) is treated as **untrusted data** by the prompt — identical discipline to every prior agent's handling of its own upstream input (Agent 04 README §15, Agent 03 README §17). `script-writer.prompt.ts` neutralises the `<<<`/`>>>` delimiter sequences recursively through both entire blocks before rendering, and the system prompt explicitly instructs the model never to follow an embedded instruction regardless of claimed authority (system-prompt.md §4c rule 34).
 
 ## 18. Validation rules — summary
 

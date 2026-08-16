@@ -43,7 +43,7 @@ Every responsibility maps to at least one output field (`GDE-002` §4.2).
 | R10 | Define the climax/payoff | `data.payoff` |
 | R11 | Define the conclusion | `data.conclusion` |
 | R12 | Preserve claim provenance | `data.hook.claimRefs`, `data.beats[].claimRefs`/`.evidenceRefs`, `data.payoff.resolutionClaimRefs` |
-| R13 | Respect Agent 03 downstream safety | `data.beats[].qualification` (validator-enforced, §6) |
+| R13 | Respect Verification Package downstream safety | `data.beats[].qualification` (validator-enforced, §6) |
 | R14 | Represent research gaps | `data.researchGaps` |
 | R15 | Represent pacing purposefully | `data.beats[].pacing`, `data.pacingStrategy` |
 | R16 | Represent duration accounting | `data.duration` |
@@ -83,13 +83,13 @@ Contract: `story-architect-agent-input/v1`. The model receives `data` only; the 
 
 | Input | Type | Required | Trust | Constraints | Absence behaviour |
 |---|---|---|---|---|---|
-| `verificationPackage` | object | Yes | Provenance TRUSTED (an already-validated Agent 03 artifact); embedded free text treated as untrusted by the prompt (§15) | Subset of Agent 03's output; `claims` 1–60 items | Hard failure before invocation |
-| `topicOpportunity` | object | Yes | Trusted | Subset of Agent 01's output, identical shape to `research-agent-input/v1#/$defs/topicOpportunityRef` | Hard failure before invocation |
+| `verificationPackage` | object | Yes | Provenance TRUSTED (an already-validated Verification Package artifact); embedded free text treated as untrusted by the prompt (§15) | Subset of the Verification Package; `claims` 1–60 items | Hard failure before invocation |
+| `topicOpportunity` | object | Yes | Trusted | Subset of the Topic Candidates, identical shape to `research-agent-input/v1#/$defs/topicOpportunityRef` | Hard failure before invocation |
 | `storyConstraints` | object | No | Trusted | `maxBeatCount` 2–30; `pacingPreference` closed enum; `requireCallToAction` boolean | No constraint beyond `targetDurationSeconds` and the closed taxonomies |
 | `targetDurationSeconds` | integer | Yes | Trusted | 15–7200 | — |
 | `language` | string | Yes | Trusted | BCP 47 | — |
 
-`verificationPackage` deliberately omits Agent 03's `verificationConfidence`, `corroboration`, `quoteProvenance`, `causalAnalysis`, and `calculationCheck` — those are Agent 03's own evidentiary reasoning, not inputs story architecture needs (`GDE-002` §5.1 minimum-context principle).
+`verificationPackage` deliberately omits the Verification Package's own `verificationConfidence`, `corroboration`, `quoteProvenance`, `causalAnalysis`, and `calculationCheck` — those are its own evidentiary reasoning, not inputs story architecture needs (`GDE-002` §5.1 minimum-context principle).
 
 ## 5. Outputs
 
@@ -108,14 +108,14 @@ Contract: `story-architect-agent-output/v1`. `data` is the **Story Architecture*
 Agent 04 **never introduces a new factual claim**. Every factual story element — the hook's `claimRefs`, every beat's `claimRefs`/`evidenceRefs`, and the payoff's `resolutionClaimRefs` — traces to a claim `verificationPackage.claims` actually supplied. The chain is:
 
 ```
-Agent 03 ──► Verified Claim ──► Story Beat ──► Agent 05 ──► Script
+Verification Package ──► Verified Claim ──► Story Beat ──► Narration Script ──► Script
 ```
 
 If a beat's narrative role would require a claim that does not exist in the supplied package, this agent **does not invent it** — it records a `researchGaps` entry and references it from the beat's `researchGapRef` instead (`R-BUS-014`).
 
 **Downstream safety is respected absolutely, never re-derived:**
 
-| Agent 03 `downstreamSafety` | Effect on this agent's output |
+| Verification Package `downstreamSafety` | Effect on this agent's output |
 |---|---|
 | `DO_NOT_USE` | The claim MUST NOT appear as factual story content anywhere — not via `claimRefs`, and not indirectly via `evidenceRefs` belonging to that claim (`R-BUS-005`, BLOCKER). |
 | `USE_WITH_QUALIFICATION` | Every beat citing such a claim MUST carry a non-empty `qualification` field preserving the caveat (`R-BUS-006`). Since Agent 03 maps both `CONFLICTING` and `OUTDATED` claims to `USE_WITH_QUALIFICATION` (`fact-verification-agent-output/v1` `R-BUS-017`), this single rule is what preserves a `CONFLICTING` claim's unresolved uncertainty and prevents an `OUTDATED` claim from being presented as current — this agent needs no separate, status-specific rule for either case. |
@@ -161,7 +161,7 @@ Each beat: `beatId`, `order` (1-based, unique, contiguous — `R-BUS-002`), `bea
 
 ## 15. Untrusted Content Handling
 
-`verificationPackage` is a provenance-**TRUSTED** platform artifact (Agent 03's own validated output), but every free-text field nested inside it (claim text, limitations, notes) ultimately traces back to external material Agent 02's untrusted `researchMaterials` pipeline processed. This agent's prompt treats every nested string in `verificationPackage` and `topicOpportunity` as inert data, never as instructions (system prompt rule 34), applying the same delimiter-neutralisation discipline every agent in this lineage applies to its own untrusted content — defence-in-depth against an injection payload that survived upstream stages unnoticed.
+`verificationPackage` is a provenance-**TRUSTED** platform artifact (the Verification Package's own validated output), but every free-text field nested inside it (claim text, limitations, notes) ultimately traces back to external material Agent 02's untrusted `researchMaterials` pipeline processed. This agent's prompt treats every nested string in `verificationPackage` and `topicOpportunity` as inert data, never as instructions (system prompt rule 34), applying the same delimiter-neutralisation discipline every agent in this lineage applies to its own untrusted content — defence-in-depth against an injection payload that survived upstream stages unnoticed.
 
 ## 16. Research Gaps
 

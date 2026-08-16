@@ -266,7 +266,7 @@ export type AudienceIntent = 'LEARN' | 'COMPARE' | 'DECIDE' | 'SOLVE_PROBLEM' | 
 
 export type ResearchPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-/** The subset of an Agent 01 Topic Opportunity this agent needs (GDE-002 §5.4). Trusted. */
+/** The subset of the Topic Candidates this agent needs (GDE-002 §5.4). Trusted. */
 export interface TopicOpportunityRef {
   readonly topicId: LocalKey;
   readonly title: string;

@@ -17,8 +17,8 @@ Case numbering follows the 53-scenario testing brief. Each case names the fixtur
 | 11 | Number mismatch | Narration states a figure absent from every referenced claim; the review omits a matching `NUMERIC_DRIFT` finding. | `FAILED (output)` | `R-BUS-016` |
 | 12 | Unsupported number | Same mechanism as #11 — a number with no grounding claim at all. | `FAILED (output)` | `R-BUS-016` |
 | 13 | Unsupported quote | `quotation.quotedText` altered from its claim's `claimText`; the review omits a matching `UNSUPPORTED_QUOTE` finding. | `FAILED (output)` | `R-BUS-017` |
-| 14 | Conflicting claim presented as certain | Covered by `R-BUS-015`'s qualification-preservation ground truth (Agent 03 maps `CONFLICTING` to `USE_WITH_QUALIFICATION`) — same mechanism as #10. | `FAILED (output)` | `R-BUS-015` |
-| 15 | Outdated claim presented as current | Covered by `R-BUS-015`'s qualification-preservation ground truth (Agent 03 maps `OUTDATED` to `USE_WITH_QUALIFICATION`) — same mechanism as #10. | `FAILED (output)` | `R-BUS-015` |
+| 14 | Conflicting claim presented as certain | Covered by `R-BUS-015`'s qualification-preservation ground truth (the Verification Package maps `CONFLICTING` to `USE_WITH_QUALIFICATION`) — same mechanism as #10. | `FAILED (output)` | `R-BUS-015` |
+| 15 | Outdated claim presented as current | Covered by `R-BUS-015`'s qualification-preservation ground truth (the Verification Package maps `OUTDATED` to `USE_WITH_QUALIFICATION`) — same mechanism as #10. | `FAILED (output)` | `R-BUS-015` |
 | 16 | Unsupported causal claim | `MODEL_ASSESSED` — no deterministic ground truth (causal-language detection is semantic). Covered by prompt discipline (system-prompt.md §4c rule 11) and category `UNSUPPORTED_CAUSAL_CLAIM`. | `PASS`/`FAIL` per model judgement | — |
 | 17 | Unsupported comparison | `MODEL_ASSESSED` — same as #16, category `UNSUPPORTED_COMPARISON` (system-prompt.md §4c rule 12). | `PASS`/`FAIL` per model judgement | — |
 | 18 | Missing hook | First segment's `segmentType` is not `HOOK`; the review omits a matching `STRUCTURAL_COMPLETENESS` finding. | `FAILED (output)` | `R-BUS-018` |

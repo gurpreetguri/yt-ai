@@ -83,10 +83,10 @@ Contract: `fact-verification-agent-input/v1`. The model receives `data` only; th
 
 | Input | Type | Required | Trust | Constraints | Absence behaviour |
 |---|---|---|---|---|---|
-| `researchPackage` | object | Yes | Provenance TRUSTED (an already-validated Agent 02 artifact); embedded free text treated as untrusted by the prompt (§17) | Subset of Agent 02's output; `researchQuestions` 1–15, `sources` 0–40, `evidence` 0–80, `conflicts`/`gaps` 0–20 | Hard failure before invocation |
+| `researchPackage` | object | Yes | Provenance TRUSTED (an already-validated Research Package artifact); embedded free text treated as untrusted by the prompt (§17) | Subset of the Research Package; `researchQuestions` 1–15, `sources` 0–40, `evidence` 0–80, `conflicts`/`gaps` 0–20 | Hard failure before invocation |
 | `language` | string | Yes | Trusted | BCP 47 | — |
 
-`researchPackage` deliberately omits Agent 02's own `completeness`, `recommendedFollowUpSearches`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` — those are Agent 02's self-assessment of its own research, not inputs this agent's claim-level grading needs (`GDE-002` §5.1 minimum-context principle).
+`researchPackage` deliberately omits the Research Package's own `completeness`, `recommendedFollowUpSearches`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` — those are its self-assessment of its own research, not inputs this agent's claim-level grading needs (`GDE-002` §5.1 minimum-context principle).
 
 ## 5. Outputs
 
@@ -176,7 +176,7 @@ This mapping is what makes the Script Writer's decision mechanical rather than a
 
 ## 17. Untrusted Content Handling
 
-`researchPackage` is a provenance-**TRUSTED** platform artifact (Agent 02's own validated output), but every free-text field nested inside it (evidence quotations/paraphrases, source titles, gap descriptions) ultimately traces back to external material Agent 02's own untrusted `researchMaterials` pipeline processed. This agent's prompt therefore treats every nested string in `researchPackage` as inert data, never as instructions (system prompt rule 37), applying the same delimiter-neutralisation discipline Agent 01/02 apply to their own untrusted blocks — defence-in-depth against an injection payload that survived Agent 02 unnoticed.
+`researchPackage` is a provenance-**TRUSTED** platform artifact (the Research Package's own validated output), but every free-text field nested inside it (evidence quotations/paraphrases, source titles, gap descriptions) ultimately traces back to external material Agent 02's own untrusted `researchMaterials` pipeline processed. This agent's prompt therefore treats every nested string in `researchPackage` as inert data, never as instructions (system prompt rule 37), applying the same delimiter-neutralisation discipline Agent 01/02 apply to their own untrusted blocks — defence-in-depth against an injection payload that survived Agent 02 unnoticed.
 
 ## 18. Validation Rules
 

@@ -7,7 +7,7 @@ Case numbering follows the 50-scenario testing brief. Each case names the fixtur
 | 1 | Valid scene plan | Baseline `examples/request.json` + `examples/response.json`. | `SUCCESS`, 0 findings | — |
 | 2 | Invalid input | `data.language` set to a malformed value shape (structural). | `FAILED (input)` | `R-STRUCT-001` · `VALIDATION.INPUT.ENUM_VALUE_NOT_PERMITTED` |
 | 3 | Script not approved | `script.downstreamReadiness = NOT_READY_FOR_REVIEW`. | `FAILED (input)` | `R-IN-001` · `VALIDATION.INPUT.SCRIPT_NOT_READY` |
-| 4 | Agent 06 not APPROVED | `reviewResult.decision = REPAIR_REQUIRED`. | `FAILED (input)` | `R-IN-002` · `VALIDATION.INPUT.REVIEW_NOT_APPROVED` |
+| 4 | Review Report not APPROVED | `reviewResult.decision = REPAIR_REQUIRED`. | `FAILED (input)` | `R-IN-002` · `VALIDATION.INPUT.REVIEW_NOT_APPROVED` |
 | 5 | Wrong nextAction | `reviewResult.nextAction = REPAIR_SCRIPT`. | `FAILED (input)` | `R-IN-003` · `VALIDATION.INPUT.REVIEW_NOT_APPROVED` |
 | 6 | Topic ID mismatch | `script.topicId` disagrees with `storyArchitecture.topicId`. | `FAILED (input)` | `R-IN-007` · `VALIDATION.INPUT.TOPIC_ID_MISMATCH` |
 | 7 | Script ID mismatch | Same mechanism as #6, exercised as the "script" side of the topic-identity hub. | `FAILED (input)` | `R-IN-007` |

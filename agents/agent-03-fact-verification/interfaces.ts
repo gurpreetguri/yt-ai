@@ -368,8 +368,8 @@ export interface ResearchGapRef {
 }
 
 /**
- * The Agent 02 deliverable this agent verifies. Provenance TRUSTED (produced
- * by an already-validated Agent 02 invocation) but its embedded free text
+ * The Research Package this agent verifies. Provenance TRUSTED (produced
+ * by an already-validated upstream invocation) but its embedded free text
  * MUST be treated by the prompt as inert, untrusted data (README §17).
  */
 export interface ResearchPackageRef {

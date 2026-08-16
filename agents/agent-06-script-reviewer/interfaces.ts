@@ -254,7 +254,7 @@ export interface QuoteProvenanceRef {
   readonly speakerConfirmed: boolean;
 }
 
-/** The subset of an Agent 03 Claim this agent needs to review a script without inventing a fact. */
+/** The subset of a verified Claim this agent needs to review a script without inventing a fact. */
 export interface VerifiedClaimRef {
   readonly claimId: LocalKey;
   readonly claimText: string;
@@ -270,7 +270,7 @@ export interface VerifiedClaimRef {
   readonly quoteProvenance?: QuoteProvenanceRef;
 }
 
-/** The subset of the Agent 03 Verification Package this agent needs. */
+/** The subset of the Verification Package this agent needs. */
 export interface VerificationPackageRef {
   readonly topicId: LocalKey;
   /** 1-60 items. claimId unique (R-IN-005). */
@@ -281,7 +281,7 @@ export type HookType =
   | 'CONTRADICTION' | 'SURPRISING_RESULT' | 'QUESTION' | 'PROBLEM' | 'PROMISE'
   | 'DISCOVERY' | 'MISTAKE' | 'COMPARISON' | 'STORY_SETUP';
 
-/** The subset of Agent 04's `hook` this agent needs to check the script opens faithfully. */
+/** The subset of the Story Architecture's `hook` this agent needs to check the script opens faithfully. */
 export interface HookRef {
   readonly hookType: HookType;
   readonly curiosityMechanism: string;
@@ -299,7 +299,7 @@ export type BeatType =
 export type BeatImportance = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type PacingValue = 'FAST' | 'MODERATE' | 'SLOW';
 
-/** The subset of an Agent 04 `StoryBeat` this agent needs. */
+/** The subset of a Story Architecture `StoryBeat` this agent needs. */
 export interface StoryBeatRef {
   readonly beatId: LocalKey;
   /** 1-based. Unique and contiguous across beats. */
@@ -325,7 +325,7 @@ export interface StoryDurationRef {
   readonly withinTolerance: boolean;
 }
 
-/** The subset of Agent 04's `payoff` this agent needs. */
+/** The subset of the Story Architecture's `payoff` this agent needs. */
 export interface StoryPayoffRef {
   readonly description: string;
   readonly connectsToOpeningPromise: boolean;
@@ -350,7 +350,7 @@ export interface CtaStrategyRef {
 
 export type StoryDownstreamReadiness = 'READY_FOR_SCRIPT' | 'NOT_READY_FOR_SCRIPT';
 
-/** The subset of Agent 04's Story Architecture this agent needs (GDE-002 §5.1 minimum-context principle). */
+/** The subset of the Story Architecture this agent needs (GDE-002 §5.1 minimum-context principle). */
 export interface StoryArchitectureRef {
   readonly topicId: LocalKey;
   readonly hook: HookRef;
@@ -374,14 +374,14 @@ export type DeliveryIntent =
 
 export type Emphasis = 'NONE' | 'LIGHT' | 'STRONG';
 
-/** A direct quotation inside a segment, as Agent 05 emitted it. */
+/** A direct quotation inside a segment, as emitted in the Narration Script. */
 export interface QuotationRef {
   readonly claimId: LocalKey;
   readonly speaker: string;
   readonly quotedText: string;
 }
 
-/** The subset of an Agent 05 `ScriptSegment` this agent needs to review it in full. */
+/** The subset of a Narration Script `ScriptSegment` this agent needs to review it in full. */
 export interface ScriptSegmentRef {
   readonly segmentId: LocalKey;
   /** 1-based. Unique and contiguous across segments. */
@@ -425,7 +425,7 @@ export interface ScriptReadinessBlockerRef {
   readonly severity: ScriptWarningSeverity;
 }
 
-/** The subset of Agent 05's Narration Script this agent needs — effectively the whole thing, since it reviews the script in full. */
+/** The subset of the Narration Script this agent needs — effectively the whole thing, since it reviews the script in full. */
 export interface NarrationScriptRef {
   readonly topicId: LocalKey;
   /** 2-80 items. segmentId unique; order unique and contiguous from 1. */
@@ -446,9 +446,9 @@ export type ToneDescriptor =
   | 'WITTY' | 'EMPATHETIC' | 'DIRECT' | 'CURIOUS' | 'PRAGMATIC' | 'OPTIMISTIC' | 'IRREVERENT';
 
 /**
- * The subset of Agent 00/01's audience definition this agent needs to judge
- * audience fit — identical shape in spirit to Agent 00's own
- * `AudienceDefinition`/`BrandBinding` and Agent 01's `StrategyAudienceRef`
+ * The subset of the Strategy Manifest/Topic Candidates audience definition this agent needs to judge
+ * audience fit — identical shape in spirit to the Strategy Manifest's own
+ * `AudienceDefinition`/`BrandBinding` and the Topic Candidates' `StrategyAudienceRef`
  * (GDE-002 §5.4 minimum-context principle applied across the widest
  * upstream gap in this pipeline).
  */
@@ -539,7 +539,7 @@ export interface ReviewIssue {
   readonly affectedClaimIds: readonly LocalKey[];
   /** MUST resolve to a supportingEvidenceIds entry of a supplied claim (R-BUS-005). 0-6 items. */
   readonly affectedEvidenceIds: readonly LocalKey[];
-  /** Guidance for a human or for Agent 05's next attempt — never replacement narration itself. */
+  /** Guidance for a human or for the next narration script writing attempt — never replacement narration itself. */
   readonly recommendation: string;
   readonly repairability: Repairability;
   /** Whether this issue alone prevents APPROVED (README §3). */
@@ -582,7 +582,7 @@ export interface ReviewCheckResult {
 
 /**
  * THE REVIEW REPORT — the single deliverable of AGT-06. Structured findings
- * about Agent 05's script, never a rewritten script, never a replacement
+ * about the narration script under review, never a rewritten script, never a replacement
  * fact, never new evidence, never a new source (README §1, §4).
  */
 export interface ReviewReport {

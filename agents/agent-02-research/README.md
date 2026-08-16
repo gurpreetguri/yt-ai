@@ -89,7 +89,7 @@ Contract: `research-agent-input/v1`. The model receives `data` only; the envelop
 
 | Input | Type | Required | Trust | Constraints | Absence behaviour |
 |---|---|---|---|---|---|
-| `topicOpportunity` | object | Yes | Trusted | Subset of Agent 01's output only (`GDE-002` §5.4); never the full Topic Opportunity Set | — |
+| `topicOpportunity` | object | Yes | Trusted | Subset of the Topic Candidates only (`GDE-002` §5.4); never the full Topic Opportunity Set | — |
 | `researchConstraints` | object | No | Trusted | `minSources` <= `maxSources`; source types drawn from the closed taxonomy | No constraint beyond `requestedDepth`'s default posture |
 | `existingResearch` | object | No | Trusted | Prior vetted sources, for extension rather than re-derivation | This is the first research pass for the topic |
 | `researchMaterials` | array | Yes | **UNTRUSTED** | 0–40 items; each item's `content` ≤ 6000 code points | Empty array is valid; recorded as `MATERIALS_INSUFFICIENT` gaps, never fabricated |

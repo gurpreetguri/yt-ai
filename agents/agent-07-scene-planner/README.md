@@ -34,7 +34,7 @@ Every field in `output.schema.json` is structural planning direction; there is n
 
 ## 3. The approval gate — Agent 07 cannot bypass Script Reviewer
 
-Per the commissioning brief's explicit requirement, the input is invalid if the script is not ready for scene planning, or Agent 06's `decision` is not `APPROVED`, or Agent 06's `nextAction` is not `CONTINUE`. This is enforced deterministically at the input boundary, before the model is ever invoked:
+Per the commissioning brief's explicit requirement, the input is invalid if the script is not ready for scene planning, or the Review Report's `decision` is not `APPROVED`, or the Review Report's `nextAction` is not `CONTINUE`. This is enforced deterministically at the input boundary, before the model is ever invoked:
 
 | Rule | Check |
 |---|---|
@@ -48,15 +48,15 @@ Any one of these failing is a workflow defect — the caller dispatched a script
 ## 4. Source of truth — the hierarchy this agent respects
 
 ```
-Agent 03 Verified Claims      → factual truth
+Verification Package (Verified Claims) → factual truth
       ↓
-Agent 04 Story Architecture   → narrative structure
+Story Architecture             → narrative structure
       ↓
-Agent 05 Narration Script     → exact narration
+Narration Script                → exact narration
       ↓
-Agent 06 Review Approval      → review approval
+Review Report (Review Approval) → review approval
       ↓
-Agent 07 Scene Plan           → visual scene structure
+Scene Plan                      → visual scene structure
 ```
 
 Agent 07 never overrides an upstream factual decision: `downstreamSafety`, `verificationStatus`, beat sequencing, and the narration text itself are all consumed exactly as supplied.
@@ -75,7 +75,7 @@ Agent 07 never creates narration and never copies large amounts of it — every 
 
 ## 7. Script and story coverage
 
-Every non-`TRANSITION` script segment must be covered by at least one scene's `segmentRefs` (`R-BUS-014`) — a segment with `segmentType: TRANSITION` is a purely structural bridge and may be exempt, exactly as the commissioning brief allows. Story beat coverage is not separately re-validated: every beat is already guaranteed at least one narrating segment by Agent 05's own frozen `R-BUS-009`, so segment coverage transitively guarantees beat coverage without a redundant rule.
+Every non-`TRANSITION` script segment must be covered by at least one scene's `segmentRefs` (`R-BUS-014`) — a segment with `segmentType: TRANSITION` is a purely structural bridge and may be exempt, exactly as the commissioning brief allows. Story beat coverage is not separately re-validated: every beat is already guaranteed at least one narrating segment by the Narration Script's own frozen `R-BUS-009`, so segment coverage transitively guarantees beat coverage without a redundant rule.
 
 `segmentRefs` and `beatRef` are each validated for existence independently (`R-BUS-003`, `R-BUS-004`), but existence alone is not enough — a scene could reference a real segment and a real beat that have nothing to do with each other. `R-BUS-027` closes that gap: it resolves every one of a scene's `segmentRefs` to that segment's own `beatRef` (skipping any entry `R-BUS-003` already reported as unresolvable, so the two rules never produce a misleading duplicate finding for the same defect) and requires the result to be truthful. When every referenced segment belongs to exactly one beat, `beatRef` MUST be present and MUST equal that beat — it cannot be omitted, and it cannot name a different beat. When the referenced segments span more than one beat (the deliberate multi-segment grouping described above, §5), `beatRef` MUST be absent, because no single value could truthfully represent more than one beat at once. `beatRef` remains optional in the schema for exactly this reason — its optionality is not relaxed provenance, it is the mechanism that lets a multi-beat scene say so honestly.
 

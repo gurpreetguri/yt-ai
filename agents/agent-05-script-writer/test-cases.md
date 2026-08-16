@@ -13,7 +13,7 @@ Case numbering follows the 46-scenario testing brief. Each case names the fixtur
 | 7 | Duplicate segment ID | Two segments share `segmentId`. | `FAILED (output)` | `R-BUS-001` · `AI_OUTPUT.BUSINESS.RULE_VIOLATED` |
 | 8 | Duplicate segment order | Two segments share `order`. | `FAILED (output)` | `R-BUS-002` |
 | 9 | `DO_NOT_USE` claim | A segment's `claimRefs` cites a `DO_NOT_USE` claim (or `evidenceRefs` cites its evidence directly). | `FAILED (output)` | `R-BUS-006` · `AI_OUTPUT.CONTENT.UNSAFE_CLAIM_USAGE` |
-| 10 | `UNSUPPORTED` claim | Same mechanism as #9 — Agent 03's fixed mapping resolves `UNSUPPORTED` to `downstreamSafety: DO_NOT_USE`; no separate rule needed. | `FAILED (output)` | `R-BUS-006` |
+| 10 | `UNSUPPORTED` claim | Same mechanism as #9 — the Verification Package's fixed mapping resolves `UNSUPPORTED` to `downstreamSafety: DO_NOT_USE`; no separate rule needed. | `FAILED (output)` | `R-BUS-006` |
 | 11 | `CONTRADICTED` claim | Same mechanism as #9 (`CONTRADICTED` → `DO_NOT_USE`). | `FAILED (output)` | `R-BUS-006` |
 | 12 | `INSUFFICIENT_EVIDENCE` claim | Same mechanism as #9 (`INSUFFICIENT_EVIDENCE` → `DO_NOT_USE`). | `FAILED (output)` | `R-BUS-006` |
 | 13 | `NOT_VERIFIABLE` claim | Same mechanism as #9 (`NOT_VERIFIABLE` → `DO_NOT_USE`). | `FAILED (output)` | `R-BUS-006` |

@@ -17,8 +17,8 @@
  *
  * Agent 05 is a WRITER, not a researcher or verifier (README §1). It never
  * invents a factual claim, a quote, a statistic, or a source; every factual
- * script segment traces to an Agent 04 story beat and, through it, to an
- * Agent 03 verified claim (README §4).
+ * script segment traces to a Story Architecture story beat and, through it, to
+ * a verified claim (README §4).
  *
  * @contract script-writer-agent-input/v1  1.0.0
  * @contract script-writer-agent-output/v1 1.0.0
@@ -249,15 +249,15 @@ export type VerificationStatus =
 export type DownstreamSafety = 'SAFE_TO_USE' | 'USE_WITH_QUALIFICATION' | 'DO_NOT_USE';
 export type FreshnessConcern = 'NONE' | 'MINOR' | 'MODERATE' | 'SEVERE';
 
-/** The subset of an Agent 03 claim's quote provenance this agent needs to write (never fabricate) a quotation. */
+/** The subset of a verified claim's quote provenance this agent needs to write (never fabricate) a quotation. */
 export interface QuoteProvenanceRef {
   readonly speaker: string;
   readonly speakerConfirmed: boolean;
 }
 
 /**
- * The subset of an Agent 03 Claim this agent needs. `downstreamSafety` is
- * Agent 03's fixed, already-validated determination — this agent respects it
+ * The subset of a verified Claim this agent needs. `downstreamSafety` is
+ * the Verification Package's fixed, already-validated determination — this agent respects it
  * absolutely and never re-derives or overrides it (README §4), identical in
  * spirit to Agent 04's own `VerifiedClaimRef`.
  */
@@ -277,7 +277,7 @@ export interface VerifiedClaimRef {
   readonly quoteProvenance?: QuoteProvenanceRef;
 }
 
-/** The subset of the Agent 03 Verification Package this agent needs. */
+/** The subset of the Verification Package this agent needs. */
 export interface VerificationPackageRef {
   readonly topicId: LocalKey;
   /** 1-60 items. claimId unique (R-IN-003). */
@@ -288,7 +288,7 @@ export type HookType =
   | 'CONTRADICTION' | 'SURPRISING_RESULT' | 'QUESTION' | 'PROBLEM' | 'PROMISE'
   | 'DISCOVERY' | 'MISTAKE' | 'COMPARISON' | 'STORY_SETUP';
 
-/** The subset of Agent 04's `hook` this agent needs to open the script faithfully. */
+/** The subset of the Story Architecture's `hook` this agent needs to open the script faithfully. */
 export interface HookRef {
   readonly hookType: HookType;
   readonly curiosityMechanism: string;
@@ -306,7 +306,7 @@ export type BeatType =
 export type BeatImportance = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type PacingValue = 'FAST' | 'MODERATE' | 'SLOW';
 
-/** The subset of an Agent 04 `StoryBeat` this agent needs. */
+/** The subset of a Story Architecture `StoryBeat` this agent needs. */
 export interface StoryBeatRef {
   readonly beatId: LocalKey;
   /** 1-based. Unique and contiguous across beats. */
@@ -334,7 +334,7 @@ export interface StoryDurationRef {
   readonly withinTolerance: boolean;
 }
 
-/** The subset of Agent 04's `payoff` this agent needs. */
+/** The subset of the Story Architecture's `payoff` this agent needs. */
 export interface StoryPayoffRef {
   readonly description: string;
   readonly connectsToOpeningPromise: boolean;
@@ -360,10 +360,10 @@ export interface CtaStrategyRef {
 export type StoryDownstreamReadiness = 'READY_FOR_SCRIPT' | 'NOT_READY_FOR_SCRIPT';
 
 /**
- * The subset of Agent 04's Story Architecture this agent needs
+ * The subset of the Story Architecture this agent needs
  * (GDE-002 §5.1 minimum-context principle). `storyObjective`, `pacingStrategy`,
  * `researchGaps`, `readinessBlockers`, `assumptions`, `declaredUnknowns`, and
- * `inputSufficiency` are Agent 04's own internal reasoning surface and are not
+ * `inputSufficiency` are the Story Architecture's own internal reasoning surface and are not
  * required here.
  */
 export interface StoryArchitectureRef {
@@ -430,7 +430,7 @@ export interface Quotation {
 
 /**
  * One unit of spoken narration (README §7). Every segment traces to exactly
- * one Agent 04 story beat via `beatRef`; every factual statement inside
+ * one Story Architecture story beat via `beatRef`; every factual statement inside
  * `narration` traces to a claim in `claimRefs`, and every `evidenceRefs`
  * entry traces to one of those same claims (README §8, §9).
  */
@@ -492,8 +492,8 @@ export interface ScriptReadinessBlocker {
 
 /**
  * THE NARRATION SCRIPT — the single deliverable of AGT-05. Complete,
- * natural-language, spoken-ready narration built strictly from Agent 04's
- * Story Architecture and Agent 03's verified claims (README §1). Contains no
+ * natural-language, spoken-ready narration built strictly from the
+ * Story Architecture and its verified claims (README §1). Contains no
  * scene plan, no image prompt, no voice setting, and no caption — those
  * belong to later agents (README §3).
  */

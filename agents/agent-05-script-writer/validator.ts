@@ -484,7 +484,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
               path: `$.segments[${segmentIndex}].claimRefs`,
               expected: 'no reference to a claim whose downstreamSafety is DO_NOT_USE',
               actual: claimId,
-              message: 'A DO_NOT_USE claim was used as factual script content; Agent 03\'s determination was not respected.',
+              message: 'A DO_NOT_USE claim was used as factual script content; the Verification Package\'s determination was not respected.',
             }));
           }
         });
@@ -523,7 +523,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
               path: `$.segments[${segmentIndex}].qualification`,
               expected: 'present, because this segment cites a USE_WITH_QUALIFICATION claim',
               actual: 'absent',
-              message: 'A segment cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per Agent 03) without preserving its qualification.',
+              message: 'A segment cites a USE_WITH_QUALIFICATION claim (e.g. CONFLICTING or OUTDATED per the Verification Package) without preserving its qualification.',
             })];
       });
     },
@@ -577,7 +577,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
               path: '$.segments',
               expected: `at least one segment with beatRef "${beat.beatId}"`,
               actual: 'no segment references this beat',
-              message: 'A story beat from the approved architecture was skipped entirely; the script does not follow Agent 04\'s architecture.',
+              message: 'A story beat from the approved architecture was skipped entirely; the script does not follow the Story Architecture.',
             })],
       );
     },
@@ -716,7 +716,7 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
             path: `$.segments[${segmentIndex}].quotation.speaker`,
             expected: speaker,
             actual: quotation.speaker,
-            message: 'The quotation\'s speaker does not match Agent 03\'s recorded quoteProvenance.speaker for this claim.',
+            message: 'The quotation\'s speaker does not match the Verification Package\'s recorded quoteProvenance.speaker for this claim.',
           }));
         }
         return findings;

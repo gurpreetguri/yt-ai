@@ -267,8 +267,8 @@ export type DownstreamSafety = 'SAFE_TO_USE' | 'USE_WITH_QUALIFICATION' | 'DO_NO
 export type FreshnessConcern = 'NONE' | 'MINOR' | 'MODERATE' | 'SEVERE';
 
 /**
- * The subset of an Agent 03 Claim this agent needs. `downstreamSafety` is
- * Agent 03's fixed, already-validated determination — this agent respects it
+ * The subset of a verified Claim this agent needs. `downstreamSafety` is
+ * the Verification Package's fixed, already-validated determination — this agent respects it
  * absolutely and never re-derives or overrides it (README §4).
  */
 export interface VerifiedClaimRef {
@@ -286,7 +286,7 @@ export interface VerifiedClaimRef {
 }
 
 /**
- * The subset of the Agent 03 Verification Package this agent needs.
+ * The subset of the Verification Package this agent needs.
  * Provenance TRUSTED but embedded free text MUST be treated as untrusted
  * data by the prompt (README §15).
  */
@@ -457,8 +457,8 @@ export interface InputSufficiency {
 
 /**
  * THE STORY ARCHITECTURE — the single deliverable of AGT-04. A structured
- * BLUEPRINT for Agent 05, never final narration (README §1, §3). Every
- * factual element traces to an Agent 03 verified claim (README §5).
+ * BLUEPRINT for narration script writing, never final narration (README §1, §3). Every
+ * factual element traces to a verified claim (README §5).
  */
 export interface StoryArchitecture {
   readonly packageKind: 'STORY_ARCHITECTURE';
