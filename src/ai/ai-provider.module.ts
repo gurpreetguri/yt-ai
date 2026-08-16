@@ -5,9 +5,11 @@ import { aiConfig } from '../config/ai.config';
 import { AI_PROVIDER } from './ai-provider.interface';
 import { AnthropicProvider } from './providers/anthropic.provider';
 import { GeminiProvider } from './providers/gemini.provider';
+import { GroqProvider } from './providers/groq.provider';
 import { MockAiProvider } from './providers/mock.provider';
 import { OllamaProvider } from './providers/ollama.provider';
 import { OpenRouterProvider } from './providers/openrouter.provider';
+import { resolveAiProviderInstance } from './resolve-ai-provider.util';
 import { ModelRegistry } from './router/model-registry';
 import { ModelRouterProvider } from './router/model-router.provider';
 import { InMemoryProviderHealthStore, PROVIDER_HEALTH_STORE } from './router/provider-health';
@@ -36,6 +38,7 @@ import { RouterBootstrapService } from './router/router-bootstrap.service';
   providers: [
     AnthropicProvider,
     GeminiProvider,
+    GroqProvider,
     MockAiProvider,
     OllamaProvider,
     OpenRouterProvider,
@@ -67,6 +70,7 @@ import { RouterBootstrapService } from './router/router-bootstrap.service';
         ModelRouterProvider,
         OpenRouterProvider,
         GeminiProvider,
+        GroqProvider,
       ],
       useFactory: (
         config: ConfigType<typeof aiConfig>,
@@ -75,15 +79,18 @@ import { RouterBootstrapService } from './router/router-bootstrap.service';
         router: ModelRouterProvider,
         openrouter: OpenRouterProvider,
         gemini: GeminiProvider,
-      ) => {
-        if (config.provider === 'anthropic') return anthropic;
-        if (config.provider === 'openrouter') return openrouter;
-        if (config.provider === 'gemini') return gemini;
-        if (config.provider === 'router') return router;
-        return mock;
-      },
+        groq: GroqProvider,
+      ) => resolveAiProviderInstance(config.provider, { anthropic, mock, router, openrouter, gemini, groq }),
     },
   ],
-  exports: [AI_PROVIDER],
+  exports: [
+    AI_PROVIDER,
+    AnthropicProvider,
+    MockAiProvider,
+    ModelRouterProvider,
+    OpenRouterProvider,
+    GeminiProvider,
+    GroqProvider,
+  ],
 })
 export class AiProviderModule {}

@@ -33,6 +33,16 @@ export interface PipelineRunRequest {
   readonly topic: string;
   readonly niche: string;
   readonly audience: string;
+  /**
+   * Optional source text for Agent 02 (Research) to draw evidence from —
+   * without it, Research has no material to work from and correctly
+   * reports every research question as a gap rather than fabricating
+   * evidence, which in turn leaves Agent 03 (Fact Verification) with zero
+   * claims to verify. Free text, not a URL fetch; 1-6000 characters when
+   * supplied (matches `agents/agent-02-research/input.schema.json`
+   * `researchMaterials[].content`).
+   */
+  readonly researchMaterial?: string;
 }
 
 export interface FinalOutputStory {

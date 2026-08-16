@@ -59,9 +59,18 @@ const MAX_REPORTED_ISSUES = 50;
  * Whether any given provider honours it or ignores it, this service always
  * runs the same `validateStrategyManifest` pass on the result — see
  * `ai-provider.interface.ts` for why that hint can never replace validation.
+ *
+ * Shape is `{ root, defs }` rather than the bare `strategyManifest` fragment
+ * alone: that fragment's own `$ref`s (`localKey`, `calendarDate`, the
+ * `derivation` discriminated union, ...) point at sibling definitions in
+ * `output.schema.json`'s top-level `$defs`, which a provider resolving
+ * `$ref`s (`gemini-schema.util.ts`) needs alongside the fragment itself —
+ * passing the fragment alone leaves those references dangling.
  */
-const MANIFEST_JSON_SCHEMA: unknown = (manifestOutputSchema as { $defs: { strategyManifest: unknown } }).$defs
-  .strategyManifest;
+const MANIFEST_JSON_SCHEMA: unknown = {
+  root: (manifestOutputSchema as { $defs: { strategyManifest: unknown } }).$defs.strategyManifest,
+  defs: (manifestOutputSchema as { $defs: Record<string, unknown> }).$defs,
+};
 
 const REFUSAL_REASON_TO_ERROR: Readonly<
   Record<
@@ -85,6 +94,14 @@ export interface ExecuteOptions {
    * service never decides to call itself again (GDE-002 §10.1).
    */
   readonly attemptType?: ExecutionAttemptType;
+  /**
+   * Set by the caller on a REPAIR attempt only — the prior attempt's own
+   * validation findings, turned into instruction text and appended to
+   * `systemPrompt` (see `strategy.prompt.ts`/`repair-guidance.util.ts`).
+   * `undefined` on every INITIAL attempt, which has no prior failure to
+   * describe.
+   */
+  readonly repairGuidance?: string;
 }
 
 /**
@@ -224,7 +241,7 @@ export class StrategyService {
     //    request problem.
     let rendered: ReturnType<StrategyPromptService['render']>;
     try {
-      rendered = this.promptService.render(request.data);
+      rendered = this.promptService.render(request.data, options.repairGuidance);
     } catch (error) {
       return this.failure(
         request,

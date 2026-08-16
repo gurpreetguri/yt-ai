@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { ScriptReviewerRequestData } from '@agents/agent-06-script-reviewer/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-06-script-reviewer/system-prompt.md`) — the single source
@@ -102,7 +104,7 @@ export class ScriptReviewerPromptService implements OnModuleInit {
    * `audienceContext`, `language`) is required by the input schema and is
    * always rendered.
    */
-  render(data: ScriptReviewerRequestData): RenderedPrompt {
+  render(data: ScriptReviewerRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -115,7 +117,7 @@ export class ScriptReviewerPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: SCRIPT_REVIEWER_PROMPT_ID,
     };

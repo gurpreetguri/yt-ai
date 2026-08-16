@@ -61,9 +61,11 @@ const MAX_REPORTED_ISSUES = 50;
  * pass on the result — see `ai-provider.interface.ts` for why that hint can
  * never replace validation.
  */
-const VERIFICATION_PACKAGE_JSON_SCHEMA: unknown = (
-  verificationPackageOutputSchema as { $defs: { verificationPackage: unknown } }
-).$defs.verificationPackage;
+const VERIFICATION_PACKAGE_JSON_SCHEMA: unknown = {
+  root: (verificationPackageOutputSchema as { $defs: { verificationPackage: unknown } }).$defs
+    .verificationPackage,
+  defs: (verificationPackageOutputSchema as { $defs: Record<string, unknown> }).$defs,
+};
 
 /**
  * The `schemaVersion` of `fact-verification-agent-output/v1` this runtime
@@ -112,6 +114,14 @@ export interface ExecuteOptions {
    * service never decides to call itself again (GDE-002 §10.1).
    */
   readonly attemptType?: ExecutionAttemptType;
+  /**
+   * Set by the caller on a REPAIR attempt only — the prior attempt's own
+   * validation findings, turned into instruction text and appended to
+   * systemPrompt (see this agent's *.prompt.ts / repair-guidance.util.ts).
+   * undefined on every INITIAL attempt, which has no prior failure to
+   * describe.
+   */
+  readonly repairGuidance?: string;
 }
 
 /**
@@ -237,7 +247,7 @@ export class FactVerificationService {
     //    request problem.
     let rendered: ReturnType<FactVerificationPromptService['render']>;
     try {
-      rendered = this.promptService.render(request.data);
+      rendered = this.promptService.render(request.data, options.repairGuidance);
     } catch (error) {
       return this.failure(
         request,

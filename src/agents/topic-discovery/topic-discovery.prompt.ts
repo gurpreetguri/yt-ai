@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { TopicDiscoveryRequestData } from '@agents/agent-01-topic-discovery/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-01-topic-discovery/system-prompt.md`) — the single source of
@@ -116,7 +118,7 @@ export class TopicDiscoveryPromptService implements OnModuleInit {
    * (`discoveryConstraints`, `trendContext`) are omitted ENTIRELY — never
    * rendered empty — when the corresponding key is absent from `data`.
    */
-  render(data: TopicDiscoveryRequestData): RenderedPrompt {
+  render(data: TopicDiscoveryRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -129,7 +131,7 @@ export class TopicDiscoveryPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: TOPIC_DISCOVERY_PROMPT_ID,
     };

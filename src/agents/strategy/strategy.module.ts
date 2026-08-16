@@ -1,6 +1,6 @@
 import Ajv2020 from 'ajv/dist/2020';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
 
 import {
   createContractValidator,
@@ -10,6 +10,14 @@ import {
 } from '@agents/agent-00-strategy/validator';
 
 import { AiProviderModule } from '../../ai/ai-provider.module';
+import { AI_PROVIDER } from '../../ai/ai-provider.interface';
+import { AnthropicProvider } from '../../ai/providers/anthropic.provider';
+import { GeminiProvider } from '../../ai/providers/gemini.provider';
+import { GroqProvider } from '../../ai/providers/groq.provider';
+import { MockAiProvider } from '../../ai/providers/mock.provider';
+import { OpenRouterProvider } from '../../ai/providers/openrouter.provider';
+import { ModelRouterProvider } from '../../ai/router/model-router.provider';
+import { resolveAiProviderInstance } from '../../ai/resolve-ai-provider.util';
 import { aiConfig } from '../../config/ai.config';
 import { StrategyPromptService } from './strategy.prompt';
 import { StrategyService } from './strategy.service';
@@ -33,6 +41,41 @@ import {
   providers: [
     StrategyPromptService,
     StrategyService,
+    // Local override for AI_PROVIDER — takes precedence over AiProviderModule's
+    // @Global() binding for StrategyService specifically (Nest resolves a
+    // module's own provider registrations before falling back to a global
+    // one for the same token). Lets AGENT_00_STRATEGY_PROVIDER assign this
+    // agent a different concrete provider than the AI_PROVIDER default,
+    // without this agent's own code ever knowing a provider name exists.
+    {
+      provide: AI_PROVIDER,
+      inject: [
+        aiConfig.KEY,
+        AnthropicProvider,
+        MockAiProvider,
+        ModelRouterProvider,
+        OpenRouterProvider,
+        GeminiProvider,
+        GroqProvider,
+      ],
+      useFactory: (
+        config: ConfigType<typeof aiConfig>,
+        anthropic: AnthropicProvider,
+        mock: MockAiProvider,
+        router: ModelRouterProvider,
+        openrouter: OpenRouterProvider,
+        gemini: GeminiProvider,
+        groq: GroqProvider,
+      ) =>
+        resolveAiProviderInstance(config.agentProviders['agent-00-strategy'] ?? config.provider, {
+          anthropic,
+          mock,
+          router,
+          openrouter,
+          gemini,
+          groq,
+        }),
+    },
     {
       provide: STRATEGY_AJV,
       useFactory: (): Ajv2020 => createContractValidator(),

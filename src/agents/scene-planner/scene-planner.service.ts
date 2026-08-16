@@ -61,9 +61,10 @@ const MAX_REPORTED_ISSUES = 50;
  * the result — see `ai-provider.interface.ts` for why that hint can never
  * replace validation.
  */
-const SCENE_PLAN_JSON_SCHEMA: unknown = (
-  scenePlanOutputSchema as { $defs: { scenePlan: unknown } }
-).$defs.scenePlan;
+const SCENE_PLAN_JSON_SCHEMA: unknown = {
+  root: (scenePlanOutputSchema as { $defs: { scenePlan: unknown } }).$defs.scenePlan,
+  defs: (scenePlanOutputSchema as { $defs: Record<string, unknown> }).$defs,
+};
 
 /**
  * Sampling parameters fixed by the agent's own prompt contract
@@ -95,6 +96,14 @@ export interface ExecuteOptions {
    * service never decides to call itself again (GDE-002 §10.1).
    */
   readonly attemptType?: ExecutionAttemptType;
+  /**
+   * Set by the caller on a REPAIR attempt only — the prior attempt's own
+   * validation findings, turned into instruction text and appended to
+   * systemPrompt (see this agent's *.prompt.ts / repair-guidance.util.ts).
+   * undefined on every INITIAL attempt, which has no prior failure to
+   * describe.
+   */
+  readonly repairGuidance?: string;
 }
 
 /**
@@ -225,7 +234,7 @@ export class ScenePlannerService {
     //    request problem.
     let rendered: ReturnType<ScenePlannerPromptService['render']>;
     try {
-      rendered = this.promptService.render(request.data);
+      rendered = this.promptService.render(request.data, options.repairGuidance);
     } catch (error) {
       return this.failure(
         request,

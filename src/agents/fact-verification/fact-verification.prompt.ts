@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { FactVerificationRequestData } from '@agents/agent-03-fact-verification/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-03-fact-verification/system-prompt.md`) — the single source
@@ -101,7 +103,7 @@ export class FactVerificationPromptService implements OnModuleInit {
    * `researchPackage` and `language` are required, so both blocks are always
    * rendered — there are no optional blocks in this prompt's user layer.
    */
-  render(data: FactVerificationRequestData): RenderedPrompt {
+  render(data: FactVerificationRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -114,7 +116,7 @@ export class FactVerificationPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: FACT_VERIFICATION_PROMPT_ID,
     };

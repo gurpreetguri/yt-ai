@@ -46,7 +46,7 @@ describe('OpenRouterProvider', () => {
         baseUrl: 'https://openrouter.invalid/api/v1',
         quality: 'BALANCED',
       },
-      groq: { apiKey: undefined, model: 'groq-test-model', quality: 'BALANCED' },
+      groq: { apiKey: undefined, model: 'groq-test-model', baseUrl: 'https://groq.invalid/openai/v1', quality: 'BALANCED' },
       ollama: { baseUrl: 'http://127.0.0.1:11434', model: 'llama3', quality: 'BALANCED', numCtx: 8192 },
       timeoutMs: 45_000,
       maxOutputTokens: 8_000,
@@ -62,6 +62,7 @@ describe('OpenRouterProvider', () => {
         quotaExhaustedCooldownMs: 3_600_000,
         freeProviders: [],
       },
+      agentProviders: {},
     };
   }
 

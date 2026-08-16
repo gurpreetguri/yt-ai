@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { ResearchRequestData } from '@agents/agent-02-research/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-02-research/system-prompt.md`) — the single source of truth
@@ -115,7 +117,7 @@ export class ResearchPromptService implements OnModuleInit {
    * `existingResearch`) are omitted ENTIRELY — never rendered empty — when
    * the corresponding key is absent from `data`.
    */
-  render(data: ResearchRequestData): RenderedPrompt {
+  render(data: ResearchRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -128,7 +130,7 @@ export class ResearchPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: RESEARCH_PROMPT_ID,
     };

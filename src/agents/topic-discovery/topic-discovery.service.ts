@@ -61,9 +61,10 @@ const MAX_REPORTED_ISSUES = 50;
  * pass on the result — see `ai-provider.interface.ts` for why that hint can
  * never replace validation.
  */
-const TOPIC_SET_JSON_SCHEMA: unknown = (
-  topicSetOutputSchema as { $defs: { topicOpportunitySet: unknown } }
-).$defs.topicOpportunitySet;
+const TOPIC_SET_JSON_SCHEMA: unknown = {
+  root: (topicSetOutputSchema as { $defs: { topicOpportunitySet: unknown } }).$defs.topicOpportunitySet,
+  defs: (topicSetOutputSchema as { $defs: Record<string, unknown> }).$defs,
+};
 
 /**
  * Sampling parameters fixed by the agent's own prompt contract
@@ -100,6 +101,14 @@ export interface ExecuteOptions {
    * service never decides to call itself again (GDE-002 §10.1).
    */
   readonly attemptType?: ExecutionAttemptType;
+  /**
+   * Set by the caller on a REPAIR attempt only — the prior attempt's own
+   * validation findings, turned into instruction text and appended to
+   * systemPrompt (see this agent's *.prompt.ts / repair-guidance.util.ts).
+   * undefined on every INITIAL attempt, which has no prior failure to
+   * describe.
+   */
+  readonly repairGuidance?: string;
 }
 
 /**
@@ -226,7 +235,7 @@ export class TopicDiscoveryService {
     //    request problem.
     let rendered: ReturnType<TopicDiscoveryPromptService['render']>;
     try {
-      rendered = this.promptService.render(request.data);
+      rendered = this.promptService.render(request.data, options.repairGuidance);
     } catch (error) {
       return this.failure(
         request,

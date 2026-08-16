@@ -231,9 +231,22 @@ const PLACEHOLDER_PATTERNS: readonly RegExp[] = [
   /lorem ipsum/i,
   /\[insert[^\]]*\]/i,
   /\{\{[^}]*\}\}/,
-  /<[a-z_]+>\s*$/i,
   /\.\.\.$/,
 ];
+
+/**
+ * Checked separately from `PLACEHOLDER_PATTERNS` above, and excluded for
+ * `TITLE_PATTERN_PATH` below: an angle-bracket token like `<topic>` is
+ * unfilled-instruction residue almost everywhere in the manifest, but it is
+ * the REQUIRED, correct content of exactly one field —
+ * `packagingDirection.titlePatterns[].pattern` is documented
+ * (`output.schema.json`) as "a shape, not a title... Placeholders are
+ * written in angle brackets, for example \"<outcome> without <obstacle>\"".
+ * Applying this pattern there would reject the one field whose entire
+ * purpose is to contain exactly this content.
+ */
+const ANGLE_BRACKET_PLACEHOLDER = /<[a-z_]+>\s*$/i;
+const TITLE_PATTERN_PATH = /^\$\.packagingDirection\.titlePatterns\[\d+\]\.pattern$/;
 
 function collectStrings(value: unknown, path: string, sink: Array<{ path: string; value: string }>): void {
   if (typeof value === 'string') {
@@ -970,7 +983,10 @@ export const OUTPUT_BUSINESS_RULES: readonly BusinessRuleDefinition<
       const strings: Array<{ path: string; value: string }> = [];
       collectStrings(manifest, '$', strings);
       return strings.flatMap(({ path, value }) => {
-        const matched = PLACEHOLDER_PATTERNS.find((pattern) => pattern.test(value));
+        const patterns = TITLE_PATTERN_PATH.test(path)
+          ? PLACEHOLDER_PATTERNS
+          : [...PLACEHOLDER_PATTERNS, ANGLE_BRACKET_PLACEHOLDER];
+        const matched = patterns.find((pattern) => pattern.test(value));
         return matched === undefined
           ? []
           : [finding({

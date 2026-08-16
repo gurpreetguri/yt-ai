@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { ScriptWriterRequestData } from '@agents/agent-05-script-writer/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-05-script-writer/system-prompt.md`) — the single source of
@@ -101,7 +103,7 @@ export class ScriptWriterPromptService implements OnModuleInit {
    * Every block (`storyArchitecture`, `verificationPackage`, `language`) is
    * required by the input schema and is always rendered.
    */
-  render(data: ScriptWriterRequestData): RenderedPrompt {
+  render(data: ScriptWriterRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -114,7 +116,7 @@ export class ScriptWriterPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: SCRIPT_WRITER_PROMPT_ID,
     };

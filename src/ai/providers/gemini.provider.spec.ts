@@ -49,7 +49,7 @@ describe('GeminiProvider', () => {
         baseUrl: 'https://openrouter.invalid/api/v1',
         quality: 'BALANCED',
       },
-      groq: { apiKey: undefined, model: 'groq-test-model', quality: 'BALANCED' },
+      groq: { apiKey: undefined, model: 'groq-test-model', baseUrl: 'https://groq.invalid/openai/v1', quality: 'BALANCED' },
       ollama: { baseUrl: 'http://127.0.0.1:11434', model: 'llama3', quality: 'BALANCED', numCtx: 8192 },
       timeoutMs: 45_000,
       maxOutputTokens: 8_000,
@@ -65,6 +65,7 @@ describe('GeminiProvider', () => {
         quotaExhaustedCooldownMs: 3_600_000,
         freeProviders: [],
       },
+      agentProviders: {},
     };
   }
 
@@ -158,6 +159,63 @@ describe('GeminiProvider', () => {
 
     const [url] = fetchSpy.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('https://gemini.invalid/v1beta/models/gemini-2.5-flash:generateContent?key=test-api-key');
+  });
+
+  it("sends the converted responseSchema when structuredOutput.schema is a resolvable {root, defs} envelope", async () => {
+    const fetchSpy = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }],
+      }),
+    );
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+    await provider.invoke(
+      makeRequest({
+        structuredOutput: {
+          schemaName: 'testSchema',
+          schema: {
+            root: { type: 'object', properties: { key: { $ref: '#/$defs/localKey' } }, required: ['key'] },
+            defs: { localKey: { type: 'string', pattern: '^[A-Z]+$' } },
+          },
+        },
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string) as {
+      generationConfig: { responseSchema?: unknown };
+    };
+    expect(body.generationConfig.responseSchema).toEqual({
+      type: 'OBJECT',
+      properties: { key: { type: 'STRING', pattern: '^[A-Z]+$' } },
+      required: ['key'],
+    });
+  });
+
+  it('omits responseSchema (falls back gracefully) when structuredOutput.schema has an unresolvable $ref', async () => {
+    const fetchSpy = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }],
+      }),
+    );
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+    await provider.invoke(
+      makeRequest({
+        structuredOutput: {
+          schemaName: 'testSchema',
+          schema: { $ref: '#/$defs/missing' },
+        },
+      }),
+    );
+
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string) as {
+      generationConfig: { responseSchema?: unknown };
+    };
+    expect(body.generationConfig.responseSchema).toBeUndefined();
   });
 
   it('always requests responseMimeType=application/json', async () => {

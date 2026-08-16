@@ -34,6 +34,8 @@ export interface PipelineRunRequest {
   topic: string;
   niche: string;
   audience: string;
+  /** Optional source text for Agent 02 (Research) to draw evidence from. Without it, Research has nothing to work from and Agent 03 (Fact Verification) will have zero claims to verify. */
+  researchMaterial?: string;
 }
 
 /** Mirrors the backend's `src/pipeline/pipeline.types.ts` FinalOutput shape exactly. */

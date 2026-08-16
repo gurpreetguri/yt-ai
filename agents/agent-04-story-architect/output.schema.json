@@ -318,7 +318,7 @@
         "hook": { "$ref": "#/$defs/hook" },
 
         "beats": {
-          "description": "The narrative sequence (README §8). Unordered as an array; the meaningful order is `order`, ascending. 2-30 items. beatId unique (R-BUS-001); order unique and contiguous from 1 (R-BUS-002).",
+          "description": "The narrative sequence (README §8). Unordered as an array; the meaningful order is `order`, ascending. 2-30 items. beatId unique (R-BUS-001); order unique and contiguous from 1 (R-BUS-002). At least one beat MUST have beatType PAYOFF or CONCLUSION (R-BUS-011) — the narrative must resolve, never end on setup or rising action alone.",
           "type": "array",
           "minItems": 2,
           "maxItems": 30,

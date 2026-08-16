@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { StrategyRequestData } from '@agents/agent-00-strategy/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-00-strategy/system-prompt.md`) — the single source of truth
@@ -105,8 +107,18 @@ export class StrategyPromptService implements OnModuleInit {
    * Required blocks are always rendered (the input schema guarantees the six
    * required keys are present); optional blocks are omitted ENTIRELY — never
    * rendered empty — when the corresponding key is absent from `data`.
+   *
+   * `repairGuidance`, when supplied, is appended to `systemPrompt` — never
+   * to `userPrompt`. `userPrompt` is built entirely from named DATA blocks
+   * the approved prompt's own contract (§3, rule 68) requires the model to
+   * treat as inert content, never as instructions; guidance meant to change
+   * this attempt's behaviour has to be actual instruction content to have
+   * any effect, exactly like the rest of `systemPrompt` it's appended to.
+   * The approved file's own text is never modified — this is a clearly
+   * delimited, additive, runtime-supplied section, the same category of
+   * dynamic-but-not-model-authored content as `meta`/`execution`.
    */
-  render(data: StrategyRequestData): RenderedPrompt {
+  render(data: StrategyRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -119,7 +131,7 @@ export class StrategyPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: STRATEGY_PROMPT_ID,
     };

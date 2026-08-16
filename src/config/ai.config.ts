@@ -45,6 +45,10 @@ export interface GeminiConfig extends ProviderCredentialConfig {
   readonly baseUrl: string;
 }
 
+export interface GroqConfig extends ProviderCredentialConfig {
+  readonly baseUrl: string;
+}
+
 export interface AiRouterConfig {
   readonly mode: AiRouterMode;
   readonly allowLocal: boolean;
@@ -63,8 +67,8 @@ export interface AiRouterConfig {
 }
 
 export interface AiConfig {
-  /** Which provider implementation the DI container wires up. `'router'` enables the Multi-LLM router; `'anthropic'`/`'openrouter'`/`'gemini'`/`'mock'` bind directly to a single adapter. */
-  readonly provider: 'anthropic' | 'mock' | 'router' | 'openrouter' | 'gemini';
+  /** Which provider implementation the DI container wires up. `'router'` enables the Multi-LLM router; `'anthropic'`/`'openrouter'`/`'gemini'`/`'groq'`/`'mock'` bind directly to a single adapter. */
+  readonly provider: 'anthropic' | 'mock' | 'router' | 'openrouter' | 'gemini' | 'groq';
   readonly anthropic: {
     readonly apiKey: string | undefined;
     readonly model: string;
@@ -75,7 +79,7 @@ export interface AiConfig {
   readonly openai: ProviderCredentialConfig;
   readonly gemini: GeminiConfig;
   readonly openrouter: OpenRouterConfig;
-  readonly groq: ProviderCredentialConfig;
+  readonly groq: GroqConfig;
   readonly ollama: {
     readonly baseUrl: string;
     readonly model: string;
@@ -87,6 +91,8 @@ export interface AiConfig {
   readonly timeoutMs: number;
   readonly maxOutputTokens: number;
   readonly router: AiRouterConfig;
+  /** Per-agent provider overrides (`AGENT_<ID>_PROVIDER`) — see `envAgentProviderOverrides`. */
+  readonly agentProviders: Readonly<Partial<Record<string, AiConfig['provider']>>>;
 }
 
 function envBoolean(name: string, defaultValue: boolean): boolean {
@@ -121,17 +127,69 @@ function envProvider(): AiConfig['provider'] {
     raw === 'anthropic' ||
     raw === 'router' ||
     raw === 'openrouter' ||
-    raw === 'gemini'
+    raw === 'gemini' ||
+    raw === 'groq'
   ) {
     return raw ?? 'mock';
   }
   // eslint-disable-next-line no-console -- startup-time misconfiguration diagnostic; no Logger/DI context exists inside a plain registerAs factory.
   console.warn(
     `[ai.config] AI_PROVIDER="${raw}" is not a recognized value (expected "mock", "anthropic", "openrouter", ` +
-      '"gemini", or "router" to reach a provider registered in the router, e.g. Ollama). Falling back to ' +
-      '"mock" — no AI provider will actually be called until this is corrected.',
+      '"gemini", "groq", or "router" to reach a provider registered in the router, e.g. Ollama). Falling back ' +
+      'to "mock" — no AI provider will actually be called until this is corrected.',
   );
   return 'mock';
+}
+
+const AGENT_IDS = [
+  'agent-00-strategy',
+  'agent-01-topic-discovery',
+  'agent-02-research',
+  'agent-03-fact-verification',
+  'agent-04-story-architect',
+  'agent-05-script-writer',
+  'agent-06-script-reviewer',
+  'agent-07-scene-planner',
+] as const;
+
+type AgentId = (typeof AGENT_IDS)[number];
+
+/**
+ * Per-agent provider override, e.g. `AGENT_03_FACT_VERIFICATION_PROVIDER=groq`
+ * — lets one agent use a different concrete provider than the global
+ * `AI_PROVIDER` default, so different agents can be assigned whichever
+ * model handles that agent's specific schema most reliably, without
+ * changing any agent's own code (the containment line in
+ * `ai-provider.interface.ts` is unaffected — this is operator
+ * configuration, resolved once at DI wiring time, never a runtime choice
+ * any agent makes about itself). Absent for an agent falls back to the
+ * global `AI_PROVIDER`. An unrecognized value is treated as absent, with
+ * the same visible startup warning as an invalid `AI_PROVIDER`.
+ */
+function envAgentProviderOverrides(): Readonly<Partial<Record<AgentId, AiConfig['provider']>>> {
+  const overrides: Partial<Record<AgentId, AiConfig['provider']>> = {};
+  for (const agentId of AGENT_IDS) {
+    const envVarName = `AGENT_${agentId.replace('agent-', '').replace(/-/g, '_').toUpperCase()}_PROVIDER`;
+    const raw = process.env[envVarName];
+    if (raw === undefined) continue;
+    if (
+      raw === 'mock' ||
+      raw === 'anthropic' ||
+      raw === 'router' ||
+      raw === 'openrouter' ||
+      raw === 'gemini' ||
+      raw === 'groq'
+    ) {
+      overrides[agentId] = raw;
+      continue;
+    }
+    // eslint-disable-next-line no-console -- startup-time misconfiguration diagnostic; no Logger/DI context exists inside a plain registerAs factory.
+    console.warn(
+      `[ai.config] ${envVarName}="${raw}" is not a recognized value. Ignoring — ${agentId} will use the ` +
+        'global AI_PROVIDER instead.',
+    );
+  }
+  return overrides;
 }
 
 export const aiConfig = registerAs('ai', (): AiConfig => ({
@@ -163,6 +221,7 @@ export const aiConfig = registerAs('ai', (): AiConfig => ({
   groq: {
     apiKey: process.env.GROQ_API_KEY,
     model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
+    baseUrl: process.env.GROQ_BASE_URL ?? 'https://api.groq.com/openai/v1',
     quality: envModelQuality('GROQ_MODEL_QUALITY'),
   },
   ollama: {
@@ -192,4 +251,5 @@ export const aiConfig = registerAs('ai', (): AiConfig => ({
       .map((name) => name.trim())
       .filter((name) => name.length > 0),
   },
+  agentProviders: envAgentProviderOverrides(),
 }));

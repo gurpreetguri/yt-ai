@@ -16,6 +16,7 @@ const DEFAULT_VALUES: PipelineRunRequest = {
   topic: 'Why your paycheck is smaller than your salary',
   niche: 'Personal finance explainers',
   audience: 'Young professionals new to full-time work',
+  researchMaterial: '',
 };
 
 /** Left column: the run form. Fully controlled with useState only — no form library, no global state. */
@@ -49,6 +50,15 @@ export function InputForm({ onRun, isRunning }: InputFormProps) {
             value={values.audience}
             onChange={handleChange('audience')}
           />
+          <Field
+            label="Research material (optional)"
+            name="researchMaterial"
+            value={values.researchMaterial ?? ''}
+            onChange={handleChange('researchMaterial')}
+            required={false}
+            rows={5}
+            placeholder="Paste source text/notes for Agent 02 (Research) to draw evidence from. Without this, Research has nothing to verify claims against, and Agent 03 (Fact Verification) will have zero claims to check."
+          />
 
           <Button type="submit" disabled={isRunning} className="mt-auto gap-2">
             {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -65,11 +75,17 @@ function Field({
   name,
   value,
   onChange,
+  required = true,
+  rows = 2,
+  placeholder,
 }: {
   label: string;
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  required?: boolean;
+  rows?: number;
+  placeholder?: string;
 }) {
   return (
     <label htmlFor={name} className="flex flex-col gap-1.5 text-sm">
@@ -79,8 +95,9 @@ function Field({
         name={name}
         value={value}
         onChange={onChange}
-        rows={2}
-        required
+        rows={rows}
+        required={required}
+        placeholder={placeholder}
         className="resize-none rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
       />
     </label>

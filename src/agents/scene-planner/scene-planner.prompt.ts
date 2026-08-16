@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { ScenePlannerRequestData } from '@agents/agent-07-scene-planner/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-07-scene-planner/system-prompt.md`) — the single source of
@@ -101,7 +103,7 @@ export class ScenePlannerPromptService implements OnModuleInit {
    * `verificationPackage`, `language`) is required by the input schema and
    * is always rendered.
    */
-  render(data: ScenePlannerRequestData): RenderedPrompt {
+  render(data: ScenePlannerRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -114,7 +116,7 @@ export class ScenePlannerPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: SCENE_PLANNER_PROMPT_ID,
     };

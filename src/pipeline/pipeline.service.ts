@@ -22,6 +22,7 @@ import { TopicDiscoveryService } from '../agents/topic-discovery/topic-discovery
 
 import type {
   ResearchAgentRequest,
+  ResearchMaterial,
   ResearchPackage,
   TopicOpportunityRef as ResearchTopicOpportunityRef,
 } from '@agents/agent-02-research/interfaces';
@@ -62,6 +63,7 @@ import type {
 import { ScenePlannerService } from '../agents/scene-planner/scene-planner.service';
 
 import { generatePrefixedId } from '../common/id.util';
+import { buildRepairGuidance } from '../common/repair-guidance.util';
 import { buildFinalOutput } from './output-formatter';
 import {
   PIPELINE_AGENT_IDS,
@@ -155,16 +157,16 @@ export class PipelineService {
 
     // Agent 00 — Strategy.
     const strategyRequest = this.buildStrategyRequest(request, ctx);
-    const strategyResult = await this.attempt('agent-00-strategy', strategyRequest, steps, (attemptType) =>
-      this.strategyService.execute(strategyRequest, { attemptType }),
+    const strategyResult = await this.attempt('agent-00-strategy', strategyRequest, steps, (attemptType, repairGuidance) =>
+      this.strategyService.execute(strategyRequest, { attemptType, repairGuidance }),
     );
     if (strategyResult === null) return this.finish(request, steps, {});
     manifest = strategyResult;
 
     // Agent 01 — Topic Discovery.
     const topicRequest = this.buildTopicDiscoveryRequest(request, ctx, manifest);
-    const topicResult = await this.attempt('agent-01-topic-discovery', topicRequest, steps, (attemptType) =>
-      this.topicDiscoveryService.execute(topicRequest, { attemptType }),
+    const topicResult = await this.attempt('agent-01-topic-discovery', topicRequest, steps, (attemptType, repairGuidance) =>
+      this.topicDiscoveryService.execute(topicRequest, { attemptType, repairGuidance }),
     );
     if (topicResult === null) return this.finish(request, steps, {});
     topic = topicResult.topics.find((candidate) => candidate.rank === 1) ?? topicResult.topics[0] ?? null;
@@ -179,8 +181,8 @@ export class PipelineService {
 
     // Agent 02 — Research.
     const researchRequest = this.buildResearchRequest(request, ctx, topic);
-    const researchResult = await this.attempt('agent-02-research', researchRequest, steps, (attemptType) =>
-      this.researchService.execute(researchRequest, { attemptType }),
+    const researchResult = await this.attempt('agent-02-research', researchRequest, steps, (attemptType, repairGuidance) =>
+      this.researchService.execute(researchRequest, { attemptType, repairGuidance }),
     );
     if (researchResult === null)
       return this.finish(request, steps, { story: null, script: null, review: null, scenePlan: null });
@@ -192,23 +194,23 @@ export class PipelineService {
       'agent-03-fact-verification',
       verificationRequest,
       steps,
-      (attemptType) => this.factVerificationService.execute(verificationRequest, { attemptType }),
+      (attemptType, repairGuidance) => this.factVerificationService.execute(verificationRequest, { attemptType, repairGuidance }),
     );
     if (verificationResult === null) return this.finish(request, steps, {});
     verificationPackage = verificationResult;
 
     // Agent 04 — Story Architect.
     const storyRequest = this.buildStoryArchitectRequest(request, ctx, verificationPackage, topic);
-    const storyResult = await this.attempt('agent-04-story-architect', storyRequest, steps, (attemptType) =>
-      this.storyArchitectService.execute(storyRequest, { attemptType }),
+    const storyResult = await this.attempt('agent-04-story-architect', storyRequest, steps, (attemptType, repairGuidance) =>
+      this.storyArchitectService.execute(storyRequest, { attemptType, repairGuidance }),
     );
     if (storyResult === null) return this.finish(request, steps, {});
     storyArchitecture = storyResult;
 
     // Agent 05 — Script Writer.
     const scriptRequest = this.buildScriptWriterRequest(request, ctx, storyArchitecture, verificationPackage);
-    const scriptResult = await this.attempt('agent-05-script-writer', scriptRequest, steps, (attemptType) =>
-      this.scriptWriterService.execute(scriptRequest, { attemptType }),
+    const scriptResult = await this.attempt('agent-05-script-writer', scriptRequest, steps, (attemptType, repairGuidance) =>
+      this.scriptWriterService.execute(scriptRequest, { attemptType, repairGuidance }),
     );
     if (scriptResult === null) return this.finish(request, steps, { story: storyArchitecture });
     narrationScript = scriptResult;
@@ -222,8 +224,8 @@ export class PipelineService {
       verificationPackage,
       manifest,
     );
-    const reviewResult = await this.attempt('agent-06-script-reviewer', reviewRequest, steps, (attemptType) =>
-      this.scriptReviewerService.execute(reviewRequest, { attemptType }),
+    const reviewResult = await this.attempt('agent-06-script-reviewer', reviewRequest, steps, (attemptType, repairGuidance) =>
+      this.scriptReviewerService.execute(reviewRequest, { attemptType, repairGuidance }),
     );
     if (reviewResult === null)
       return this.finish(request, steps, { story: storyArchitecture, script: narrationScript });
@@ -258,8 +260,8 @@ export class PipelineService {
       storyArchitecture,
       verificationPackage,
     );
-    const sceneResult = await this.attempt('agent-07-scene-planner', sceneRequest, steps, (attemptType) =>
-      this.scenePlannerService.execute(sceneRequest, { attemptType }),
+    const sceneResult = await this.attempt('agent-07-scene-planner', sceneRequest, steps, (attemptType, repairGuidance) =>
+      this.scenePlannerService.execute(sceneRequest, { attemptType, repairGuidance }),
     );
     scenePlan = sceneResult;
 
@@ -292,21 +294,27 @@ export class PipelineService {
       ok: boolean;
       response: {
         data?: unknown;
-        issues?: readonly { message: string; userMessage?: string; retryable?: boolean }[];
+        issues?: readonly {
+          message: string;
+          userMessage?: string;
+          retryable?: boolean;
+          details?: readonly { path?: string }[];
+        }[];
       };
     },
   >(
     agent: PipelineAgentId,
     request: TRequest,
     steps: PipelineStep[],
-    invoke: (attemptType: 'INITIAL' | 'REPAIR') => Promise<TOutcome>,
+    invoke: (attemptType: 'INITIAL' | 'REPAIR', repairGuidance?: string) => Promise<TOutcome>,
   ): Promise<TOutcome extends { ok: true; response: { data: infer TData } } ? TData : never | null> {
     const index = PIPELINE_AGENT_IDS.indexOf(agent);
+    let repairGuidance: string | undefined;
     try {
       for (let attemptNumber = 1; attemptNumber <= PipelineService.MAX_ATTEMPTS; attemptNumber += 1) {
         const attemptType: 'INITIAL' | 'REPAIR' = attemptNumber === 1 ? 'INITIAL' : 'REPAIR';
         // eslint-disable-next-line no-await-in-loop -- sequential, bounded retry by design: only retries after the previous attempt genuinely failed.
-        const outcome = await invoke(attemptType);
+        const outcome = await invoke(attemptType, repairGuidance);
         if (outcome.ok) {
           const data = (outcome.response as { data: unknown }).data;
           steps[index] = {
@@ -322,6 +330,10 @@ export class PipelineService {
         const issue = outcome.response.issues?.[0];
         const message = issue?.userMessage ?? issue?.message ?? 'Agent execution failed validation.';
         if (issue?.retryable === true && attemptNumber < PipelineService.MAX_ATTEMPTS) {
+          // Feeds the SAME failure's own findings into the next attempt's prompt
+          // (see repair-guidance.util.ts) — a targeted correction instead of a
+          // blind re-invocation hoping non-determinism alone fixes it.
+          repairGuidance = buildRepairGuidance(outcome.response.issues);
           this.logger.warn(
             `${agent} attempt ${attemptNumber} failed (${message}) — retrying once (retryable).`,
           );
@@ -441,7 +453,11 @@ export class PipelineService {
           targetAudienceDescription: `${request.audience}, interested in ${request.niche} content.`,
         },
         audienceDefinition: {
-          primarySegment: request.audience,
+          // Composed from the user's own two fields (never invented), matching the same
+          // minimum-length safeguard already applied to targetAudienceDescription above —
+          // a raw pass-through of a short single-word audience (e.g. "Developer", 9 chars)
+          // fails the contract's 10-character floor on this field.
+          primarySegment: `${request.audience} (${request.niche})`,
           geographies: ['US'],
           languages: [DEV_LOCALE],
           ageBands: ['AGE_25_34'],
@@ -525,6 +541,29 @@ export class PipelineService {
     };
   }
 
+  /**
+   * Wraps the operator-supplied `researchMaterial` free text (if any) into
+   * the single `ResearchMaterial` Agent 02 requires to have anything to
+   * work from. `content` is bounded to the schema's own 1-6000 character
+   * cap (`agents/agent-02-research/input.schema.json` — "bounded to contain
+   * cost... denial-of-wallet defence"); text beyond that is truncated,
+   * never rejected, since the operator's material is not itself a contract
+   * the pipeline enforces.
+   */
+  private buildResearchMaterials(researchMaterial: string | undefined): readonly ResearchMaterial[] {
+    const content = researchMaterial?.trim();
+    if (!content) return [];
+    return [
+      {
+        materialId: 'MAT_USER_SUPPLIED',
+        materialKind: 'FETCHED_DOCUMENT',
+        title: 'Operator-supplied research material',
+        content: content.slice(0, 6000),
+        retrievedAt: new Date().toISOString(),
+      },
+    ];
+  }
+
   private buildResearchRequest(
     request: PipelineRunRequest,
     ctx: RunContext,
@@ -547,10 +586,11 @@ export class PipelineService {
       meta: this.buildMeta(ctx, { strategyVersion: ctx.strategyVersion }),
       data: {
         topicOpportunity,
-        // No search/document-fetch provider is wired into this dev pipeline yet — an empty array is the
-        // schema's own valid "nothing supplied" case (Agent 02 is designed to report this honestly rather
-        // than fabricate evidence), never invented source material.
-        researchMaterials: [],
+        // No search/document-fetch provider is wired into this dev pipeline — the operator's own
+        // `request.researchMaterial` (if supplied via the UI/API) is the only source Research ever sees.
+        // An empty array is the schema's own valid "nothing supplied" case (Agent 02 is designed to
+        // report this honestly, as gaps, rather than fabricate evidence), never invented source material.
+        researchMaterials: this.buildResearchMaterials(request.researchMaterial),
         requestedDepth: 'STANDARD',
         language: DEV_LOCALE,
       },

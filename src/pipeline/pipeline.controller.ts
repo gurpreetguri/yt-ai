@@ -21,6 +21,9 @@ export class PipelineController {
       topic: typeof body?.topic === 'string' ? body.topic : '',
       niche: typeof body?.niche === 'string' ? body.niche : '',
       audience: typeof body?.audience === 'string' ? body.audience : '',
+      ...(typeof body?.researchMaterial === 'string' && body.researchMaterial.trim().length > 0
+        ? { researchMaterial: body.researchMaterial }
+        : {}),
     };
     return this.pipelineService.run(request);
   }

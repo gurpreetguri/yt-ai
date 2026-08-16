@@ -5,6 +5,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import type { StoryArchitectRequestData } from '@agents/agent-04-story-architect/interfaces';
 
+import { appendRepairGuidance } from '../../common/repair-guidance.util';
+
 /**
  * Loads and renders the approved system prompt
  * (`agents/agent-04-story-architect/system-prompt.md`) — the single source
@@ -110,7 +112,7 @@ export class StoryArchitectPromptService implements OnModuleInit {
    * (`storyConstraints`) is omitted ENTIRELY — never rendered empty — when
    * the corresponding key is absent from `data`.
    */
-  render(data: StoryArchitectRequestData): RenderedPrompt {
+  render(data: StoryArchitectRequestData, repairGuidance?: string): RenderedPrompt {
     const parsed = this.ensureParsed();
     const source = data as unknown as Record<string, unknown>;
 
@@ -123,7 +125,7 @@ export class StoryArchitectPromptService implements OnModuleInit {
     }
 
     return {
-      systemPrompt: parsed.systemPrompt,
+      systemPrompt: appendRepairGuidance(parsed.systemPrompt, repairGuidance),
       userPrompt: renderedBlocks.join('\n\n'),
       promptId: STORY_ARCHITECT_PROMPT_ID,
     };
