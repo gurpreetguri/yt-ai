@@ -148,7 +148,7 @@ export const aiConfig = registerAs('ai', (): AiConfig => ({
   },
   ollama: {
     baseUrl: process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434',
-    model: process.env.OLLAMA_MODEL ?? 'deepseek-coder:latest',
+    model: process.env.OLLAMA_MODEL ?? 'mistral:latest',
     quality: envModelQuality('OLLAMA_MODEL_QUALITY'),
   },
   timeoutMs: process.env.AI_TIMEOUT_MS ? Number(process.env.AI_TIMEOUT_MS) : 45_000,
