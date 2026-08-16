@@ -25,7 +25,8 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "undici": "^7.29.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
@@ -48,7 +49,11 @@
     "typescript": "^5.7.2"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "json", "ts"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
     "rootDir": ".",
     "testEnvironment": "node",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]sx?$",
@@ -65,7 +70,9 @@
       "^@agents/agent-06-script-reviewer/(.*)$": "<rootDir>/agents/agent-06-script-reviewer/$1",
       "^@agents/agent-07-scene-planner/(.*)$": "<rootDir>/agents/agent-07-scene-planner/$1"
     },
-    "collectCoverageFrom": ["src/**/*.(t|j)s"],
+    "collectCoverageFrom": [
+      "src/**/*.(t|j)s"
+    ],
     "coverageDirectory": "./coverage"
   }
 }

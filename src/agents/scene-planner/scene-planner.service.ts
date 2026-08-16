@@ -49,6 +49,9 @@ import { ScenePlannerExecutionOutcome, ScenePlannerRuntimeError } from './scene-
 
 const RUNTIME_PRODUCER = { name: 'ytv-agent-runtime', version: '0.1.0' } as const;
 
+/** Matches `output.schema.json` `$defs.errorResponse.properties.issues.maxItems` — the wire contract's own cap. */
+const MAX_REPORTED_ISSUES = 50;
+
 /**
  * The Scene Plan's JSON Schema definition, extracted from the
  * already-approved `output.schema.json` (never re-authored), passed to the
@@ -422,7 +425,11 @@ export class ScenePlannerService {
       request.data,
     );
     if (scenePlanReport.outcome === 'FAILED') {
-      const issues = scenePlanReport.findings.map((finding) =>
+      // output.schema.json's errorResponse.issues caps at 50 items (wire
+      // contract); mapping every finding unbounded could violate that cap
+      // and turn a normal, retryable validation failure into a misleading
+      // non-retryable envelope-invalid error.
+      const issues = scenePlanReport.findings.slice(0, MAX_REPORTED_ISSUES).map((finding) =>
         this.outputFindingToRuntimeError(
           finding,
           correlationId,

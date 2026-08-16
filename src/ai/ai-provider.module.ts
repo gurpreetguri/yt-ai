@@ -4,8 +4,10 @@ import { ConfigModule, ConfigType } from '@nestjs/config';
 import { aiConfig } from '../config/ai.config';
 import { AI_PROVIDER } from './ai-provider.interface';
 import { AnthropicProvider } from './providers/anthropic.provider';
+import { GeminiProvider } from './providers/gemini.provider';
 import { MockAiProvider } from './providers/mock.provider';
 import { OllamaProvider } from './providers/ollama.provider';
+import { OpenRouterProvider } from './providers/openrouter.provider';
 import { ModelRegistry } from './router/model-registry';
 import { ModelRouterProvider } from './router/model-router.provider';
 import { InMemoryProviderHealthStore, PROVIDER_HEALTH_STORE } from './router/provider-health';
@@ -21,20 +23,22 @@ import { RouterBootstrapService } from './router/router-bootstrap.service';
  * `AI_PROVIDER=router` resolves to `ModelRouterProvider` — the provider-
  * neutral Multi-LLM router (`src/ai/router/`) that selects among every
  * registered, enabled, policy-allowed model at invocation time and fails
- * over on transient errors. `AI_PROVIDER=anthropic` and `AI_PROVIDER=mock`
- * continue to bind directly to a single concrete adapter, byte-for-byte the
- * same behaviour this module had before the router existed — every
- * existing agent test that overrides `AI_PROVIDER` via
- * `.overrideProvider(AI_PROVIDER).useValue(...)` never even constructs this
- * module's factory, so it is unaffected either way.
+ * over on transient errors. `AI_PROVIDER=anthropic`, `AI_PROVIDER=openrouter`,
+ * and `AI_PROVIDER=mock` continue to bind directly to a single concrete
+ * adapter, byte-for-byte the same behaviour this module had before the
+ * router existed — every existing agent test that overrides `AI_PROVIDER`
+ * via `.overrideProvider(AI_PROVIDER).useValue(...)` never even constructs
+ * this module's factory, so it is unaffected either way.
  */
 @Global()
 @Module({
   imports: [ConfigModule],
   providers: [
     AnthropicProvider,
+    GeminiProvider,
     MockAiProvider,
     OllamaProvider,
+    OpenRouterProvider,
     ProviderRegistry,
     ModelRegistry,
     { provide: PROVIDER_HEALTH_STORE, useClass: InMemoryProviderHealthStore },
@@ -56,14 +60,25 @@ import { RouterBootstrapService } from './router/router-bootstrap.service';
     RouterBootstrapService,
     {
       provide: AI_PROVIDER,
-      inject: [aiConfig.KEY, AnthropicProvider, MockAiProvider, ModelRouterProvider],
+      inject: [
+        aiConfig.KEY,
+        AnthropicProvider,
+        MockAiProvider,
+        ModelRouterProvider,
+        OpenRouterProvider,
+        GeminiProvider,
+      ],
       useFactory: (
         config: ConfigType<typeof aiConfig>,
         anthropic: AnthropicProvider,
         mock: MockAiProvider,
         router: ModelRouterProvider,
+        openrouter: OpenRouterProvider,
+        gemini: GeminiProvider,
       ) => {
         if (config.provider === 'anthropic') return anthropic;
+        if (config.provider === 'openrouter') return openrouter;
+        if (config.provider === 'gemini') return gemini;
         if (config.provider === 'router') return router;
         return mock;
       },

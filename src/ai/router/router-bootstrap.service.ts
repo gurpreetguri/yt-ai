@@ -122,11 +122,11 @@ export class RouterBootstrapService implements OnModuleInit {
       provider: 'ollama',
       modelId: this.config.ollama.model,
       capabilities: ['TEXT'],
-      // No fixed context window exists for "Ollama" in the abstract — it
-      // depends on the specific local model pulled. This conservative
-      // generic default is a documented limitation (README), never a
-      // measured spec for the actual model in use.
-      contextWindow: 8_192,
+      // Mirrors `OLLAMA_NUM_CTX` (`ollama.provider.ts` sends this exact value as `num_ctx` on
+      // every call, so this descriptor is no longer just documentation — it is the enforced
+      // context window). Still not a measured spec of the pulled model's own maximum; an
+      // operator with more VRAM/RAM should raise `OLLAMA_NUM_CTX` rather than edit this file.
+      contextWindow: this.config.ollama.numCtx,
       maxOutputTokens: this.config.maxOutputTokens,
       supportsStructuredOutput: false,
       local: true,

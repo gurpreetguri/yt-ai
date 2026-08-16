@@ -3,18 +3,15 @@ import type { ConfigType } from '@nestjs/config';
 import type { aiConfig } from '../../config/ai.config';
 import type { AiInvocationRequest } from '../ai-provider.interface';
 import { AiProviderError } from '../ai-provider.interface';
-import { OllamaProvider } from './ollama.provider';
+import { OpenRouterProvider } from './openrouter.provider';
 
 /**
- * Unit tests for the Ollama local-model provider. `global.fetch` is
- * replaced with a controllable mock for every test — no real Ollama server
- * is ever required to be running (commissioning brief "Ollama" §"Do not
- * require Ollama to be running during unit tests"). Signal-aware mocks
- * exercise the same `AbortController` wiring `anthropic.provider.spec.ts`
- * verifies for the cloud adapter, so the two providers are held to an
- * identical timeout-handling standard.
+ * Unit tests for the OpenRouter provider. `global.fetch` is replaced with a
+ * controllable mock for every test — no real network call is ever made.
+ * Mirrors `anthropic.provider.spec.ts`/`ollama.provider.spec.ts`: the same
+ * timeout, abort, and error-normalisation discipline is verified here.
  */
-describe('OllamaProvider', () => {
+describe('OpenRouterProvider', () => {
   let originalFetch: typeof globalThis.fetch;
 
   beforeEach(() => {
@@ -28,7 +25,7 @@ describe('OllamaProvider', () => {
 
   function makeConfig(): ConfigType<typeof aiConfig> {
     return {
-      provider: 'mock',
+      provider: 'openrouter',
       anthropic: {
         apiKey: undefined,
         model: 'claude-test-model',
@@ -44,8 +41,8 @@ describe('OllamaProvider', () => {
         quality: 'BALANCED',
       },
       openrouter: {
-        apiKey: undefined,
-        model: 'openrouter-test-model',
+        apiKey: 'test-api-key',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
         baseUrl: 'https://openrouter.invalid/api/v1',
         quality: 'BALANCED',
       },
@@ -97,41 +94,37 @@ describe('OllamaProvider', () => {
     } as unknown as Response;
   }
 
-  // 24. Ollama success.
   it('returns a normalised result for a successful, complete response', async () => {
     globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: '{"hello":"world"}' },
-        done: true,
-        done_reason: 'stop',
-        prompt_eval_count: 12,
-        eval_count: 34,
+        id: 'gen-01',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        choices: [{ message: { role: 'assistant', content: '{"hello":"world"}' }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 12, completion_tokens: 34 },
       }),
     ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
     const result = await provider.invoke(makeRequest());
 
     expect(result.content).toBe('{"hello":"world"}');
     expect(result.finishReason).toBe('COMPLETE');
-    expect(result.provider).toBe('ollama');
-    expect(result.modelId).toBe('llama3');
+    expect(result.provider).toBe('openrouter');
+    expect(result.modelId).toBe('meta-llama/llama-3.3-70b-instruct:free');
     expect(result.inputTokens).toBe(12);
     expect(result.outputTokens).toBe(34);
   });
 
-  it('maps done_reason=length to a TRUNCATED finish reason', async () => {
+  it('maps finish_reason=length to a TRUNCATED finish reason', async () => {
     globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'partial output' },
-        done: true,
-        done_reason: 'length',
+        id: 'gen-01',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        choices: [{ message: { role: 'assistant', content: 'partial output' }, finish_reason: 'length' }],
       }),
     ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
     const result = await provider.invoke(makeRequest());
 
     expect(result.finishReason).toBe('TRUNCATED');
@@ -140,42 +133,70 @@ describe('OllamaProvider', () => {
   it('passes an explicit request.model override through to the request body', async () => {
     const fetchSpy = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3:70b',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        id: 'gen-01',
+        model: 'openai/gpt-4o-mini',
+        choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
       }),
     );
     globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
-    await provider.invoke(makeRequest({ model: 'llama3:70b' }));
+    const provider = new OpenRouterProvider(makeConfig());
+    await provider.invoke(makeRequest({ model: 'openai/gpt-4o-mini' }));
 
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(init.body as string) as { model: string };
-    expect(body.model).toBe('llama3:70b');
+    expect(body.model).toBe('openai/gpt-4o-mini');
   });
 
-  it("always sends the configured num_ctx, never relying on the model's own Modelfile default", async () => {
+  it('always disables reasoning, so a reasoning-capable model spends its full token budget on content', async () => {
     const fetchSpy = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        id: 'gen-01',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
       }),
     );
     globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
     await provider.invoke(makeRequest());
 
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    const body = JSON.parse(init.body as string) as { options: { num_ctx: number } };
-    expect(body.options.num_ctx).toBe(8192);
+    const body = JSON.parse(init.body as string) as { reasoning: { enabled: boolean } };
+    expect(body.reasoning).toEqual({ enabled: false });
   });
 
-  // 25. Ollama timeout.
+  it('sends the API key as a Bearer authorization header', async () => {
+    const fetchSpy = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        id: 'gen-01',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
+      }),
+    );
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const provider = new OpenRouterProvider(makeConfig());
+    await provider.invoke(makeRequest());
+
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://openrouter.invalid/api/v1/chat/completions');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.authorization).toBe('Bearer test-api-key');
+  });
+
+  it('throws a CONFIGURATION AiProviderError without calling fetch when no API key is configured', async () => {
+    const fetchSpy = jest.fn();
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const config = makeConfig();
+    (config.openrouter as { apiKey: string | undefined }).apiKey = undefined;
+    const provider = new OpenRouterProvider(config);
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'CONFIGURATION' });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('throws a normalised TIMEOUT AiProviderError when fetch does not settle before timeoutMs', async () => {
     globalThis.fetch = jest.fn().mockImplementation((_input: string | URL, init?: RequestInit) => {
       return new Promise((_resolve, reject) => {
@@ -183,11 +204,11 @@ describe('OllamaProvider', () => {
       });
     }) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest({ timeoutMs: 20 }))).rejects.toMatchObject({
       kind: 'TIMEOUT',
-      provider: 'ollama',
+      provider: 'openrouter',
     });
   });
 
@@ -198,11 +219,11 @@ describe('OllamaProvider', () => {
       return Promise.resolve(hangingBodyResponse(200, signal));
     }) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest({ timeoutMs: 20 }))).rejects.toMatchObject({
       kind: 'TIMEOUT',
-      provider: 'ollama',
+      provider: 'openrouter',
     });
   });
 
@@ -211,15 +232,66 @@ describe('OllamaProvider', () => {
       .fn()
       .mockRejectedValue(new TypeError('fetch failed')) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
       kind: 'NETWORK',
-      provider: 'ollama',
+      provider: 'openrouter',
     });
   });
 
-  // 26. Ollama malformed response.
+  it('normalises a 401 response as an AUTH AiProviderError', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(401, { error: { message: 'invalid API key' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new OpenRouterProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'AUTH' });
+  });
+
+  it('normalises a 429 response as a RATE_LIMIT AiProviderError', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(429, { error: { message: 'rate limited' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new OpenRouterProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'RATE_LIMIT' });
+  });
+
+  it('normalises a 404 (unknown model) response as a CONFIGURATION AiProviderError', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(404, { error: { message: 'model not found' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new OpenRouterProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'CONFIGURATION' });
+  });
+
+  it('normalises a generic non-2xx response as a PROVIDER_ERROR AiProviderError, without leaking the raw body', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(500, { error: { message: 'internal error' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new OpenRouterProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toBeInstanceOf(AiProviderError);
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
+      kind: 'PROVIDER_ERROR',
+      provider: 'openrouter',
+    });
+  });
+
   it('throws a normalised INVALID_RESPONSE AiProviderError when the body is not valid JSON', async () => {
     globalThis.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -227,69 +299,37 @@ describe('OllamaProvider', () => {
       json: () => Promise.reject(new Error('not json')),
     } as unknown as Response) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
       kind: 'INVALID_RESPONSE',
-      provider: 'ollama',
+      provider: 'openrouter',
     });
   });
 
-  it('throws a normalised INVALID_RESPONSE AiProviderError when the response has no message content', async () => {
+  it('throws a normalised INVALID_RESPONSE AiProviderError when the response has no choices', async () => {
     globalThis.fetch = jest
       .fn()
       .mockResolvedValue(
-        jsonResponse(200, { model: 'llama3', done: true, done_reason: 'stop' }),
+        jsonResponse(200, { id: 'gen-01', model: 'meta-llama/llama-3.3-70b-instruct:free', choices: [] }),
       ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'INVALID_RESPONSE' });
-  });
-
-  it('normalises a 404 (model not pulled) response as a CONFIGURATION AiProviderError', async () => {
-    globalThis.fetch = jest
-      .fn()
-      .mockResolvedValue(
-        jsonResponse(404, { error: 'model "llama3" not found' }),
-      ) as unknown as typeof globalThis.fetch;
-
-    const provider = new OllamaProvider(makeConfig());
-
-    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
-      kind: 'CONFIGURATION',
-      provider: 'ollama',
-    });
-  });
-
-  it('normalises a generic non-2xx response as a PROVIDER_ERROR AiProviderError, without leaking the raw body', async () => {
-    globalThis.fetch = jest
-      .fn()
-      .mockResolvedValue(
-        jsonResponse(500, { error: 'internal error' }),
-      ) as unknown as typeof globalThis.fetch;
-
-    const provider = new OllamaProvider(makeConfig());
-
-    await expect(provider.invoke(makeRequest())).rejects.toBeInstanceOf(AiProviderError);
-    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
-      kind: 'PROVIDER_ERROR',
-      provider: 'ollama',
-    });
   });
 
   it('always clears the timeout timer, even on a successful invocation (no leaked timer)', async () => {
     const clearTimeoutSpy = jest.spyOn(globalThis, 'clearTimeout');
     globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        id: 'gen-01',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
       }),
     ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
     await provider.invoke(makeRequest());
 
     expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
@@ -298,20 +338,18 @@ describe('OllamaProvider', () => {
   it('uses the configured default model when no explicit model is requested', async () => {
     const fetchSpy = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        id: 'gen-01',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
       }),
     );
     globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new OpenRouterProvider(makeConfig());
     await provider.invoke(makeRequest());
 
-    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('http://127.0.0.1:11434/api/chat');
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(init.body as string) as { model: string };
-    expect(body.model).toBe('llama3');
+    expect(body.model).toBe('meta-llama/llama-3.3-70b-instruct:free');
   });
 });

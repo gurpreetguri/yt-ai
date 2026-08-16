@@ -34,7 +34,7 @@ describe('RouterBootstrapService', () => {
       gemini: { apiKey: undefined, model: 'gemini-test-model', quality: 'BALANCED' },
       openrouter: { apiKey: undefined, model: 'openrouter-test-model', quality: 'BALANCED' },
       groq: { apiKey: undefined, model: 'groq-test-model', quality: 'BALANCED' },
-      ollama: { baseUrl: 'http://127.0.0.1:11434', model: 'llama3', quality: 'BALANCED' },
+      ollama: { baseUrl: 'http://127.0.0.1:11434', model: 'llama3', quality: 'BALANCED', numCtx: 8192 },
       timeoutMs: 45_000,
       maxOutputTokens: 8_000,
       router: {

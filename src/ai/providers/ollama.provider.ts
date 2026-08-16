@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { Agent } from 'undici';
 
 import { aiConfig } from '../../config/ai.config';
 import {
@@ -9,6 +10,19 @@ import {
   AiProvider,
   AiProviderError,
 } from '../ai-provider.interface';
+
+/**
+ * Node's built-in `fetch` is powered by undici, which applies its own
+ * `headersTimeout`/`bodyTimeout` (300_000ms each, independent of any
+ * `AbortController` passed in) unless a custom dispatcher overrides them.
+ * A local Ollama generation on modest hardware can legitimately exceed 5
+ * minutes, so those defaults silently cancelled the request underneath us
+ * — Ollama's own log showed the client disconnecting a task at ~5m even
+ * though `request.timeoutMs` (from `AI_TIMEOUT_MS`) was configured far
+ * higher. Disabling undici's own timeouts here makes `timeoutMs`, enforced
+ * via the `AbortController` below, the single source of truth.
+ */
+const NO_UNDICI_TIMEOUT_DISPATCHER = new Agent({ headersTimeout: 0, bodyTimeout: 0 });
 
 interface OllamaChatMessage {
   readonly role: string;
@@ -58,7 +72,7 @@ export class OllamaProvider implements AiProvider {
   constructor(@Inject(aiConfig.KEY) private readonly config: ConfigType<typeof aiConfig>) {}
 
   async invoke(request: AiInvocationRequest): Promise<AiInvocationResult> {
-    const { baseUrl, model: defaultModel } = this.config.ollama;
+    const { baseUrl, model: defaultModel, numCtx } = this.config.ollama;
     const model = request.model ?? defaultModel;
     const startedAt = Date.now();
     const controller = new AbortController();
@@ -73,6 +87,13 @@ export class OllamaProvider implements AiProvider {
         response = await fetch(`${baseUrl}/api/chat`, {
           method: 'POST',
           signal: controller.signal,
+          // `dispatcher` is a Node/undici extension not present in the DOM
+          // `RequestInit` type that `lib.dom.d.ts` supplies for `fetch`. The
+          // separately-installed `undici` package's `Agent` is structurally
+          // compatible with Node's own bundled `undici-types` dispatcher at
+          // runtime; the two only disagree at the type level because they're
+          // duplicate declarations, hence the cast through `unknown`.
+          dispatcher: NO_UNDICI_TIMEOUT_DISPATCHER as unknown as NonNullable<RequestInit['dispatcher']>,
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             model,
@@ -84,6 +105,10 @@ export class OllamaProvider implements AiProvider {
             options: {
               temperature: request.parameters.temperature,
               top_p: request.parameters.topP,
+              // Explicitly requested on every call — never left to the model's own Modelfile
+              // default (commonly 2048-4096), which silently truncates a long system prompt
+              // plus a large structured-JSON response and is invisible until output degrades.
+              num_ctx: numCtx,
               ...(request.parameters.maxOutputTokens !== undefined
                 ? { num_predict: request.parameters.maxOutputTokens }
                 : {}),

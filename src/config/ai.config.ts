@@ -37,6 +37,14 @@ export interface ProviderCredentialConfig {
   readonly quality: AiModelQuality;
 }
 
+export interface OpenRouterConfig extends ProviderCredentialConfig {
+  readonly baseUrl: string;
+}
+
+export interface GeminiConfig extends ProviderCredentialConfig {
+  readonly baseUrl: string;
+}
+
 export interface AiRouterConfig {
   readonly mode: AiRouterMode;
   readonly allowLocal: boolean;
@@ -55,8 +63,8 @@ export interface AiRouterConfig {
 }
 
 export interface AiConfig {
-  /** Which provider implementation the DI container wires up. `'router'` enables the Multi-LLM router; `'anthropic'`/`'mock'` bind directly to a single adapter, unchanged from before the router existed. */
-  readonly provider: 'anthropic' | 'mock' | 'router';
+  /** Which provider implementation the DI container wires up. `'router'` enables the Multi-LLM router; `'anthropic'`/`'openrouter'`/`'gemini'`/`'mock'` bind directly to a single adapter. */
+  readonly provider: 'anthropic' | 'mock' | 'router' | 'openrouter' | 'gemini';
   readonly anthropic: {
     readonly apiKey: string | undefined;
     readonly model: string;
@@ -65,13 +73,15 @@ export interface AiConfig {
     readonly quality: AiModelQuality;
   };
   readonly openai: ProviderCredentialConfig;
-  readonly gemini: ProviderCredentialConfig;
-  readonly openrouter: ProviderCredentialConfig;
+  readonly gemini: GeminiConfig;
+  readonly openrouter: OpenRouterConfig;
   readonly groq: ProviderCredentialConfig;
   readonly ollama: {
     readonly baseUrl: string;
     readonly model: string;
     readonly quality: AiModelQuality;
+    /** Requested context window (`num_ctx`), sent on every invocation — see `OLLAMA_NUM_CTX`. Never left to the model's own Modelfile default, which is commonly 2048-4096 and too small for these agents' prompts. */
+    readonly numCtx: number;
   };
   /** Hard ceiling on a single invocation; the runtime, not the provider SDK, enforces this. */
   readonly timeoutMs: number;
@@ -105,14 +115,21 @@ function envQuality(): AiModelQuality {
  */
 function envProvider(): AiConfig['provider'] {
   const raw = process.env.AI_PROVIDER;
-  if (raw === undefined || raw === 'mock' || raw === 'anthropic' || raw === 'router') {
+  if (
+    raw === undefined ||
+    raw === 'mock' ||
+    raw === 'anthropic' ||
+    raw === 'router' ||
+    raw === 'openrouter' ||
+    raw === 'gemini'
+  ) {
     return raw ?? 'mock';
   }
   // eslint-disable-next-line no-console -- startup-time misconfiguration diagnostic; no Logger/DI context exists inside a plain registerAs factory.
   console.warn(
-    `[ai.config] AI_PROVIDER="${raw}" is not a recognized value (expected "mock", "anthropic", or "router" ` +
-      'to reach a provider registered in the router, e.g. Ollama). Falling back to "mock" — no AI provider ' +
-      'will actually be called until this is corrected.',
+    `[ai.config] AI_PROVIDER="${raw}" is not a recognized value (expected "mock", "anthropic", "openrouter", ` +
+      '"gemini", or "router" to reach a provider registered in the router, e.g. Ollama). Falling back to ' +
+      '"mock" — no AI provider will actually be called until this is corrected.',
   );
   return 'mock';
 }
@@ -133,12 +150,14 @@ export const aiConfig = registerAs('ai', (): AiConfig => ({
   },
   gemini: {
     apiKey: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_MODEL ?? 'gemini-1.5-pro',
+    model: process.env.GEMINI_MODEL ?? 'gemini-flash-lite-latest',
+    baseUrl: process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta',
     quality: envModelQuality('GEMINI_MODEL_QUALITY'),
   },
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY,
-    model: process.env.OPENROUTER_MODEL ?? 'openrouter/auto',
+    model: process.env.OPENROUTER_MODEL ?? 'nvidia/nemotron-3-super-120b-a12b:free',
+    baseUrl: process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
     quality: envModelQuality('OPENROUTER_MODEL_QUALITY'),
   },
   groq: {
@@ -148,8 +167,9 @@ export const aiConfig = registerAs('ai', (): AiConfig => ({
   },
   ollama: {
     baseUrl: process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434',
-    model: process.env.OLLAMA_MODEL ?? 'mistral:latest',
+    model: process.env.OLLAMA_MODEL ?? 'qwen2.5:7b-instruct',
     quality: envModelQuality('OLLAMA_MODEL_QUALITY'),
+    numCtx: process.env.OLLAMA_NUM_CTX ? Number(process.env.OLLAMA_NUM_CTX) : 8_192,
   },
   timeoutMs: process.env.AI_TIMEOUT_MS ? Number(process.env.AI_TIMEOUT_MS) : 45_000,
   maxOutputTokens: process.env.AI_MAX_OUTPUT_TOKENS ? Number(process.env.AI_MAX_OUTPUT_TOKENS) : 8_000,

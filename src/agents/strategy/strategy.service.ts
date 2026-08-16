@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import type { ValidateFunction } from 'ajv/dist/2020';
 
@@ -49,6 +49,9 @@ import { StrategyExecutionOutcome, StrategyRuntimeError } from './strategy.types
 
 const RUNTIME_PRODUCER = { name: 'ytv-agent-runtime', version: '0.1.0' } as const;
 
+/** Matches `output.schema.json` `$defs.errorResponse.properties.issues.maxItems` — the wire contract's own cap. */
+const MAX_REPORTED_ISSUES = 50;
+
 /**
  * The manifest's JSON Schema definition, extracted from the already-approved
  * `output.schema.json` (never re-authored), passed to the AI provider
@@ -94,6 +97,8 @@ export interface ExecuteOptions {
  */
 @Injectable()
 export class StrategyService {
+  private readonly logger = new Logger(StrategyService.name);
+
   constructor(
     @Inject(STRATEGY_REQUEST_VALIDATOR) private readonly requestValidator: ValidateFunction,
     @Inject(STRATEGY_MANIFEST_VALIDATOR) private readonly manifestValidator: ValidateFunction,
@@ -131,6 +136,14 @@ export class StrategyService {
       return outcome;
     }
 
+    // Diagnostic only — this path is a "should never happen" runtime bug
+    // guard (see class doc above), never normal operation, so logging the
+    // complete offending envelope here is not noise; it's the only way to
+    // see exactly what this runtime built wrong.
+    this.logger.error(
+      `Response envelope failed structural validation: ${JSON.stringify(envelopeIssues)}\nEnvelope: ${JSON.stringify(outcome.response)}`,
+    );
+
     return this.internalEnvelopeFailure(request, options, envelopeIssues);
   }
 
@@ -147,6 +160,13 @@ export class StrategyService {
     const attempt = request.meta.attempt ?? 1;
     const attemptType = options.attemptType ?? 'INITIAL';
     const paths = envelopeIssues.map((issue) => issue.path).join(', ');
+    // Full per-finding detail (not just paths) — this is an internal
+    // diagnostic-only field ("for engineers, specific"), never surfaced in
+    // `userMessage`, and this whole path is a "should never happen" bug
+    // guard, so the verbosity here is deliberate, not noise.
+    const details = envelopeIssues
+      .map((issue) => `${issue.path}: expected ${issue.expected}, got ${issue.actual}`)
+      .join(' | ');
     return this.failure(
       request,
       [
@@ -155,7 +175,7 @@ export class StrategyService {
           category: 'CONFIGURATION',
           retryable: false,
           stage: 'OUTPUT_VALIDATION',
-          message: `Runtime constructed a response envelope that fails structural validation against output.schema.json (${envelopeIssues.length} finding(s) at: ${paths}).`,
+          message: `Runtime constructed a response envelope that fails structural validation against output.schema.json (${envelopeIssues.length} finding(s) at: ${paths}). Detail: ${details}`,
           userMessage: 'This request could not be completed due to an internal configuration error.',
           correlationId: request.meta.correlationId,
           runId: request.meta.runId,
@@ -398,7 +418,14 @@ export class StrategyService {
     //    (validator.ts — deterministic, side-effect free, run in that order).
     const manifestReport = validateStrategyManifest(this.manifestValidator, parsed, request.data);
     if (manifestReport.outcome === 'FAILED') {
-      const issues = manifestReport.findings.map((finding) =>
+      // output.schema.json's errorResponse.issues caps at 50 items (wire
+      // contract). A model whose output diverges heavily from the closed
+      // manifest schema can trigger far more than 50 individual findings;
+      // mapping every one unbounded would build an envelope that violates
+      // this runtime's own wire contract and fail the final self-check
+      // below with a misleading, non-retryable CONFIGURATION error instead
+      // of the correct, retryable validation failure.
+      const issues = manifestReport.findings.slice(0, MAX_REPORTED_ISSUES).map((finding) =>
         this.outputFindingToRuntimeError(
           finding,
           correlationId,

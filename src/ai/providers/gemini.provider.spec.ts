@@ -3,18 +3,18 @@ import type { ConfigType } from '@nestjs/config';
 import type { aiConfig } from '../../config/ai.config';
 import type { AiInvocationRequest } from '../ai-provider.interface';
 import { AiProviderError } from '../ai-provider.interface';
-import { OllamaProvider } from './ollama.provider';
+import { GeminiProvider } from './gemini.provider';
 
 /**
- * Unit tests for the Ollama local-model provider. `global.fetch` is
- * replaced with a controllable mock for every test — no real Ollama server
- * is ever required to be running (commissioning brief "Ollama" §"Do not
- * require Ollama to be running during unit tests"). Signal-aware mocks
- * exercise the same `AbortController` wiring `anthropic.provider.spec.ts`
- * verifies for the cloud adapter, so the two providers are held to an
- * identical timeout-handling standard.
+ * Unit tests for the Gemini provider. `global.fetch` is replaced with a
+ * controllable mock for every test — no real network call is ever made.
+ * Mirrors `anthropic.provider.spec.ts`/`ollama.provider.spec.ts`/
+ * `openrouter.provider.spec.ts`: the same timeout, abort, and
+ * error-normalisation discipline is verified here, adapted to Gemini's
+ * distinct request/response shape (`contents`/`candidates`, API key as a
+ * query parameter).
  */
-describe('OllamaProvider', () => {
+describe('GeminiProvider', () => {
   let originalFetch: typeof globalThis.fetch;
 
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe('OllamaProvider', () => {
 
   function makeConfig(): ConfigType<typeof aiConfig> {
     return {
-      provider: 'mock',
+      provider: 'gemini',
       anthropic: {
         apiKey: undefined,
         model: 'claude-test-model',
@@ -38,8 +38,8 @@ describe('OllamaProvider', () => {
       },
       openai: { apiKey: undefined, model: 'gpt-test-model', quality: 'BALANCED' },
       gemini: {
-        apiKey: undefined,
-        model: 'gemini-test-model',
+        apiKey: 'test-api-key',
+        model: 'gemini-2.5-flash',
         baseUrl: 'https://gemini.invalid/v1beta',
         quality: 'BALANCED',
       },
@@ -97,85 +97,112 @@ describe('OllamaProvider', () => {
     } as unknown as Response;
   }
 
-  // 24. Ollama success.
   it('returns a normalised result for a successful, complete response', async () => {
     globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: '{"hello":"world"}' },
-        done: true,
-        done_reason: 'stop',
-        prompt_eval_count: 12,
-        eval_count: 34,
+        candidates: [
+          { content: { parts: [{ text: '{"hello":"world"}' }] }, finishReason: 'STOP' },
+        ],
+        usageMetadata: { promptTokenCount: 12, candidatesTokenCount: 34 },
+        modelVersion: 'gemini-2.5-flash',
       }),
     ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
     const result = await provider.invoke(makeRequest());
 
     expect(result.content).toBe('{"hello":"world"}');
     expect(result.finishReason).toBe('COMPLETE');
-    expect(result.provider).toBe('ollama');
-    expect(result.modelId).toBe('llama3');
+    expect(result.provider).toBe('gemini');
+    expect(result.modelId).toBe('gemini-2.5-flash');
     expect(result.inputTokens).toBe(12);
     expect(result.outputTokens).toBe(34);
   });
 
-  it('maps done_reason=length to a TRUNCATED finish reason', async () => {
+  it('maps finishReason=MAX_TOKENS to a TRUNCATED finish reason', async () => {
     globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'partial output' },
-        done: true,
-        done_reason: 'length',
+        candidates: [{ content: { parts: [{ text: 'partial' }] }, finishReason: 'MAX_TOKENS' }],
       }),
     ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
     const result = await provider.invoke(makeRequest());
 
     expect(result.finishReason).toBe('TRUNCATED');
   });
 
-  it('passes an explicit request.model override through to the request body', async () => {
-    const fetchSpy = jest.fn().mockResolvedValue(
+  it('maps finishReason=SAFETY to a REFUSED finish reason', async () => {
+    globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3:70b',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        candidates: [{ content: { parts: [{ text: 'refused' }] }, finishReason: 'SAFETY' }],
       }),
-    );
-    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+    ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
-    await provider.invoke(makeRequest({ model: 'llama3:70b' }));
+    const provider = new GeminiProvider(makeConfig());
+    const result = await provider.invoke(makeRequest());
 
-    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    const body = JSON.parse(init.body as string) as { model: string };
-    expect(body.model).toBe('llama3:70b');
+    expect(result.finishReason).toBe('REFUSED');
   });
 
-  it("always sends the configured num_ctx, never relying on the model's own Modelfile default", async () => {
+  it('sends the API key as a query parameter and the model in the URL path', async () => {
     const fetchSpy = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }],
       }),
     );
     globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
+    await provider.invoke(makeRequest());
+
+    const [url] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://gemini.invalid/v1beta/models/gemini-2.5-flash:generateContent?key=test-api-key');
+  });
+
+  it('always requests responseMimeType=application/json', async () => {
+    const fetchSpy = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }],
+      }),
+    );
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
     await provider.invoke(makeRequest());
 
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    const body = JSON.parse(init.body as string) as { options: { num_ctx: number } };
-    expect(body.options.num_ctx).toBe(8192);
+    const body = JSON.parse(init.body as string) as { generationConfig: { responseMimeType: string } };
+    expect(body.generationConfig.responseMimeType).toBe('application/json');
   });
 
-  // 25. Ollama timeout.
+  it('passes an explicit request.model override into the URL path', async () => {
+    const fetchSpy = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }],
+      }),
+    );
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+    await provider.invoke(makeRequest({ model: 'gemini-2.5-pro' }));
+
+    const [url] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/models/gemini-2.5-pro:generateContent');
+  });
+
+  it('throws a CONFIGURATION AiProviderError without calling fetch when no API key is configured', async () => {
+    const fetchSpy = jest.fn();
+    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
+
+    const config = makeConfig();
+    (config.gemini as { apiKey: string | undefined }).apiKey = undefined;
+    const provider = new GeminiProvider(config);
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'CONFIGURATION' });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('throws a normalised TIMEOUT AiProviderError when fetch does not settle before timeoutMs', async () => {
     globalThis.fetch = jest.fn().mockImplementation((_input: string | URL, init?: RequestInit) => {
       return new Promise((_resolve, reject) => {
@@ -183,11 +210,11 @@ describe('OllamaProvider', () => {
       });
     }) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest({ timeoutMs: 20 }))).rejects.toMatchObject({
       kind: 'TIMEOUT',
-      provider: 'ollama',
+      provider: 'gemini',
     });
   });
 
@@ -198,11 +225,11 @@ describe('OllamaProvider', () => {
       return Promise.resolve(hangingBodyResponse(200, signal));
     }) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest({ timeoutMs: 20 }))).rejects.toMatchObject({
       kind: 'TIMEOUT',
-      provider: 'ollama',
+      provider: 'gemini',
     });
   });
 
@@ -211,15 +238,66 @@ describe('OllamaProvider', () => {
       .fn()
       .mockRejectedValue(new TypeError('fetch failed')) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
       kind: 'NETWORK',
-      provider: 'ollama',
+      provider: 'gemini',
     });
   });
 
-  // 26. Ollama malformed response.
+  it('normalises a 403 response as an AUTH AiProviderError', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(403, { error: { message: 'invalid API key' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'AUTH' });
+  });
+
+  it('normalises a 429 response as a RATE_LIMIT AiProviderError', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(429, { error: { message: 'rate limited' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'RATE_LIMIT' });
+  });
+
+  it('normalises a 400 (invalid model) response as a CONFIGURATION AiProviderError', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(400, { error: { message: 'invalid model name' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'CONFIGURATION' });
+  });
+
+  it('normalises a generic non-2xx response as a PROVIDER_ERROR AiProviderError, without leaking the raw body', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(500, { error: { message: 'internal error' } }),
+      ) as unknown as typeof globalThis.fetch;
+
+    const provider = new GeminiProvider(makeConfig());
+
+    await expect(provider.invoke(makeRequest())).rejects.toBeInstanceOf(AiProviderError);
+    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
+      kind: 'PROVIDER_ERROR',
+      provider: 'gemini',
+    });
+  });
+
   it('throws a normalised INVALID_RESPONSE AiProviderError when the body is not valid JSON', async () => {
     globalThis.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -227,91 +305,35 @@ describe('OllamaProvider', () => {
       json: () => Promise.reject(new Error('not json')),
     } as unknown as Response) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
       kind: 'INVALID_RESPONSE',
-      provider: 'ollama',
+      provider: 'gemini',
     });
   });
 
-  it('throws a normalised INVALID_RESPONSE AiProviderError when the response has no message content', async () => {
+  it('throws a normalised INVALID_RESPONSE AiProviderError when the response has no candidates', async () => {
     globalThis.fetch = jest
       .fn()
-      .mockResolvedValue(
-        jsonResponse(200, { model: 'llama3', done: true, done_reason: 'stop' }),
-      ) as unknown as typeof globalThis.fetch;
+      .mockResolvedValue(jsonResponse(200, { candidates: [] })) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
 
     await expect(provider.invoke(makeRequest())).rejects.toMatchObject({ kind: 'INVALID_RESPONSE' });
-  });
-
-  it('normalises a 404 (model not pulled) response as a CONFIGURATION AiProviderError', async () => {
-    globalThis.fetch = jest
-      .fn()
-      .mockResolvedValue(
-        jsonResponse(404, { error: 'model "llama3" not found' }),
-      ) as unknown as typeof globalThis.fetch;
-
-    const provider = new OllamaProvider(makeConfig());
-
-    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
-      kind: 'CONFIGURATION',
-      provider: 'ollama',
-    });
-  });
-
-  it('normalises a generic non-2xx response as a PROVIDER_ERROR AiProviderError, without leaking the raw body', async () => {
-    globalThis.fetch = jest
-      .fn()
-      .mockResolvedValue(
-        jsonResponse(500, { error: 'internal error' }),
-      ) as unknown as typeof globalThis.fetch;
-
-    const provider = new OllamaProvider(makeConfig());
-
-    await expect(provider.invoke(makeRequest())).rejects.toBeInstanceOf(AiProviderError);
-    await expect(provider.invoke(makeRequest())).rejects.toMatchObject({
-      kind: 'PROVIDER_ERROR',
-      provider: 'ollama',
-    });
   });
 
   it('always clears the timeout timer, even on a successful invocation (no leaked timer)', async () => {
     const clearTimeoutSpy = jest.spyOn(globalThis, 'clearTimeout');
     globalThis.fetch = jest.fn().mockResolvedValue(
       jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
+        candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }],
       }),
     ) as unknown as typeof globalThis.fetch;
 
-    const provider = new OllamaProvider(makeConfig());
+    const provider = new GeminiProvider(makeConfig());
     await provider.invoke(makeRequest());
 
     expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('uses the configured default model when no explicit model is requested', async () => {
-    const fetchSpy = jest.fn().mockResolvedValue(
-      jsonResponse(200, {
-        model: 'llama3',
-        message: { role: 'assistant', content: 'ok' },
-        done: true,
-        done_reason: 'stop',
-      }),
-    );
-    globalThis.fetch = fetchSpy as unknown as typeof globalThis.fetch;
-
-    const provider = new OllamaProvider(makeConfig());
-    await provider.invoke(makeRequest());
-
-    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('http://127.0.0.1:11434/api/chat');
-    const body = JSON.parse(init.body as string) as { model: string };
-    expect(body.model).toBe('llama3');
   });
 });

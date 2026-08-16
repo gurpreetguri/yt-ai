@@ -49,6 +49,9 @@ import { ScriptReviewerExecutionOutcome, ScriptReviewerRuntimeError } from './sc
 
 const RUNTIME_PRODUCER = { name: 'ytv-agent-runtime', version: '0.1.0' } as const;
 
+/** Matches `output.schema.json` `$defs.errorResponse.properties.issues.maxItems` — the wire contract's own cap. */
+const MAX_REPORTED_ISSUES = 50;
+
 /**
  * The Review Report's JSON Schema definition, extracted from the
  * already-approved `output.schema.json` (never re-authored), passed to the
@@ -420,7 +423,11 @@ export class ScriptReviewerService {
       request.data,
     );
     if (reviewReportReport.outcome === 'FAILED') {
-      const issues = reviewReportReport.findings.map((finding) =>
+      // output.schema.json's errorResponse.issues caps at 50 items (wire
+      // contract); mapping every finding unbounded could violate that cap
+      // and turn a normal, retryable validation failure into a misleading
+      // non-retryable envelope-invalid error.
+      const issues = reviewReportReport.findings.slice(0, MAX_REPORTED_ISSUES).map((finding) =>
         this.outputFindingToRuntimeError(
           finding,
           correlationId,
