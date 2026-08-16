@@ -95,8 +95,30 @@ function envQuality(): AiModelQuality {
   return raw === 'LOW' || raw === 'BALANCED' || raw === 'HIGH' || raw === 'MAX' ? raw : 'BALANCED';
 }
 
+/**
+ * `AI_PROVIDER` accepts exactly `mock` | `anthropic` | `router` (to reach
+ * Ollama/DeepSeek — or any other router-registered provider — set
+ * `AI_PROVIDER=router`, never the provider's own name). An unrecognized
+ * value used to fall through to `mock` silently; that produced a confusing
+ * "why is this refusing" debugging session, so it now logs a visible
+ * startup warning identifying exactly what was misconfigured.
+ */
+function envProvider(): AiConfig['provider'] {
+  const raw = process.env.AI_PROVIDER;
+  if (raw === undefined || raw === 'mock' || raw === 'anthropic' || raw === 'router') {
+    return raw ?? 'mock';
+  }
+  // eslint-disable-next-line no-console -- startup-time misconfiguration diagnostic; no Logger/DI context exists inside a plain registerAs factory.
+  console.warn(
+    `[ai.config] AI_PROVIDER="${raw}" is not a recognized value (expected "mock", "anthropic", or "router" ` +
+      'to reach a provider registered in the router, e.g. Ollama). Falling back to "mock" — no AI provider ' +
+      'will actually be called until this is corrected.',
+  );
+  return 'mock';
+}
+
 export const aiConfig = registerAs('ai', (): AiConfig => ({
-  provider: (process.env.AI_PROVIDER as AiConfig['provider'] | undefined) ?? 'mock',
+  provider: envProvider(),
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY,
     model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-5',
@@ -126,7 +148,7 @@ export const aiConfig = registerAs('ai', (): AiConfig => ({
   },
   ollama: {
     baseUrl: process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434',
-    model: process.env.OLLAMA_MODEL ?? 'llama3',
+    model: process.env.OLLAMA_MODEL ?? 'deepseek-coder:latest',
     quality: envModelQuality('OLLAMA_MODEL_QUALITY'),
   },
   timeoutMs: process.env.AI_TIMEOUT_MS ? Number(process.env.AI_TIMEOUT_MS) : 45_000,

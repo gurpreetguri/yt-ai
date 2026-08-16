@@ -1,4 +1,4 @@
-import type { AgentId, PipelineRunRequest } from '@/types/pipeline';
+import type { AgentId, FinalOutput, PipelineRunRequest } from '@/types/pipeline';
 
 /**
  * Mock artifacts used only when the real `POST /api/pipeline/run` backend
@@ -286,4 +286,52 @@ export function buildMockStep(
     case 'agent-07-scene-planner':
       return { input: { script: priorOutput }, output: mockScenePlan() };
   }
+}
+
+/**
+ * The mock-path equivalent of the backend's `src/pipeline/output-formatter.ts`
+ * — same derivation logic (score from decision, title from storyObjective,
+ * etc.), applied to the mocked artifacts instead of real agent output, so
+ * the `FinalOutputPanel` component renders identically either way.
+ */
+export function buildMockFinalOutput(req: PipelineRunRequest): FinalOutput {
+  const story = mockStoryArchitecture(req);
+  const script = mockNarrationScript(req);
+  const review = mockReviewReport();
+  const scenePlan = mockScenePlan();
+
+  let score = 100;
+  score -= review.summary.blockingIssueCount * 25;
+  score -= review.summary.highSeverityIssueCount * 10;
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    summary: { topic: req.topic, niche: req.niche, audience: req.audience },
+    story: {
+      title: story.storyObjective,
+      hook: story.hook.viewerQuestion,
+      outline: story.beats.map((beat) => beat.purpose),
+    },
+    script: {
+      narration: script.segments
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((segment) => segment.narration)
+        .join('\n\n'),
+    },
+    review: {
+      status: score >= 80 ? 'APPROVED' : 'NEEDS_REVISION',
+      score,
+      issues: review.issues.map((issue) => `[${issue.severity}] ${issue.description}`),
+    },
+    scenes: scenePlan.scenes
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((scene) => ({
+        sceneNumber: scene.order,
+        description: scene.visualPurpose,
+        visual: scene.visualElements.map((element) => element.description).join('; '),
+        narrationPart: scene.segmentRefs.join(', '),
+      })),
+  };
 }

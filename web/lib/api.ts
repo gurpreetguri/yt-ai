@@ -1,6 +1,12 @@
-import { AGENT_ARTIFACT_NAME, buildMockStep } from '@/lib/mock-data';
+import { AGENT_ARTIFACT_NAME, buildMockFinalOutput, buildMockStep } from '@/lib/mock-data';
 import { AGENT_IDS } from '@/types/pipeline';
-import type { AgentId, PipelineRunRequest, PipelineRunResponse, PipelineStep } from '@/types/pipeline';
+import type {
+  AgentId,
+  FinalOutput,
+  PipelineRunRequest,
+  PipelineRunResponse,
+  PipelineStep,
+} from '@/types/pipeline';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 const PIPELINE_RUN_PATH = '/api/pipeline/run';
@@ -29,7 +35,11 @@ async function tryRealBackend(req: PipelineRunRequest): Promise<PipelineRunRespo
     if (!res.ok) return null;
     const data = (await res.json()) as unknown;
     if (typeof data === 'object' && data !== null && Array.isArray((data as { steps?: unknown }).steps)) {
-      return data as PipelineRunResponse;
+      const parsed = data as { steps: unknown[]; finalOutput?: unknown };
+      return {
+        steps: parsed.steps,
+        finalOutput: (parsed.finalOutput as FinalOutput | undefined) ?? null,
+      } as PipelineRunResponse;
     }
     return null;
   } catch {
@@ -53,7 +63,7 @@ export async function runPipeline(
   req: PipelineRunRequest,
   onStepUpdate: (step: PipelineStep, index: number) => void,
   waitBeforeStep: () => Promise<void> = () => Promise.resolve(),
-): Promise<{ usedMock: boolean }> {
+): Promise<{ usedMock: boolean; finalOutput: FinalOutput | null }> {
   const real = await tryRealBackend(req);
 
   if (real !== null) {
@@ -64,7 +74,7 @@ export async function runPipeline(
       await delay(200);
       onStepUpdate(step, i);
     }
-    return { usedMock: false };
+    return { usedMock: false, finalOutput: real.finalOutput };
   }
 
   let priorOutput: unknown = null;
@@ -82,5 +92,5 @@ export async function runPipeline(
     priorOutput = output;
   }
 
-  return { usedMock: true };
+  return { usedMock: true, finalOutput: buildMockFinalOutput(req) };
 }

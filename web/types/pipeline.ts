@@ -36,6 +36,39 @@ export interface PipelineRunRequest {
   audience: string;
 }
 
+/** Mirrors the backend's `src/pipeline/pipeline.types.ts` FinalOutput shape exactly. */
+export interface FinalOutputStory {
+  title: string;
+  hook: string;
+  outline: string[];
+}
+
+export interface FinalOutputScript {
+  narration: string;
+}
+
+export interface FinalOutputReview {
+  status: 'APPROVED' | 'NEEDS_REVISION';
+  score: number;
+  issues: string[];
+}
+
+export interface FinalOutputScene {
+  sceneNumber: number;
+  description: string;
+  visual: string;
+  narrationPart: string;
+}
+
+export interface FinalOutput {
+  summary: { topic: string; niche: string; audience: string };
+  story: FinalOutputStory | null;
+  script: FinalOutputScript | null;
+  review: FinalOutputReview | null;
+  scenes: FinalOutputScene[];
+}
+
 export interface PipelineRunResponse {
   steps: PipelineStep[];
+  finalOutput: FinalOutput | null;
 }

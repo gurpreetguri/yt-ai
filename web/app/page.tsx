@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 
+import { FinalOutputPanel } from '@/components/FinalOutputPanel';
 import { InputForm } from '@/components/InputForm';
 import { PipelineView } from '@/components/PipelineView';
 import { StepDetails } from '@/components/StepDetails';
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { runPipeline } from '@/lib/api';
 import { AGENT_ARTIFACT_NAME } from '@/lib/mock-data';
 import { AGENT_IDS } from '@/types/pipeline';
-import type { PipelineRunRequest, PipelineStep } from '@/types/pipeline';
+import type { FinalOutput, PipelineRunRequest, PipelineStep } from '@/types/pipeline';
 
 function idleSteps(): PipelineStep[] {
   return AGENT_IDS.map((agent) => ({
@@ -21,12 +22,16 @@ function idleSteps(): PipelineStep[] {
   }));
 }
 
+type RightPanelView = 'details' | 'final';
+
 export default function Home() {
   const [steps, setSteps] = useState<PipelineStep[]>(idleSteps());
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [stepByStep, setStepByStep] = useState(false);
   const [awaitingNext, setAwaitingNext] = useState(false);
+  const [finalOutput, setFinalOutput] = useState<FinalOutput | null>(null);
+  const [rightPanelView, setRightPanelView] = useState<RightPanelView>('details');
 
   // Resolves the promise `waitBeforeStep` in api.ts is currently awaiting,
   // so the "Next step" button can unblock execution. Not React state on
@@ -37,6 +42,8 @@ export default function Home() {
     setIsRunning(true);
     setSteps(idleSteps());
     setSelectedIndex(0);
+    setFinalOutput(null);
+    setRightPanelView('details');
 
     const waitBeforeStep = () =>
       new Promise<void>((resolve) => {
@@ -62,7 +69,12 @@ export default function Home() {
         setSelectedIndex(index);
       },
       waitBeforeStep,
-    ).finally(() => setIsRunning(false));
+    )
+      .then(({ finalOutput: result }) => {
+        setFinalOutput(result);
+        if (result !== null) setRightPanelView('final');
+      })
+      .finally(() => setIsRunning(false));
   }
 
   function handleNextStep() {
@@ -100,7 +112,32 @@ export default function Home() {
       <div className="grid min-h-0 flex-1 grid-cols-[280px_260px_1fr] gap-3 overflow-hidden p-3">
         <InputForm onRun={handleRun} isRunning={isRunning} />
         <PipelineView steps={steps} selectedIndex={selectedIndex} onSelectStep={setSelectedIndex} />
-        <StepDetails step={selectedStep} />
+        <div className="flex min-h-0 flex-col gap-2">
+          <div className="flex shrink-0 gap-1.5">
+            <Button
+              size="sm"
+              variant={rightPanelView === 'details' ? 'default' : 'outline'}
+              onClick={() => setRightPanelView('details')}
+            >
+              Step Details
+            </Button>
+            <Button
+              size="sm"
+              variant={rightPanelView === 'final' ? 'default' : 'outline'}
+              onClick={() => setRightPanelView('final')}
+              disabled={finalOutput === null}
+            >
+              Final Output
+            </Button>
+          </div>
+          <div className="min-h-0 flex-1">
+            {rightPanelView === 'final' && finalOutput !== null ? (
+              <FinalOutputPanel finalOutput={finalOutput} />
+            ) : (
+              <StepDetails step={selectedStep} />
+            )}
+          </div>
+        </div>
       </div>
     </main>
   );
