@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 20% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 20% 12%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 45%;
+    --border: 214 20% 88%;
+    --primary: 222 47% 20%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 210 20% 94%;
+    --accent-foreground: 222 20% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Thin, unobtrusive scrollbars for the dense observability panels. */
+.thin-scroll {
+  scrollbar-width: thin;
+}
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border));
+  border-radius: 9999px;
+}
