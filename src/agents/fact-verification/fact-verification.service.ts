@@ -25,6 +25,7 @@ import verificationPackageOutputSchema from '@agents/agent-03-fact-verification/
 
 import { AI_PROVIDER, AiInvocationResult, AiProvider } from '../../ai/ai-provider.interface';
 import { generatePrefixedId } from '../../common/id.util';
+import { extractJsonPayload } from '../../common/json-extraction.util';
 import { aiConfig } from '../../config/ai.config';
 import {
   AGENT_ID,
@@ -353,7 +354,7 @@ export class FactVerificationService {
     if (aiResult.finishReason === 'REFUSED') {
       let refusedContent: unknown;
       try {
-        refusedContent = JSON.parse(aiResult.content);
+        refusedContent = JSON.parse(extractJsonPayload(aiResult.content));
       } catch {
         refusedContent = undefined;
       }
@@ -387,7 +388,7 @@ export class FactVerificationService {
     //    — that would hide a prompt regression.
     let parsed: unknown;
     try {
-      parsed = JSON.parse(aiResult.content);
+      parsed = JSON.parse(extractJsonPayload(aiResult.content));
     } catch (error) {
       return this.failure(
         request,

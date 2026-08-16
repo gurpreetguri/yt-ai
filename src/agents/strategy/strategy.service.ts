@@ -26,6 +26,7 @@ import manifestOutputSchema from '@agents/agent-00-strategy/output.schema.json';
 import { aiConfig } from '../../config/ai.config';
 import { AI_PROVIDER, AiInvocationResult, AiProvider } from '../../ai/ai-provider.interface';
 import { generatePrefixedId } from '../../common/id.util';
+import { extractJsonPayload } from '../../common/json-extraction.util';
 import {
   AGENT_ID,
   AGENT_VERSION,
@@ -328,7 +329,7 @@ export class StrategyService {
     if (aiResult.finishReason === 'REFUSED') {
       let refusedContent: unknown;
       try {
-        refusedContent = JSON.parse(aiResult.content);
+        refusedContent = JSON.parse(extractJsonPayload(aiResult.content));
       } catch {
         refusedContent = undefined;
       }
@@ -362,7 +363,7 @@ export class StrategyService {
     //    — that would hide a prompt regression (test-cases.md X-06).
     let parsed: unknown;
     try {
-      parsed = JSON.parse(aiResult.content);
+      parsed = JSON.parse(extractJsonPayload(aiResult.content));
     } catch (error) {
       return this.failure(
         request,

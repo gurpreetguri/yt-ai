@@ -155,16 +155,16 @@ export class PipelineService {
 
     // Agent 00 — Strategy.
     const strategyRequest = this.buildStrategyRequest(request, ctx);
-    const strategyResult = await this.attempt('agent-00-strategy', strategyRequest, steps, () =>
-      this.strategyService.execute(strategyRequest),
+    const strategyResult = await this.attempt('agent-00-strategy', strategyRequest, steps, (attemptType) =>
+      this.strategyService.execute(strategyRequest, { attemptType }),
     );
     if (strategyResult === null) return this.finish(request, steps, {});
     manifest = strategyResult;
 
     // Agent 01 — Topic Discovery.
     const topicRequest = this.buildTopicDiscoveryRequest(request, ctx, manifest);
-    const topicResult = await this.attempt('agent-01-topic-discovery', topicRequest, steps, () =>
-      this.topicDiscoveryService.execute(topicRequest),
+    const topicResult = await this.attempt('agent-01-topic-discovery', topicRequest, steps, (attemptType) =>
+      this.topicDiscoveryService.execute(topicRequest, { attemptType }),
     );
     if (topicResult === null) return this.finish(request, steps, {});
     topic = topicResult.topics.find((candidate) => candidate.rank === 1) ?? topicResult.topics[0] ?? null;
@@ -179,8 +179,8 @@ export class PipelineService {
 
     // Agent 02 — Research.
     const researchRequest = this.buildResearchRequest(request, ctx, topic);
-    const researchResult = await this.attempt('agent-02-research', researchRequest, steps, () =>
-      this.researchService.execute(researchRequest),
+    const researchResult = await this.attempt('agent-02-research', researchRequest, steps, (attemptType) =>
+      this.researchService.execute(researchRequest, { attemptType }),
     );
     if (researchResult === null)
       return this.finish(request, steps, { story: null, script: null, review: null, scenePlan: null });
@@ -192,23 +192,23 @@ export class PipelineService {
       'agent-03-fact-verification',
       verificationRequest,
       steps,
-      () => this.factVerificationService.execute(verificationRequest),
+      (attemptType) => this.factVerificationService.execute(verificationRequest, { attemptType }),
     );
     if (verificationResult === null) return this.finish(request, steps, {});
     verificationPackage = verificationResult;
 
     // Agent 04 — Story Architect.
     const storyRequest = this.buildStoryArchitectRequest(request, ctx, verificationPackage, topic);
-    const storyResult = await this.attempt('agent-04-story-architect', storyRequest, steps, () =>
-      this.storyArchitectService.execute(storyRequest),
+    const storyResult = await this.attempt('agent-04-story-architect', storyRequest, steps, (attemptType) =>
+      this.storyArchitectService.execute(storyRequest, { attemptType }),
     );
     if (storyResult === null) return this.finish(request, steps, {});
     storyArchitecture = storyResult;
 
     // Agent 05 — Script Writer.
     const scriptRequest = this.buildScriptWriterRequest(request, ctx, storyArchitecture, verificationPackage);
-    const scriptResult = await this.attempt('agent-05-script-writer', scriptRequest, steps, () =>
-      this.scriptWriterService.execute(scriptRequest),
+    const scriptResult = await this.attempt('agent-05-script-writer', scriptRequest, steps, (attemptType) =>
+      this.scriptWriterService.execute(scriptRequest, { attemptType }),
     );
     if (scriptResult === null) return this.finish(request, steps, { story: storyArchitecture });
     narrationScript = scriptResult;
@@ -222,8 +222,8 @@ export class PipelineService {
       verificationPackage,
       manifest,
     );
-    const reviewResult = await this.attempt('agent-06-script-reviewer', reviewRequest, steps, () =>
-      this.scriptReviewerService.execute(reviewRequest),
+    const reviewResult = await this.attempt('agent-06-script-reviewer', reviewRequest, steps, (attemptType) =>
+      this.scriptReviewerService.execute(reviewRequest, { attemptType }),
     );
     if (reviewResult === null)
       return this.finish(request, steps, { story: storyArchitecture, script: narrationScript });
@@ -258,8 +258,8 @@ export class PipelineService {
       storyArchitecture,
       verificationPackage,
     );
-    const sceneResult = await this.attempt('agent-07-scene-planner', sceneRequest, steps, () =>
-      this.scenePlannerService.execute(sceneRequest),
+    const sceneResult = await this.attempt('agent-07-scene-planner', sceneRequest, steps, (attemptType) =>
+      this.scenePlannerService.execute(sceneRequest, { attemptType }),
     );
     scenePlan = sceneResult;
 
@@ -273,44 +273,71 @@ export class PipelineService {
 
   // --- execution + error handling -----------------------------------------
 
+  /**
+   * At most one retry, and only when the agent's OWN error classification
+   * says the failure is `retryable` (e.g. `AI_OUTPUT.JSON.PARSE_FAILED` —
+   * a local model ignoring the "JSON only" instruction, commissioning
+   * brief STEP 3). Never retries a non-retryable failure (a real schema/
+   * business-rule violation retrying against the same input would just
+   * fail the same way), and never retries more than once — retry policy
+   * lives here, in the orchestrator, not duplicated inside each agent
+   * (`STD-000` "Retry, repair, backoff, attempt counting" is the runtime/
+   * workflow's job, per every agent's own non-responsibilities table).
+   */
+  private static readonly MAX_ATTEMPTS = 2;
+
   private async attempt<
     TRequest,
     TOutcome extends {
       ok: boolean;
-      response: { data?: unknown; issues?: readonly { message: string; userMessage?: string }[] };
+      response: {
+        data?: unknown;
+        issues?: readonly { message: string; userMessage?: string; retryable?: boolean }[];
+      };
     },
   >(
     agent: PipelineAgentId,
     request: TRequest,
     steps: PipelineStep[],
-    invoke: () => Promise<TOutcome>,
+    invoke: (attemptType: 'INITIAL' | 'REPAIR') => Promise<TOutcome>,
   ): Promise<TOutcome extends { ok: true; response: { data: infer TData } } ? TData : never | null> {
     const index = PIPELINE_AGENT_IDS.indexOf(agent);
     try {
-      const outcome = await invoke();
-      if (outcome.ok) {
-        const data = (outcome.response as { data: unknown }).data;
+      for (let attemptNumber = 1; attemptNumber <= PipelineService.MAX_ATTEMPTS; attemptNumber += 1) {
+        const attemptType: 'INITIAL' | 'REPAIR' = attemptNumber === 1 ? 'INITIAL' : 'REPAIR';
+        // eslint-disable-next-line no-await-in-loop -- sequential, bounded retry by design: only retries after the previous attempt genuinely failed.
+        const outcome = await invoke(attemptType);
+        if (outcome.ok) {
+          const data = (outcome.response as { data: unknown }).data;
+          steps[index] = {
+            agent,
+            artifact: ARTIFACT_NAME[agent],
+            status: 'success',
+            input: request,
+            output: data,
+          };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic outcome shape varies per agent; the caller narrows it via its own declared local variable type.
+          return data as any;
+        }
+        const issue = outcome.response.issues?.[0];
+        const message = issue?.userMessage ?? issue?.message ?? 'Agent execution failed validation.';
+        if (issue?.retryable === true && attemptNumber < PipelineService.MAX_ATTEMPTS) {
+          this.logger.warn(
+            `${agent} attempt ${attemptNumber} failed (${message}) — retrying once (retryable).`,
+          );
+          continue;
+        }
         steps[index] = {
           agent,
           artifact: ARTIFACT_NAME[agent],
-          status: 'success',
+          status: 'error',
           input: request,
-          output: data,
+          output: outcome.response,
+          error: message,
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic outcome shape varies per agent; the caller narrows it via its own declared local variable type.
-        return data as any;
+        this.logger.warn(`${agent} failed: ${message}`);
+        return null as never;
       }
-      const issue = outcome.response.issues?.[0];
-      const message = issue?.userMessage ?? issue?.message ?? 'Agent execution failed validation.';
-      steps[index] = {
-        agent,
-        artifact: ARTIFACT_NAME[agent],
-        status: 'error',
-        input: request,
-        output: outcome.response,
-        error: message,
-      };
-      this.logger.warn(`${agent} failed: ${message}`);
       return null as never;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error during agent execution.';
