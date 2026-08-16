@@ -1,0 +1,53 @@
+{
+  "identity": {
+    "id": "script-reviewer-agent",
+    "version": "1.0.0"
+  },
+  "class": "Critic",
+  "purpose": "Reviews a narration script against defined criteria",
+  "nonResponsibilities": [
+    "Rewriting narration",
+    "Inventing a replacement fact, number, quote, or source",
+    "Modifying a claim or piece of evidence",
+    "Silently correcting the script",
+    "Generating a new script, scene, visual, or voice instruction"
+  ],
+  "input": {
+    "schema": "urn:contract:script-reviewer-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:script-reviewer-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Deterministic"
+  },
+  "evaluation": {
+    "set": "agents/agent-06-script-reviewer/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

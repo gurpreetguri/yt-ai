@@ -1,0 +1,65 @@
+{
+  "identity": {
+    "id": "research-agent",
+    "version": "1.0.0"
+  },
+  "class": "Extractor",
+  "purpose": "Produces a structured research package",
+  "nonResponsibilities": [
+    "Final determination of whether a claim is true",
+    "Performing network requests, web searches, or document fetches",
+    "Script, hook, and narrative writing",
+    "Thumbnail imagery and scene planning",
+    "Video asset generation",
+    "Final SEO optimization",
+    "Publication scheduling, quota arbitration",
+    "Modification of the topic opportunity it was given",
+    "Modification of the strategy manifest",
+    "Invocation of any other agent",
+    "Workflow orchestration and sequencing",
+    "Assignment of durable source or research-package identifiers",
+    "Duplicate/originality checking of the topic itself",
+    "Quality scoring of its own output",
+    "Policy and compliance clearance",
+    "Retry, repair, backoff, attempt counting",
+    "Envelope meta/execution/validation/references population"
+  ],
+  "input": {
+    "schema": "urn:contract:research-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:research-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Fully deterministic"
+  },
+  "evaluation": {
+    "set": "agents/agent-02-research/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

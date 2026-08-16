@@ -1,0 +1,53 @@
+{
+  "identity": {
+    "id": "script-writer-agent",
+    "version": "1.0.0"
+  },
+  "class": "Generator",
+  "purpose": "Produces a narration script from the story architecture",
+  "nonResponsibilities": [
+    "A scene plan or shot list",
+    "An image or video generation prompt",
+    "A voice/TTS setting (voice id, pitch, speed, SSML)",
+    "A caption or subtitle track",
+    "Publishing metadata (title, description, thumbnail)"
+  ],
+  "input": {
+    "schema": "urn:contract:script-writer-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:script-writer-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Bounded variability"
+  },
+  "evaluation": {
+    "set": "agents/agent-05-script-writer/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

@@ -412,7 +412,7 @@
     },
 
     "downstreamSafety": {
-      "description": "The ONLY field a downstream content agent (Agent 04) needs to decide claim usability — never inferred from prose (README §16). Fixed mapping to verificationStatus, enforced by R-BUS-017.",
+      "description": "The ONLY field a downstream content agent needs to decide claim usability — never inferred from prose (README §16). Fixed mapping to verificationStatus, enforced by R-BUS-017.",
       "type": "string",
       "enum": ["SAFE_TO_USE", "USE_WITH_QUALIFICATION", "DO_NOT_USE"]
     },
@@ -557,7 +557,7 @@
           "type": "array", "minItems": 0, "maxItems": 5,
           "items": { "type": "string", "minLength": 10, "maxLength": 300 }
         },
-        "notesForDownstream": { "type": "string", "minLength": 10, "maxLength": 400, "description": "What Agent 04 specifically needs to know when using (or qualifying, or excluding) this claim." },
+        "notesForDownstream": { "type": "string", "minLength": 10, "maxLength": 400, "description": "What the downstream story architecture stage specifically needs to know when using (or qualifying, or excluding) this claim." },
 
         "downstreamSafety": { "$ref": "#/$defs/downstreamSafety" }
       }
@@ -618,7 +618,7 @@
         "doNotUseCount": { "type": "integer", "minimum": 0, "maximum": 60 },
         "overallReadiness": {
           "type": "boolean",
-          "description": "MODEL_ASSESSED judgement: is this claim set sufficient for Agent 04 to proceed? Not a guarantee every claim is SAFE_TO_USE — only that the set as a whole is usable, with qualification where marked."
+          "description": "MODEL_ASSESSED judgement: is this claim set sufficient for the downstream story architecture stage to proceed? Not a guarantee every claim is SAFE_TO_USE — only that the set as a whole is usable, with qualification where marked."
         },
         "readinessRationale": { "type": "string", "minLength": 20, "maxLength": 500 }
       }

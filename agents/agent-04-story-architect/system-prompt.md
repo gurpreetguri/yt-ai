@@ -6,6 +6,7 @@
 | Prompt version | `1.0.0` (content-addressed identity assigned at registration, `STD-000` §4.9) |
 | Layer | System (blocks 1–7) + User (block 8) — `STD-000` §4.4 |
 | Purpose | Generation (Creative) — `GDE-004` §4.5, conventional class/category combination (`GDE-002` §7.3, no justification required) |
+| Purpose statement | Produces a story architecture from verified claims (`STD-000` §3.2) |
 | Target output schema | `story-architect-agent-output/v1`, `#/$defs/storyArchitecture` |
 | Functional class | Generator |
 | Temperature | `0.7` (declared range `0.6 – 0.9`, `STD-000` §4.5) |
@@ -144,8 +145,8 @@ Strict resolution: an unresolved required variable is a hard failure **before** 
 
 | Variable | Type | Required | Source | Trust | Absence behaviour |
 |---|---|---|---|---|---|
-| `verificationPackage` | JSON object | Yes | Agent 03 output, via workflow | Provenance TRUSTED (a validated platform artifact); embedded free text treated as untrusted data by this prompt (README §15) | Hard failure before invocation |
-| `topicOpportunity` | JSON object | Yes | Agent 01 output, via workflow | Trusted | Hard failure before invocation |
+| `verificationPackage` | JSON object | Yes | Verification Package, via workflow | Provenance TRUSTED (a validated platform artifact); embedded free text treated as untrusted data by this prompt (README §15) | Hard failure before invocation |
+| `topicOpportunity` | JSON object | Yes | Topic Candidates, via workflow | Trusted | Hard failure before invocation |
 | `storyConstraints` | JSON object | No | Workflow / operator | Trusted | Enclosing block omitted in full |
 | `targetDurationSeconds` | integer | Yes | Workflow / operator | Trusted | Hard failure before invocation |
 | `language` | string | Yes | Locale Registry | Trusted | Hard failure before invocation |

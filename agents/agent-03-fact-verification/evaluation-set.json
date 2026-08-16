@@ -1,0 +1,15 @@
+{
+  "agentId": "fact-verification-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "03-representative-01", "type": "representative", "source": "agents/agent-03-fact-verification/test-cases.md#1-valid-research-package" },
+    { "id": "03-boundary-15", "type": "boundary", "source": "agents/agent-03-fact-verification/test-cases.md#15-not_verifiable-claim" },
+    { "id": "03-degenerate-13", "type": "degenerate", "source": "agents/agent-03-fact-verification/test-cases.md#13-conflicting-claim" },
+    { "id": "03-adversarial-31", "type": "adversarial", "source": "agents/agent-03-fact-verification/test-cases.md#31-prompt-injection-in-research-content" },
+    { "id": "03-adversarial-32", "type": "adversarial", "source": "agents/agent-03-fact-verification/test-cases.md#32-prompt-injection-in-evidence-text" },
+    { "id": "03-regression-conformance", "type": "regression", "source": "agents/agent-03-fact-verification/test-cases.md#contract-conformance-tests" }
+  ],
+  "knownGaps": [
+    "No locale-category case exists in test-cases.md for this agent (unlike Agents 00/01)."
+  ]
+}

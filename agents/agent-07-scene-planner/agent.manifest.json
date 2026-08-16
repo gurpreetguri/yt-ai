@@ -1,0 +1,53 @@
+{
+  "identity": {
+    "id": "scene-planner-agent",
+    "version": "1.0.0"
+  },
+  "class": "Generator",
+  "purpose": "Produces a scene plan from the narration script",
+  "nonResponsibilities": [
+    "Generating a final image prompt or a final video-generation prompt",
+    "Generating, selecting, searching for, or downloading an actual asset",
+    "Generating a voice instruction or a caption",
+    "Rewriting, paraphrasing, or modifying the script's narration",
+    "Introducing a new factual claim, statistic, date, price, or quotation not already grounded in the verification package"
+  ],
+  "input": {
+    "schema": "urn:contract:scene-planner-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:scene-planner-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Bounded variability"
+  },
+  "evaluation": {
+    "set": "agents/agent-07-scene-planner/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

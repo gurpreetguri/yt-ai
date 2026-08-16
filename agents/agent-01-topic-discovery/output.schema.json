@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:topic-discovery-agent-output:v1",
   "title": "Topic Discovery Agent Response",
-  "description": "RESPONSE / ERROR contract produced by AGT-01 topic-discovery-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Topic Opportunity Set. The model emits `#/$defs/topicOpportunitySet` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every topic is an OPPORTUNITY, not a verified fact: no claim in this contract has been fact-checked, and none may be treated as grounded until Agent 02 research runs (STD-000 §4.7). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "description": "RESPONSE / ERROR contract produced by AGT-01 topic-discovery-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Topic Opportunity Set. The model emits `#/$defs/topicOpportunitySet` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every topic is an OPPORTUNITY, not a verified fact: no claim in this contract has been fact-checked, and none may be treated as grounded until research verification runs (STD-000 §4.7). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
   "oneOf": [
     { "$ref": "#/$defs/successResponse" },
     { "$ref": "#/$defs/errorResponse" }
@@ -300,7 +300,7 @@
     },
 
     "topicOpportunitySet": {
-      "description": "THE TOPIC OPPORTUNITY SET. The single deliverable of this agent. Ranked, scored candidate topics for Agent 02 Research to evaluate — never verified facts, never commissioned topics, never scripts (README §3).",
+      "description": "THE TOPIC OPPORTUNITY SET. The single deliverable of this agent. Ranked, scored candidate topics for the research stage to evaluate — never verified facts, never commissioned topics, never scripts (README §3).",
       "type": "object",
       "additionalProperties": false,
       "required": ["setKind", "requestedCount", "deliveredCount", "topics", "assumptions", "declaredUnknowns", "inputSufficiency"],
@@ -483,7 +483,7 @@
         },
 
         "researchPriority": {
-          "description": "How urgently Agent 02 should take up this topic relative to others in the set.",
+          "description": "How urgently the research stage should take up this topic relative to others in the set.",
           "type": "string",
           "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"]
         },

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:story-architect-agent-output:v1",
   "title": "Story Architect Agent Response",
-  "description": "RESPONSE / ERROR contract produced by AGT-04 story-architect-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Story Architecture — a structured BLUEPRINT for Agent 05 Script Writer, never final narration (README §3). The model emits `#/$defs/storyArchitecture` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual story element traces to an Agent 03 verified claim; this agent never introduces a new factual claim (README §5). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "description": "RESPONSE / ERROR contract produced by AGT-04 story-architect-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Story Architecture — a structured BLUEPRINT for narration script writing, never final narration (README §3). The model emits `#/$defs/storyArchitecture` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual story element traces to a verified claim; this agent never introduces a new factual claim (README §5). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
   "oneOf": [
     { "$ref": "#/$defs/successResponse" },
     { "$ref": "#/$defs/errorResponse" }
@@ -299,7 +299,7 @@
     },
 
     "storyArchitecture": {
-      "description": "THE STORY ARCHITECTURE. The single deliverable of this agent — a structured BLUEPRINT for Agent 05 Script Writer (README §1). Contains no final narration, dialogue, camera directions, image/video prompts, captions, thumbnail concepts, or publishing metadata (README §3). Every factual element traces to an Agent 03 verified claim (README §5).",
+      "description": "THE STORY ARCHITECTURE. The single deliverable of this agent — a structured BLUEPRINT for narration script writing (README §1). Contains no final narration, dialogue, camera directions, image/video prompts, captions, thumbnail concepts, or publishing metadata (README §3). Every factual element traces to a verified claim (README §5).",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -454,7 +454,7 @@
         "approxDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 120 },
         "qualification": {
           "type": "string", "minLength": 10, "maxLength": 300,
-          "description": "Required when any claimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-023) — the same semantic meaning as a beat's qualification field: preserves Agent 03's caveat (e.g. a CONFLICTING or OUTDATED claim) into the hook; never dropped. Absent when no such claim is referenced."
+          "description": "Required when any claimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-023) — the same semantic meaning as a beat's qualification field: preserves the verified claim's caveat (e.g. a CONFLICTING or OUTDATED claim) into the hook; never dropped. Absent when no such claim is referenced."
         }
       }
     },
@@ -471,7 +471,7 @@
     "pacingValue": { "type": "string", "enum": ["FAST", "MODERATE", "SLOW"] },
 
     "storyBeat": {
-      "description": "One structured story beat (README §10). Contains enough information for Agent 05 to write the script — never the narration itself.",
+      "description": "One structured story beat (README §10). Contains enough information for narration script writing — never the narration itself.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -497,7 +497,7 @@
           "items": { "$ref": "#/$defs/localKey" }
         },
         "requiredConcepts": {
-          "description": "Concepts Agent 05 must convey in this beat, named at the concept level, never as finished sentences. Unordered. 0-6 items.",
+          "description": "Concepts the narration script must convey in this beat, named at the concept level, never as finished sentences. Unordered. 0-6 items.",
           "type": "array", "minItems": 0, "maxItems": 6,
           "items": { "type": "string", "minLength": 3, "maxLength": 150 }
         },
@@ -507,7 +507,7 @@
         "pacing": { "$ref": "#/$defs/pacingValue" },
         "qualification": {
           "type": "string", "minLength": 10, "maxLength": 300,
-          "description": "Required when any claimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-006) — preserves Agent 03's caveat (e.g. a CONFLICTING or OUTDATED claim) into the architecture; never dropped."
+          "description": "Required when any claimRefs entry's downstreamSafety is USE_WITH_QUALIFICATION (R-BUS-006) — preserves the verified claim's caveat (e.g. a CONFLICTING or OUTDATED claim) into the architecture; never dropped."
         },
         "researchGapRef": {
           "$ref": "#/$defs/localKey",

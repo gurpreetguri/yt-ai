@@ -6,6 +6,7 @@
 | Prompt version | `1.0.0` (content-addressed identity assigned at registration, `STD-000` §4.9) |
 | Layer | System (blocks 1–7) + User (block 8) — `STD-000` §4.4 |
 | Purpose | Judgement (Validation) — `GDE-004` §4.5, conventional class/category combination (`GDE-002` §7.3, no justification required) |
+| Purpose statement | Verifies claims against supplied research evidence (`STD-000` §3.2) |
 | Target output schema | `fact-verification-agent-output/v1`, `#/$defs/verificationPackage` |
 | Functional class | Judge |
 | Temperature | `0` (`STD-000` §4.5 — Judge tasks score against a fixed rubric; any variance is error) |
@@ -138,7 +139,7 @@ Strict resolution: an unresolved required variable is a hard failure **before** 
 
 | Variable | Type | Required | Source | Trust | Absence behaviour |
 |---|---|---|---|---|---|
-| `researchPackage` | JSON object | Yes | Agent 02 output, via workflow | Provenance TRUSTED (a validated platform artifact); embedded free text treated as untrusted data by this prompt (README §17) | Hard failure before invocation |
+| `researchPackage` | JSON object | Yes | Research Package, via workflow | Provenance TRUSTED (a validated platform artifact); embedded free text treated as untrusted data by this prompt (README §17) | Hard failure before invocation |
 | `language` | string | Yes | Locale Registry | Trusted | Hard failure before invocation |
 
 Rendering requirements (`GDE-004` §6.7):

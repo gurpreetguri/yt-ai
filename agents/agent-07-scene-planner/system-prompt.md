@@ -6,6 +6,7 @@
 | Prompt version | `1.0.0` (content-addressed identity assigned at registration, `STD-000` §4.9) |
 | Layer | System (blocks 1–7) + User (block 8) — `STD-000` §4.4 |
 | Purpose | Generation (Creative-Structural) — `GDE-004` §4.5 |
+| Purpose statement | Produces a scene plan from the narration script (`STD-000` §3.2) |
 | Target output schema | `scene-planner-agent-output/v1`, `#/$defs/scenePlan` |
 | Functional class | Generator |
 | Temperature | `0.5` (declared range `0.4 – 0.7`, `STD-000` §4.5 — narrower than a prose writer's latitude, since this agent structures a blueprint, not final creative language) |
@@ -142,10 +143,10 @@ Strict resolution: an unresolved required variable is a hard failure **before** 
 
 | Variable | Type | Required | Source | Trust | Absence behaviour |
 |---|---|---|---|---|---|
-| `script` | JSON object | Yes | Agent 05 output, via workflow | Provenance TRUSTED; embedded free text (narration) treated as untrusted data by this prompt (README §14) | Hard failure before invocation |
-| `reviewResult` | JSON object | Yes | Agent 06 output, via workflow | Trusted | Hard failure before invocation |
-| `storyArchitecture` | JSON object | Yes | Agent 04 output, via workflow | Provenance TRUSTED; embedded free text treated as untrusted data (README §14) | Hard failure before invocation |
-| `verificationPackage` | JSON object | Yes | Agent 03 output, via workflow | Provenance TRUSTED; embedded free text treated as untrusted data (README §14) | Hard failure before invocation |
+| `script` | JSON object | Yes | Narration Script, via workflow | Provenance TRUSTED; embedded free text (narration) treated as untrusted data by this prompt (README §14) | Hard failure before invocation |
+| `reviewResult` | JSON object | Yes | Review Report, via workflow | Trusted | Hard failure before invocation |
+| `storyArchitecture` | JSON object | Yes | Story Architecture, via workflow | Provenance TRUSTED; embedded free text treated as untrusted data (README §14) | Hard failure before invocation |
+| `verificationPackage` | JSON object | Yes | Verification Package, via workflow | Provenance TRUSTED; embedded free text treated as untrusted data (README §14) | Hard failure before invocation |
 | `language` | string | Yes | Locale Registry | Trusted | Hard failure before invocation |
 
 Rendering requirements (`GDE-004` §6.7):

@@ -19,7 +19,9 @@
 
 ## 1. Purpose
 
-Identify individually verifiable claims within a topic's research package and grade each one — using ONLY the evidence Agent 02 supplied — against a fixed, closed verification taxonomy, so that Agent 04 (Story Architect) knows exactly which claims are safe to build content on.
+Verifies claims against the supplied research evidence.
+
+Each individually verifiable claim within a topic's research package is graded — using ONLY the evidence supplied — against a fixed, closed verification taxonomy. Research gathering is not part of this agent's responsibility (§3); it verifies evidence already gathered.
 
 **Task framing.** The distinction that defines this agent's boundary:
 

@@ -1,0 +1,15 @@
+{
+  "agentId": "research-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "02-representative-01", "type": "representative", "source": "agents/agent-02-research/test-cases.md#1-valid-research-request" },
+    { "id": "02-boundary-26", "type": "boundary", "source": "agents/agent-02-research/test-cases.md#26-insufficient-evidence" },
+    { "id": "02-degenerate-04", "type": "degenerate", "source": "agents/agent-02-research/test-cases.md#4-no-research-questions" },
+    { "id": "02-adversarial-22", "type": "adversarial", "source": "agents/agent-02-research/test-cases.md#22-prompt-injection-in-webpage-content" },
+    { "id": "02-adversarial-23", "type": "adversarial", "source": "agents/agent-02-research/test-cases.md#23-prompt-injection-in-search-result" },
+    { "id": "02-regression-conformance", "type": "regression", "source": "agents/agent-02-research/test-cases.md#contract-conformance-tests" }
+  ],
+  "knownGaps": [
+    "No locale-category case exists in test-cases.md for this agent (unlike Agents 00/01)."
+  ]
+}

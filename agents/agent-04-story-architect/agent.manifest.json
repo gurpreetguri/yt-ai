@@ -1,0 +1,65 @@
+{
+  "identity": {
+    "id": "story-architect-agent",
+    "version": "1.0.0"
+  },
+  "class": "Generator",
+  "purpose": "Produces a story architecture from verified claims",
+  "nonResponsibilities": [
+    "Final narration, voiceover wording, dialogue",
+    "Complete paragraphs intended for the finished script",
+    "Scene descriptions, camera directions",
+    "Image prompts, video prompts",
+    "Captions",
+    "Thumbnail concepts",
+    "Publishing metadata",
+    "Gathering or re-deriving evidence",
+    "Fact verification, or overriding a verification determination",
+    "Modification of the verification package or topic opportunity it was given",
+    "Invocation of any other agent",
+    "Workflow orchestration and sequencing",
+    "Assignment of durable story-plan identifiers",
+    "Quality scoring of its own output",
+    "Policy and compliance clearance",
+    "Retry, repair, backoff, attempt counting",
+    "Envelope meta/execution/validation/references population"
+  ],
+  "input": {
+    "schema": "urn:contract:story-architect-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:story-architect-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Bounded variability"
+  },
+  "evaluation": {
+    "set": "agents/agent-04-story-architect/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

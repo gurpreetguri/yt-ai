@@ -19,7 +19,9 @@
 
 ## 1. Purpose
 
-Transform a topic's Agent 03 Verified Research, together with the Agent 01 Topic Opportunity that motivated it, into a structured video **story architecture** — a blueprint of story objective, hook, sequenced narrative beats, pacing, payoff, conclusion, and CTA strategy — so that Agent 05 Script Writer knows exactly what the video must accomplish and in what order, without this agent writing a single word of the finished script.
+Produces a story architecture from verified claims and the approved topic.
+
+The story architecture is a blueprint of story objective, hook, sequenced narrative beats, pacing, payoff, conclusion, and CTA strategy. This agent does not write a single word of the finished script (§3).
 
 **Task framing.** Agent 04 creates the **blueprint**; Agent 05 writes the **words** (§3).
 

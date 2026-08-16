@@ -1,0 +1,15 @@
+{
+  "agentId": "script-reviewer-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "06-representative-01", "type": "representative", "source": "agents/agent-06-script-reviewer/test-cases.md#row-1-valid-approved-script" },
+    { "id": "06-degenerate-02", "type": "degenerate", "source": "agents/agent-06-script-reviewer/test-cases.md#row-2-invalid-input" },
+    { "id": "06-adversarial-28", "type": "adversarial", "source": "agents/agent-06-script-reviewer/test-cases.md#row-28" },
+    { "id": "06-adversarial-29", "type": "adversarial", "source": "agents/agent-06-script-reviewer/test-cases.md#row-29" },
+    { "id": "06-regression-ground-truth", "type": "regression", "source": "agents/agent-06-script-reviewer/test-cases.md#ground-truth-severityblockingtarget-regression-tests" }
+  ],
+  "knownGaps": [
+    "No locale-category case exists in test-cases.md for this agent.",
+    "No boundary-labeled case was confidently identified in this pass; boundary coverage should be confirmed against the full table before this evaluation set is treated as complete."
+  ]
+}

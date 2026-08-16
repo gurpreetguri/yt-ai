@@ -19,7 +19,9 @@
 
 ## 1. Purpose
 
-Generate, score, and rank candidate video topics that fit the channel's approved Strategy Manifest, so that the research stage knows which topics are worth investigating and in what order.
+Produces a ranked set of candidate video topics for an approved channel strategy.
+
+Generation, scoring, and ranking are implementation details of producing this single ranked topic artifact, not separate responsibilities.
 
 **On functional class.** `GDE-002` §7.3 classifies Research-category agents as typically Extractor or Transformer, and lists Generator as unusual — requiring justification. This agent claims Generator because topic ideation is a creative task: `GDE-004` §4.5 names "regression to generic output" as Generation's distinctive risk, and a zero-temperature Extractor posture would deterministically surface the same handful of obvious topics on every invocation — defeating the differentiation responsibility this agent exists to serve (`STD-000` §1.5 makes differentiation a monetization-relevant engineering requirement, not a preference). The score dimensions the agent also emits are `MODEL_ASSESSED` judgements about the *generated candidates*, which is distinct from an agent assessing its own output quality (`STD-000` §6.4 forbids the latter; scoring a topic's merit is this agent's declared job). See §17 (Future Improvements) in [system-prompt.md](system-prompt.md) design notes for the known tension this combination creates and the deferred mitigation.
 

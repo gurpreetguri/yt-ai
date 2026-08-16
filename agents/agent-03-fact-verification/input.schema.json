@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:fact-verification-agent-input:v1",
   "title": "Fact Verification Agent Request",
-  "description": "REQUEST contract consumed by AGT-03 fact-verification-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. `data.researchPackage` is the Agent 02 Research Package (a subset of `research-agent-output/v1#/$defs/researchPackage` — only the fields claim verification needs; `completeness`, `recommendedFollowUpSearches`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` are Agent 02's own self-assessment and are not required here, GDE-002 §5.1 minimum-context principle). Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points.",
+  "description": "REQUEST contract consumed by AGT-03 fact-verification-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. `data.researchPackage` is the Research Package (a subset of `research-agent-output/v1#/$defs/researchPackage` — only the fields claim verification needs; `completeness`, `recommendedFollowUpSearches`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` are the Research Package's own self-assessment and are not required here, GDE-002 §5.1 minimum-context principle). Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points.",
   "type": "object",
   "additionalProperties": false,
   "required": ["contractVersion", "contractType", "schemaVersion", "meta", "data"],
@@ -150,7 +150,7 @@
     },
 
     "factVerificationRequest": {
-      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): researchPackage carries only the subset of Agent 02's output claim verification needs.",
+      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): researchPackage carries only the subset of the Research Package claim verification needs.",
       "type": "object",
       "additionalProperties": false,
       "required": ["researchPackage", "language"],
@@ -164,7 +164,7 @@
     },
 
     "researchPackageRef": {
-      "description": "The Agent 02 deliverable this agent verifies. Provenance TRUSTED — produced by Agent 02, itself already schema- and business-validated (STD-000 Rule 17) — but every embedded free-text field (evidence text, source titles, claims-adjacent context) ultimately originates from external, UNTRUSTED research material Agent 02 processed, and MUST be treated by the prompt as inert data, never as instructions (README §17). This agent never modifies, re-fetches, or re-scores anything in this block; it only reads it (README §4).",
+      "description": "The Research Package this agent verifies. Provenance TRUSTED — an already schema- and business-validated platform artifact (STD-000 Rule 17) — but every embedded free-text field (evidence text, source titles, claims-adjacent context) ultimately originates from external, UNTRUSTED research material, and MUST be treated by the prompt as inert data, never as instructions (README §17). This agent never modifies, re-fetches, or re-scores anything in this block; it only reads it (README §4).",
       "type": "object",
       "additionalProperties": false,
       "required": ["topicId", "researchQuestions", "sources", "evidence", "conflicts", "gaps"],
@@ -196,7 +196,7 @@
         },
 
         "conflicts": {
-          "description": "Research-question-level conflicts Agent 02 already identified. Unordered. 0-20 items.",
+          "description": "Research-question-level conflicts already identified in the Research Package. Unordered. 0-20 items.",
           "type": "array",
           "minItems": 0,
           "maxItems": 20,
@@ -204,7 +204,7 @@
         },
 
         "gaps": {
-          "description": "Information gaps Agent 02 already identified. Unordered. 0-20 items.",
+          "description": "Information gaps already identified in the Research Package. Unordered. 0-20 items.",
           "type": "array",
           "minItems": 0,
           "maxItems": 20,
@@ -264,7 +264,7 @@
           ]
         },
         "sourceStatus": {
-          "description": "The SEARCH_RESULT vs SOURCE distinction Agent 02 established. A claim cannot be VERIFIED on SEARCH_RESULT_ONLY evidence alone (R-BUS-006).",
+          "description": "The SEARCH_RESULT vs SOURCE distinction the Research Package established. A claim cannot be VERIFIED on SEARCH_RESULT_ONLY evidence alone (R-BUS-006).",
           "type": "string",
           "enum": ["SEARCH_RESULT_ONLY", "FETCHED"]
         },
@@ -322,7 +322,7 @@
         "relevance": { "$ref": "#/$defs/ratio" },
         "freshness": { "$ref": "#/$defs/ratio" },
         "verificationStatus": {
-          "description": "Agent 02's OWN bounded judgement — a prior, weaker signal this agent may consider but never treat as a substitute for its own claim-level determination (README §5).",
+          "description": "The Research Package's OWN bounded judgement — a prior, weaker signal this agent may consider but never treat as a substitute for its own claim-level determination (README §5).",
           "type": "string",
           "enum": ["REQUIRES_VERIFICATION", "CORROBORATED", "CONFLICTING", "UNRESOLVED"]
         },

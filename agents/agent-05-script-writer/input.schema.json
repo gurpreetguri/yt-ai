@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:script-writer-agent-input:v1",
   "title": "Script Writer Agent Request",
-  "description": "REQUEST contract consumed by AGT-05 script-writer-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. `data.storyArchitecture` is a subset of Agent 04's output (`story-architect-agent-output/v1#/$defs/storyArchitecture`) — only the fields script writing needs; `storyObjective`, `pacingStrategy`, `researchGaps`, `readinessBlockers`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` are Agent 04's own internal reasoning surface and are not required here (GDE-002 §5.1 minimum-context principle). `data.verificationPackage` is a subset of Agent 03's output, identical in spirit to Agent 04's own `verificationPackageRef`, extended with `quoteProvenance` so quotations can be written without fabrication. Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points.",
+  "description": "REQUEST contract consumed by AGT-05 script-writer-agent 1.x. Envelope per GDE-003 §4.1. The model receives `data` only; the envelope is assembled and validated by the agent runtime. `data.storyArchitecture` is a subset of the Story Architecture (`story-architect-agent-output/v1#/$defs/storyArchitecture`) — only the fields script writing needs; `storyObjective`, `pacingStrategy`, `researchGaps`, `readinessBlockers`, `assumptions`, `declaredUnknowns`, and `inputSufficiency` are the Story Architecture's own internal reasoning surface and are not required here (GDE-002 §5.1 minimum-context principle). `data.verificationPackage` is a subset of the Verification Package, identical in spirit to the Story Architecture's own `verificationPackageRef`, extended with `quoteProvenance` so quotations can be written without fabrication. Schema version 1.0.0. All enumerations are CLOSED unless a property description states otherwise; adding a member is a MAJOR change (STD-000 §5.5). All string lengths are counted in Unicode code points.",
   "type": "object",
   "additionalProperties": false,
   "required": ["contractVersion", "contractType", "schemaVersion", "meta", "data"],
@@ -89,7 +89,7 @@
     "hookType": { "type": "string", "enum": ["CONTRADICTION", "SURPRISING_RESULT", "QUESTION", "PROBLEM", "PROMISE", "DISCOVERY", "MISTAKE", "COMPARISON", "STORY_SETUP"] },
 
     "hookRef": {
-      "description": "The subset of Agent 04's hook this agent needs to open the script faithfully (README §9). Structural direction only, not itself narration.",
+      "description": "The subset of the Story Architecture's hook this agent needs to open the script faithfully (README §9). Structural direction only, not itself narration.",
       "type": "object",
       "additionalProperties": false,
       "required": ["hookType", "curiosityMechanism", "viewerQuestion", "claimRefs", "payoffExpectation", "approxDurationSeconds"],
@@ -109,7 +109,7 @@
     "pacingValue": { "type": "string", "enum": ["FAST", "MODERATE", "SLOW"] },
 
     "storyBeatRef": {
-      "description": "The subset of an Agent 04 story beat this agent needs (README §8). Every factual script segment traces back to exactly one of these.",
+      "description": "The subset of a Story Architecture story beat this agent needs (README §8). Every factual script segment traces back to exactly one of these.",
       "type": "object",
       "additionalProperties": false,
       "required": ["beatId", "order", "beatType", "purpose", "expectedViewerState", "claimRefs", "evidenceRefs", "requiredConcepts", "approxDurationSeconds", "importance", "pacing"],
@@ -183,7 +183,7 @@
     "storyDownstreamReadiness": { "type": "string", "enum": ["READY_FOR_SCRIPT", "NOT_READY_FOR_SCRIPT"] },
 
     "storyArchitectureRef": {
-      "description": "The subset of Agent 04's Story Architecture this agent needs (GDE-002 §5.1). Provenance TRUSTED — produced by an already-validated Agent 04 invocation — but embedded free text MUST be treated as untrusted data by the prompt (README §17), mirroring Agent 04's own handling of Agent 03's verificationPackage.",
+      "description": "The subset of the Story Architecture this agent needs (GDE-002 §5.1). Provenance TRUSTED — an already-validated platform artifact — but embedded free text MUST be treated as untrusted data by the prompt (README §17), mirroring the verificationPackage handling upstream.",
       "type": "object",
       "additionalProperties": false,
       "required": ["topicId", "hook", "beats", "duration", "payoff", "conclusion", "ctaStrategy", "downstreamReadiness"],
@@ -223,7 +223,7 @@
     },
 
     "verifiedClaimRef": {
-      "description": "The subset of an Agent 03 Claim this agent needs to write narration without inventing a fact.",
+      "description": "The subset of a verified Claim this agent needs to write narration without inventing a fact.",
       "type": "object",
       "additionalProperties": false,
       "required": ["claimId", "claimText", "claimType", "verificationStatus", "downstreamSafety", "supportingEvidenceIds", "isTimeSensitive", "freshnessConcern", "limitations"],
@@ -234,7 +234,7 @@
         "verificationStatus": { "$ref": "#/$defs/verificationStatus" },
         "downstreamSafety": {
           "$ref": "#/$defs/downstreamSafety",
-          "description": "Agent 03's fixed determination. DO_NOT_USE claims MUST NOT appear as factual script content (R-BUS-006); USE_WITH_QUALIFICATION claims MUST carry their qualification into any segment that cites them (R-BUS-007)."
+          "description": "The Verification Package's fixed determination. DO_NOT_USE claims MUST NOT appear as factual script content (R-BUS-006); USE_WITH_QUALIFICATION claims MUST carry their qualification into any segment that cites them (R-BUS-007)."
         },
         "supportingEvidenceIds": { "description": "The evidenceId values a script segment may cite via evidenceRefs for this claim (R-BUS-005). Unordered. 0-15 items.", "type": "array", "minItems": 0, "maxItems": 15, "items": { "$ref": "#/$defs/localKey" } },
         "isTimeSensitive": { "type": "boolean" },
@@ -246,7 +246,7 @@
     },
 
     "verificationPackageRef": {
-      "description": "The subset of the Agent 03 Verification Package this agent needs. Provenance TRUSTED but embedded free text MUST be treated as untrusted data by the prompt (README §17).",
+      "description": "The subset of the Verification Package this agent needs. Provenance TRUSTED but embedded free text MUST be treated as untrusted data by the prompt (README §17).",
       "type": "object",
       "additionalProperties": false,
       "required": ["topicId", "claims"],

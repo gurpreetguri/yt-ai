@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:scene-planner-agent-output:v1",
   "title": "Scene Planner Agent Response",
-  "description": "RESPONSE / ERROR contract produced by AGT-07 scene-planner-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Scene Plan — a structured visual blueprint built strictly from Agent 05's approved script, Agent 06's approval, Agent 04's story architecture, and Agent 03's verified claims (README §1). The model emits `#/$defs/scenePlan` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual visual element traces to a script segment and, through it, to an Agent 03 verified claim; this agent never introduces a new factual claim, never generates a final image/video prompt, and never generates or selects an asset (README §4, §12). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "description": "RESPONSE / ERROR contract produced by AGT-07 scene-planner-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Scene Plan — a structured visual blueprint built strictly from the approved Narration Script, the Review Report approval, the Story Architecture, and its verified claims (README §1). The model emits `#/$defs/scenePlan` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual visual element traces to a script segment and, through it, to a verified claim; this agent never introduces a new factual claim, never generates a final image/video prompt, and never generates or selects an asset (README §4, §12). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
   "oneOf": [
     { "$ref": "#/$defs/successResponse" },
     { "$ref": "#/$defs/errorResponse" }
@@ -309,7 +309,7 @@
     },
 
     "scene": {
-      "description": "One planned scene (README §5). Every scene traces to one or more Agent 05 script segments via segmentRefs.",
+      "description": "One planned scene (README §5). Every scene traces to one or more Narration Script segments via segmentRefs.",
       "type": "object",
       "additionalProperties": false,
       "required": ["sceneId", "order", "segmentRefs", "startTimeSeconds", "endTimeSeconds", "durationSeconds", "sceneType", "visualPurpose", "visualElements", "informationToShow", "claimRefs", "evidenceRefs", "transition", "onScreenTextIntent", "assetRequirements"],
@@ -403,7 +403,7 @@
     },
 
     "scenePlan": {
-      "description": "THE SCENE PLAN. The single deliverable of this agent — a structured visual blueprint (README §1). Contains no final image/video prompt, no generated asset, no caption, no voice instruction (README §4). Every factual visual element traces to a script segment and, through it, to an Agent 03 verified claim (README §7).",
+      "description": "THE SCENE PLAN. The single deliverable of this agent — a structured visual blueprint (README §1). Contains no final image/video prompt, no generated asset, no caption, no voice instruction (README §4). Every factual visual element traces to a script segment and, through it, to a verified claim (README §7).",
       "type": "object",
       "additionalProperties": false,
       "required": ["packageKind", "topicId", "scenes", "planDuration", "warnings", "downstreamReadiness", "readinessRationale", "readinessBlockers"],

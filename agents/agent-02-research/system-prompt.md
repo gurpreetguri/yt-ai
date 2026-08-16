@@ -6,6 +6,7 @@
 | Prompt version | `1.0.0` (content-addressed identity assigned at registration, `STD-000` §4.9) |
 | Layer | System (blocks 1–7) + User (block 8) — `STD-000` §4.4 |
 | Purpose | Extraction (Research) — `GDE-004` §4.5, conventional class/category combination (`GDE-002` §7.3, no justification required) |
+| Purpose statement | Produces a structured research package (`STD-000` §3.2) |
 | Target output schema | `research-agent-output/v1`, `#/$defs/researchPackage` |
 | Functional class | Extractor |
 | Temperature | `0` (`STD-000` §4.5 — Extractor tasks have correct answers; any variance is error) |
@@ -157,7 +158,7 @@ Strict resolution: an unresolved required variable is a hard failure **before** 
 
 | Variable | Type | Required | Source | Trust | Absence behaviour |
 |---|---|---|---|---|---|
-| `topicOpportunity` | JSON object | Yes | Agent 01 output, via workflow | Trusted | Hard failure before invocation |
+| `topicOpportunity` | JSON object | Yes | Topic Candidates, via workflow | Trusted | Hard failure before invocation |
 | `researchConstraints` | JSON object | No | Workflow / operator | Trusted | Enclosing block omitted in full |
 | `existingResearch` | JSON object | No | Prior AGT-02 invocation, via Research Package Store | Trusted | Enclosing block omitted in full |
 | `researchMaterials` | JSON array | Yes | Research/search provider, via workflow | **UNTRUSTED** | Hard failure before invocation (empty array is valid; the block itself is required) |

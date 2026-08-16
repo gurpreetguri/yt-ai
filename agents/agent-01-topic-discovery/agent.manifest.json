@@ -1,0 +1,64 @@
+{
+  "identity": {
+    "id": "topic-discovery-agent",
+    "version": "1.0.0"
+  },
+  "class": "Generator",
+  "purpose": "Produces a ranked set of candidate video topics",
+  "nonResponsibilities": [
+    "Deep research, source gathering, fact establishment",
+    "Fact verification of any claim in a topic's title, angle, or rationale",
+    "Script, hook, and narrative writing",
+    "Thumbnail imagery and scene planning",
+    "Video asset generation",
+    "Publication scheduling, quota arbitration",
+    "Final SEO optimization of titles, descriptions, or tags for a specific video",
+    "Modification of the strategy manifest",
+    "Invocation of any other agent",
+    "Workflow orchestration and sequencing",
+    "Assignment of durable topic identifiers on commission",
+    "Semantic-embedding similarity search",
+    "Quality scoring of its own output",
+    "Policy and compliance clearance",
+    "Retry, repair, backoff, attempt counting",
+    "Envelope meta/execution/validation/references population"
+  ],
+  "input": {
+    "schema": "urn:contract:topic-discovery-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:topic-discovery-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Bounded variability"
+  },
+  "evaluation": {
+    "set": "agents/agent-01-topic-discovery/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

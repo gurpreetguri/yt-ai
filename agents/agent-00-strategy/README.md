@@ -19,7 +19,9 @@
 
 ## 1. Purpose
 
-Produce a complete, internally consistent **Strategy Manifest** for one channel from operator intent, audience definition, capacity constraints, brand and locale bindings, and — on revision cycles — evidenced insight proposals.
+Produces a strategy manifest for the configured channel.
+
+The manifest is derived from operator intent, audience definition, capacity constraints, brand and locale bindings, and — on revision cycles — evidenced insight proposals.
 
 ## 2. Responsibilities
 

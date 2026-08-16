@@ -2,7 +2,9 @@
 
 ## 1. Purpose and deliverable
 
-Agent 05 transforms an approved Agent 04 Story Architecture, together with the Agent 03 verified claims it was built from, into **the Narration Script** — complete, natural-language, spoken-ready narration, segment by segment, in the story's own order. It is the single deliverable of this agent (`#/$defs/narrationScript` in `output.schema.json`).
+Produces a narration script from the approved story architecture.
+
+Given an approved story architecture and the verified claims it was built from, this agent produces **the Narration Script** — complete, natural-language, spoken-ready narration, segment by segment, in the story's own order. It is the single deliverable of this agent (`#/$defs/narrationScript` in `output.schema.json`).
 
 Pipeline position:
 

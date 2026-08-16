@@ -19,7 +19,9 @@
 
 ## 1. Purpose
 
-Gather, organise, and assess structured research evidence for a topic opportunity selected by Agent 01, so that Agent 03 Fact Verification has a grounded, provenance-complete basis to determine what is actually true.
+Produces a structured research package from supplied research materials.
+
+Final claim verification is not part of this agent's responsibility (§3); this agent may assess source and evidence characteristics, but the verification determination itself belongs to a downstream stage.
 
 **Task framing.** Three D1 agents ask three different questions about the same subject, and the boundary between them is the platform's constitution for this department:
 

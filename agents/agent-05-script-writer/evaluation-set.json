@@ -1,0 +1,15 @@
+{
+  "agentId": "script-writer-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "05-representative-01", "type": "representative", "source": "agents/agent-05-script-writer/test-cases.md#row-1-valid-script" },
+    { "id": "05-boundary-24", "type": "boundary", "source": "agents/agent-05-script-writer/test-cases.md#row-24-valid-duration" },
+    { "id": "05-degenerate-02", "type": "degenerate", "source": "agents/agent-05-script-writer/test-cases.md#row-2-invalid-input" },
+    { "id": "05-adversarial-30", "type": "adversarial", "source": "agents/agent-05-script-writer/test-cases.md#row-30-prompt-injection-in-claim" },
+    { "id": "05-adversarial-31", "type": "adversarial", "source": "agents/agent-05-script-writer/test-cases.md#row-31-prompt-injection-in-evidence" },
+    { "id": "05-regression-conformance", "type": "regression", "source": "agents/agent-05-script-writer/test-cases.md#contract-conformance-tests" }
+  ],
+  "knownGaps": [
+    "No locale-category case exists in test-cases.md for this agent."
+  ]
+}

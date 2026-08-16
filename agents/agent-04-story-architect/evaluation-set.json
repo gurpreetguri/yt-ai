@@ -1,0 +1,16 @@
+{
+  "agentId": "story-architect-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "04-representative-01", "type": "representative", "source": "agents/agent-04-story-architect/test-cases.md#1-valid-story-architecture" },
+    { "id": "04-boundary-18", "type": "boundary", "source": "agents/agent-04-story-architect/test-cases.md#18-duration-total-too-long" },
+    { "id": "04-boundary-19", "type": "boundary", "source": "agents/agent-04-story-architect/test-cases.md#19-duration-total-too-short" },
+    { "id": "04-degenerate-21", "type": "degenerate", "source": "agents/agent-04-story-architect/test-cases.md#21-research-gap" },
+    { "id": "04-adversarial-24", "type": "adversarial", "source": "agents/agent-04-story-architect/test-cases.md#24-prompt-injection-in-claim" },
+    { "id": "04-adversarial-25", "type": "adversarial", "source": "agents/agent-04-story-architect/test-cases.md#25-prompt-injection-in-evidence" },
+    { "id": "04-regression-targeted-fixes", "type": "regression", "source": "agents/agent-04-story-architect/test-cases.md#targeted-contract-fixes" }
+  ],
+  "knownGaps": [
+    "No locale-category case exists in test-cases.md for this agent (unlike Agents 00/01)."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "identity": {
+    "id": "fact-verification-agent",
+    "version": "1.0.0"
+  },
+  "class": "Judge",
+  "purpose": "Verifies claims against supplied research evidence",
+  "nonResponsibilities": [
+    "Gathering new evidence, sources, or research materials",
+    "Web search, document fetching, or any external research action",
+    "Story structure, narrative outline",
+    "Script, hook, and narrative writing",
+    "Thumbnail imagery, scene planning, video generation",
+    "Publication, SEO",
+    "Modification of the research package it was given",
+    "Invocation of any other agent",
+    "Workflow orchestration and sequencing",
+    "Assignment of durable verification-package identifiers",
+    "Final, irreversible determination of factual truth for publishing purposes",
+    "Quality scoring of its own output",
+    "Retry, repair, backoff, attempt counting",
+    "Envelope meta/execution/validation/references population"
+  ],
+  "input": {
+    "schema": "urn:contract:fact-verification-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:fact-verification-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Fully deterministic"
+  },
+  "evaluation": {
+    "set": "agents/agent-03-fact-verification/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

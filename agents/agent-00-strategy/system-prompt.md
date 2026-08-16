@@ -6,6 +6,7 @@
 | Prompt version | `1.0.0` (content-addressed identity assigned at registration, `STD-000` §4.9) |
 | Layer | System (blocks 1–7) + User (block 8) — `STD-000` §4.4 |
 | Purpose | Generation (Planning) — `GDE-004` §4.5 |
+| Purpose statement | Produces a strategy manifest for the configured channel (`STD-000` §3.2) |
 | Target output schema | `strategy-agent-output/v1`, `#/$defs/strategyManifest` |
 | Functional class | Planner |
 | Temperature | `0.2` (declared range `0.2 – 0.4`, `STD-000` §4.5) |

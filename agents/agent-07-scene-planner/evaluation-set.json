@@ -1,0 +1,16 @@
+{
+  "agentId": "scene-planner-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "07-representative-01", "type": "representative", "source": "agents/agent-07-scene-planner/test-cases.md#row-1-valid-scene-plan" },
+    { "id": "07-degenerate-02", "type": "degenerate", "source": "agents/agent-07-scene-planner/test-cases.md#row-2-invalid-input" },
+    { "id": "07-adversarial-36", "type": "adversarial", "source": "agents/agent-07-scene-planner/test-cases.md#row-36" },
+    { "id": "07-adversarial-37", "type": "adversarial", "source": "agents/agent-07-scene-planner/test-cases.md#row-37" },
+    { "id": "07-adversarial-38", "type": "adversarial", "source": "agents/agent-07-scene-planner/test-cases.md#row-38" },
+    { "id": "07-regression-beatref", "type": "regression", "source": "agents/agent-07-scene-planner/test-cases.md#scene-beatref-segment-beatref-provenance-regression-tests-r-bus-027" }
+  ],
+  "knownGaps": [
+    "No locale-category case exists in test-cases.md for this agent.",
+    "No boundary-labeled case was confidently identified in this pass; boundary coverage should be confirmed against the full table before this evaluation set is treated as complete."
+  ]
+}

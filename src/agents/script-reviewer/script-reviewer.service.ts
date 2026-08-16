@@ -63,12 +63,13 @@ const REVIEW_REPORT_JSON_SCHEMA: unknown = (
 
 /**
  * Sampling parameters fixed by the agent's own prompt contract
- * (system-prompt.md header table: Evaluator class, temperature 0.3, topP
- * 1.0, max output tokens 6000) — declared here as call-site literals, the
- * same way every other agent's runtime fixes its own agent's parameters,
- * rather than sourced from the shared `aiConfig`.
+ * (system-prompt.md header table: Critic class, temperature 0, topP 1.0,
+ * max output tokens 6000) — declared here as call-site literals, the same
+ * way every other agent's runtime fixes its own agent's parameters, rather
+ * than sourced from the shared `aiConfig`. Temperature 0 (`STD-000` §4.5,
+ * Critic guidance) so review findings are stable run-to-run.
  */
-const INVOCATION_PARAMETERS = { temperature: 0.3, topP: 1.0, maxOutputTokens: 6000 } as const;
+const INVOCATION_PARAMETERS = { temperature: 0, topP: 1.0, maxOutputTokens: 6000 } as const;
 
 const REFUSAL_REASON_TO_ERROR: Readonly<
   Record<

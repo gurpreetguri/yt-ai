@@ -138,7 +138,7 @@
     },
 
     "researchRequest": {
-      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): topicOpportunity carries only the subset of Agent 01's output this agent needs, never the full Topic Opportunity Set and never the Strategy Manifest.",
+      "description": "The payload the model receives. Minimum-context scoped (GDE-002 §5.1): topicOpportunity carries only the subset of the Topic Candidates this agent needs, never the full Topic Opportunity Set and never the Strategy Manifest.",
       "type": "object",
       "additionalProperties": false,
       "required": ["topicOpportunity", "researchMaterials", "requestedDepth", "language"],
@@ -166,7 +166,7 @@
     },
 
     "topicOpportunityRef": {
-      "description": "The subset of an Agent 01 Topic Opportunity this agent needs (GDE-002 §5.4). Trusted — produced by the platform, not external content. Not a source of new facts; the topic's title and angle are a research target, never evidence.",
+      "description": "The subset of a Topic Opportunity this agent needs (GDE-002 §5.4). Trusted — produced by the platform, not external content. Not a source of new facts; the topic's title and angle are a research target, never evidence.",
       "type": "object",
       "additionalProperties": false,
       "required": ["topicId", "title", "angle", "topicType", "pillarKey", "audienceIntent", "researchPriority"],

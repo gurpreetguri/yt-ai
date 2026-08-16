@@ -1,0 +1,12 @@
+{
+  "agentId": "strategy-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "00-representative-01", "type": "representative", "source": "agents/agent-00-strategy/test-cases.md#1-happy-path" },
+    { "id": "00-boundary-05", "type": "boundary", "source": "agents/agent-00-strategy/test-cases.md#5-duplicate-content-pillars" },
+    { "id": "00-degenerate-08", "type": "degenerate", "source": "agents/agent-00-strategy/test-cases.md#8-adversarial-and-degenerate" },
+    { "id": "00-adversarial-08", "type": "adversarial", "source": "agents/agent-00-strategy/test-cases.md#8-adversarial-and-degenerate" },
+    { "id": "00-locale-06", "type": "locale", "source": "agents/agent-00-strategy/test-cases.md#6-invalid-language" },
+    { "id": "00-regression-09", "type": "regression", "source": "agents/agent-00-strategy/test-cases.md#9-contract-conformance-tests" }
+  ]
+}

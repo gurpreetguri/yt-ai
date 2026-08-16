@@ -1,8 +1,15 @@
 # AGT-06 — Script Reviewer Agent
 
+| Field | Value |
+|---|---|
+| Functional class | **Critic** (`STD-000` §3.11) |
+| Domain category | **Review** (`GDE-002` §7.2) |
+
 ## 1. Purpose and deliverable
 
-Agent 06 evaluates the Agent 05 narration script against the Agent 04 story architecture it was built from, the Agent 03 verified claims that ground it, and the target audience — and produces **the Review Report**, a structured set of findings, a controlled decision, and a controlled next action. It is the single deliverable of this agent (`#/$defs/reviewReport` in `output.schema.json`).
+Reviews a narration script against its declared quality criteria.
+
+Given a narration script, the story architecture it was built from, the verified claims that ground it, and the target audience, this agent produces **the Review Report** — a structured set of findings, a controlled decision, and a controlled next action. It is the single deliverable of this agent (`#/$defs/reviewReport` in `output.schema.json`).
 
 Pipeline position:
 

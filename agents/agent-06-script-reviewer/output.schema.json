@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:script-reviewer-agent-output:v1",
   "title": "Script Reviewer Agent Response",
-  "description": "RESPONSE / ERROR contract produced by AGT-06 script-reviewer-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Review Report — structured findings about Agent 05's script (README §1). The model emits `#/$defs/reviewReport` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). This agent NEVER rewrites the script, NEVER invents a replacement fact/quote/source, and NEVER silently corrects anything it reviews (README §2, §4). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "description": "RESPONSE / ERROR contract produced by AGT-06 script-reviewer-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Review Report — structured findings about the narration script under review (README §1). The model emits `#/$defs/reviewReport` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). This agent NEVER rewrites the script, NEVER invents a replacement fact/quote/source, and NEVER silently corrects anything it reviews (README §2, §4). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
   "oneOf": [
     { "$ref": "#/$defs/successResponse" },
     { "$ref": "#/$defs/errorResponse" }
@@ -306,7 +306,7 @@
           "type": "array", "minItems": 0, "maxItems": 6,
           "items": { "$ref": "#/$defs/localKey" }
         },
-        "recommendation": { "type": "string", "minLength": 10, "maxLength": 300, "description": "Guidance for a human or for Agent 05's next attempt — never replacement narration itself." },
+        "recommendation": { "type": "string", "minLength": 10, "maxLength": 300, "description": "Guidance for a human or for the next narration script writing attempt — never replacement narration itself." },
         "repairability": { "$ref": "#/$defs/repairability" },
         "blocking": { "type": "boolean", "description": "Whether this issue alone prevents APPROVED." },
         "confidence": { "$ref": "#/$defs/ratio" }

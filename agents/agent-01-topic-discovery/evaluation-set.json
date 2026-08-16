@@ -1,0 +1,12 @@
+{
+  "agentId": "topic-discovery-agent",
+  "evaluationSetVersion": "1.0.0",
+  "cases": [
+    { "id": "01-representative-01", "type": "representative", "source": "agents/agent-01-topic-discovery/test-cases.md#1-valid-strategy" },
+    { "id": "01-boundary-14", "type": "boundary", "source": "agents/agent-01-topic-discovery/test-cases.md#14-empty-topic-result" },
+    { "id": "01-degenerate-16", "type": "degenerate", "source": "agents/agent-01-topic-discovery/test-cases.md#16-insufficient-discovery-context" },
+    { "id": "01-adversarial-22", "type": "adversarial", "source": "agents/agent-01-topic-discovery/test-cases.md#22-prompt-injection-in-markettrend-context" },
+    { "id": "01-locale-18", "type": "locale", "source": "agents/agent-01-topic-discovery/test-cases.md#18-invalid-language" },
+    { "id": "01-regression-conformance", "type": "regression", "source": "agents/agent-01-topic-discovery/test-cases.md#contract-conformance-tests" }
+  ]
+}

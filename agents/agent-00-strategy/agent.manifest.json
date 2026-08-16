@@ -1,0 +1,62 @@
+{
+  "identity": {
+    "id": "strategy-agent",
+    "version": "1.0.0"
+  },
+  "class": "Planner",
+  "purpose": "Produces a strategy manifest for the configured channel",
+  "nonResponsibilities": [
+    "Topic ideation, topic selection, angle definition",
+    "Research, fact establishment, source citation",
+    "Script, hook, and narrative writing",
+    "Title, description, and tag generation for a specific video",
+    "Thumbnail imagery, scene planning, media generation",
+    "Publication scheduling of a specific video, quota arbitration",
+    "Approval of this manifest, assignment of strategyVersion, custody, channel binding",
+    "Assignment of durable identifiers",
+    "Quality scoring of this manifest",
+    "Policy and compliance clearance",
+    "Originality checking against channel history",
+    "Statistical analysis of performance; production of insight proposals",
+    "Retry, repair, backoff, attempt counting",
+    "Envelope meta/execution/validation/references population"
+  ],
+  "input": {
+    "schema": "urn:contract:strategy-agent-input:v1",
+    "version": "v1"
+  },
+  "output": {
+    "schema": "urn:contract:strategy-agent-output:v1",
+    "version": "v1"
+  },
+  "prompt": {
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "structuredOutput": true,
+    "toolUse": false,
+    "vision": false,
+    "longContext": null,
+    "reasoningDepth": null
+  },
+  "permissions": {
+    "network": [],
+    "storage": [],
+    "tools": []
+  },
+  "determinism": {
+    "mode": "Low variability"
+  },
+  "evaluation": {
+    "set": "agents/agent-00-strategy/test-cases.md",
+    "passRate": null
+  },
+  "budget": {
+    "expectedCost": null,
+    "maximumCost": null,
+    "expectedLatencyMs": null,
+    "maximumLatencyMs": null
+  },
+  "owner": null,
+  "stability": null
+}

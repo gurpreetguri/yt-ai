@@ -2,7 +2,9 @@
 
 ## 1. Purpose and deliverable
 
-Agent 07 transforms an approved Agent 05 narration script — together with the Agent 06 approval that cleared it, the Agent 04 story architecture it was built from, and the Agent 03 verified claims that ground it — into **the Scene Plan**, a structured visual blueprint for downstream visual production. It is the single deliverable of this agent (`#/$defs/scenePlan` in `output.schema.json`).
+Produces a scene plan from the approved narration script.
+
+Given an approved narration script — together with the review report that cleared it, the story architecture it was built from, and the verified claims that ground it — this agent produces **the Scene Plan**, a structured visual blueprint for downstream visual production. It is the single deliverable of this agent (`#/$defs/scenePlan` in `output.schema.json`).
 
 Pipeline position:
 

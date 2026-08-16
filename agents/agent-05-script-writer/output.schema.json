@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:contract:script-writer-agent-output:v1",
   "title": "Script Writer Agent Response",
-  "description": "RESPONSE / ERROR contract produced by AGT-05 script-writer-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Narration Script — complete, spoken-ready narration built strictly from Agent 04's Story Architecture and Agent 03's verified claims (README §1). The model emits `#/$defs/narrationScript` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual segment traces to a story beat and, through it, to an Agent 03 verified claim; this agent never introduces a new factual claim, quote, statistic, or source (README §4, §5). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
+  "description": "RESPONSE / ERROR contract produced by AGT-05 script-writer-agent 1.x. Envelope per GDE-003 §4.1. `data` carries the Narration Script — complete, spoken-ready narration built strictly from the Story Architecture and its verified claims (README §1). The model emits `#/$defs/narrationScript` only; envelope, meta, execution, validation, and references are supplied by the runtime and the validation plane (GDE-002 §6.7, GDE-003 §4.6). Every factual segment traces to a story beat and, through it, to a verified claim; this agent never introduces a new factual claim, quote, statistic, or source (README §4, §5). Schema version 1.0.0. All enumerations are CLOSED; adding a member is a MAJOR change. All string lengths are counted in Unicode code points. Absence is expressed by omission; no field is ever null; arrays are never null (STD-000 Rule 16).",
   "oneOf": [
     { "$ref": "#/$defs/successResponse" },
     { "$ref": "#/$defs/errorResponse" }
@@ -252,7 +252,7 @@
     },
 
     "narrationScript": {
-      "description": "THE NARRATION SCRIPT. The single deliverable of this agent — complete, spoken-ready narration (README §1). Contains no scene plan, no image/video prompt, no voice setting, and no caption (README §3). Every factual segment traces to a story beat and, through it, to an Agent 03 verified claim (README §5).",
+      "description": "THE NARRATION SCRIPT. The single deliverable of this agent — complete, spoken-ready narration (README §1). Contains no scene plan, no image/video prompt, no voice setting, and no caption (README §3). Every factual segment traces to a story beat and, through it, to a verified claim (README §5).",
       "type": "object",
       "additionalProperties": false,
       "required": ["packageKind", "topicId", "segments", "scriptDuration", "wordCount", "warnings", "downstreamReadiness", "readinessRationale", "readinessBlockers"],
@@ -298,7 +298,7 @@
     },
 
     "scriptSegment": {
-      "description": "One unit of spoken narration (README §7). Every segment traces to exactly one Agent 04 story beat via beatRef.",
+      "description": "One unit of spoken narration (README §7). Every segment traces to exactly one Story Architecture story beat via beatRef.",
       "type": "object",
       "additionalProperties": false,
       "required": ["segmentId", "order", "beatRef", "segmentType", "narration", "estimatedDurationSeconds", "claimRefs", "evidenceRefs", "deliveryIntent", "emphasis"],

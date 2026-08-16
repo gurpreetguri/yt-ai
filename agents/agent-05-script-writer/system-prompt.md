@@ -6,6 +6,7 @@
 | Prompt version | `1.0.0` (content-addressed identity assigned at registration, `STD-000` §4.9) |
 | Layer | System (blocks 1–7) + User (block 8) — `STD-000` §4.4 |
 | Purpose | Generation (Creative) — `GDE-004` §4.5, conventional class/category combination (`GDE-002` §7.3, no justification required) |
+| Purpose statement | Produces a narration script from the story architecture (`STD-000` §3.2) |
 | Target output schema | `script-writer-agent-output/v1`, `#/$defs/narrationScript` |
 | Functional class | Generator |
 | Temperature | `0.6` (declared range `0.5 – 0.8`, `STD-000` §4.5) |
@@ -129,8 +130,8 @@ Strict resolution: an unresolved required variable is a hard failure **before** 
 
 | Variable | Type | Required | Source | Trust | Absence behaviour |
 |---|---|---|---|---|---|
-| `storyArchitecture` | JSON object | Yes | Agent 04 output, via workflow | Provenance TRUSTED (a validated platform artifact); embedded free text treated as untrusted data by this prompt (README §17) | Hard failure before invocation |
-| `verificationPackage` | JSON object | Yes | Agent 03 output, via workflow | Provenance TRUSTED; embedded free text treated as untrusted data by this prompt (README §17) | Hard failure before invocation |
+| `storyArchitecture` | JSON object | Yes | Story Architecture, via workflow | Provenance TRUSTED (a validated platform artifact); embedded free text treated as untrusted data by this prompt (README §17) | Hard failure before invocation |
+| `verificationPackage` | JSON object | Yes | Verification Package, via workflow | Provenance TRUSTED; embedded free text treated as untrusted data by this prompt (README §17) | Hard failure before invocation |
 | `language` | string | Yes | Locale Registry | Trusted | Hard failure before invocation |
 
 Rendering requirements (`GDE-004` §6.7):
